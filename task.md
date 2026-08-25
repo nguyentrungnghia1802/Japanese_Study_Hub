@@ -198,12 +198,12 @@ Commit: `feat(auth): implement server authentication`
 
 ## TASK-021 — Web login flow
 
-- [ ] Build login page.
-- [ ] Add API client authentication handling.
-- [ ] Add protected route/layout behavior.
-- [ ] Add logout.
-- [ ] Add loading/error states.
-- [ ] Ensure auth secret is not in browser bundle.
+- [x] Build login page.
+- [x] Add API client authentication handling.
+- [x] Add protected route/layout behavior.
+- [x] Add logout.
+- [x] Add loading/error states.
+- [x] Ensure auth secret is not in browser bundle.
 
 Acceptance criteria:
 
@@ -213,8 +213,8 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Component/form test as appropriate.
-- [ ] Web E2E login smoke test.
+- [x] Component/form test as appropriate.
+- [x] Web E2E login smoke test.
 
 Commit: `feat(web): add authentication flow`
 
