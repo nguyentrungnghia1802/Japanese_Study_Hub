@@ -697,13 +697,13 @@ Commit: `feat(exams): implement best-result tracking`
 
 ## TASK-070 — Web exam library and folder UI
 
-- [ ] Folder navigation/tree.
-- [ ] Maximum-depth UX guard.
-- [ ] Create/rename/move/delete folder UI.
-- [ ] Exam list.
-- [ ] Best score shown under/near exam title/logo.
-- [ ] Search/sort.
-- [ ] Empty/loading/error states.
+- [x] Folder navigation/tree.
+- [x] Maximum-depth UX guard.
+- [x] Create/rename/move/delete folder UI.
+- [x] Exam list.
+- [x] Best score shown under/near exam title/logo.
+- [x] Search/sort.
+- [x] Empty/loading/error states.
 
 Acceptance criteria:
 
@@ -715,16 +715,16 @@ Commit: `feat(web): build exam library and folders`
 
 ## TASK-071 — Web exam editor
 
-- [ ] Exam metadata form.
-- [ ] Folder selector.
-- [ ] Time limit.
-- [ ] Shuffle toggles.
-- [ ] Question editor.
-- [ ] 2–6 option UX.
-- [ ] Single correct-answer radio selection.
-- [ ] Reorder questions/options.
-- [ ] Validation messages.
-- [ ] Warn/handle score applicability when content changes.
+- [x] Exam metadata form.
+- [x] Folder selector.
+- [x] Time limit.
+- [x] Shuffle toggles.
+- [x] Question editor.
+- [x] 2–6 option UX.
+- [x] Single correct-answer radio selection.
+- [x] Reorder questions/options.
+- [x] Validation messages.
+- [x] Warn/handle score applicability when content changes.
 
 Acceptance criteria:
 
@@ -737,14 +737,14 @@ Commit: `feat(web): build exam editor`
 
 ## TASK-072 — Web exam import/export UI
 
-- [ ] `.md` upload.
-- [ ] Format guide.
-- [ ] Copyable template.
-- [ ] Preview metadata/question counts.
-- [ ] Errors/warnings.
-- [ ] Confirm import.
-- [ ] Export action.
-- [ ] Keep answer key visually de-emphasized in preview.
+- [x] `.md` upload.
+- [x] Format guide.
+- [x] Copyable template.
+- [x] Preview metadata/question counts.
+- [x] Errors/warnings.
+- [x] Confirm import.
+- [x] Export action.
+- [x] Keep answer key visually de-emphasized in preview.
 
 Acceptance criteria:
 
@@ -756,17 +756,17 @@ Commit: `feat(web): add exam import and export UI`
 
 ## TASK-073 — Web exam pre-start and taking screen
 
-- [ ] Pre-start summary.
-- [ ] Start attempt through backend.
-- [ ] Render question content/options.
-- [ ] Previous/next.
-- [ ] Question navigator.
-- [ ] Answered/unanswered/current states.
-- [ ] Autosave selections.
-- [ ] Render server-based timer.
-- [ ] Handle refresh/restore.
-- [ ] Warn near timeout.
-- [ ] Auto-submit on expiry.
+- [x] Pre-start summary.
+- [x] Start attempt through backend.
+- [x] Render question content/options.
+- [x] Previous/next.
+- [x] Question navigator.
+- [x] Answered/unanswered/current states.
+- [x] Autosave selections.
+- [x] Render server-based timer.
+- [x] Handle refresh/restore.
+- [x] Warn near timeout.
+- [x] Auto-submit on expiry.
 
 Critical acceptance criteria:
 
@@ -775,7 +775,7 @@ Critical acceptance criteria:
 
 Tests:
 
-- [ ] E2E timed attempt flow.
+- [x] E2E timed attempt flow.
 
 Commit: `feat(web): build exam taking experience`
 
@@ -783,15 +783,15 @@ Commit: `feat(web): build exam taking experience`
 
 ## TASK-074 — Web submission confirmation and result review
 
-- [ ] Show answered/unanswered counts.
-- [ ] Submit confirmation.
-- [ ] Display score /100.
-- [ ] Display correct/total.
-- [ ] Display duration.
-- [ ] Correct option green.
-- [ ] Wrong selected option red + correct green.
-- [ ] Unanswered state + correct green.
-- [ ] Display updated best score.
+- [x] Show answered/unanswered counts.
+- [x] Submit confirmation.
+- [x] Display score /100.
+- [x] Display correct/total.
+- [x] Display duration.
+- [x] Correct option green.
+- [x] Wrong selected option red + correct green.
+- [x] Unanswered state + correct green.
+- [x] Display updated best score.
 
 Acceptance criteria:
 
@@ -805,11 +805,11 @@ Commit: `feat(web): add exam result review`
 
 ## TASK-080 — Mobile exam library
 
-- [ ] Folder navigation appropriate for mobile.
-- [ ] Exam list.
-- [ ] Time/question metadata.
-- [ ] Best score display.
-- [ ] Search if included in shared mobile search.
+- [x] Folder navigation appropriate for mobile.
+- [x] Exam list.
+- [x] Time/question metadata.
+- [x] Best score display.
+- [x] Search if included in shared mobile search.
 
 Commit: `feat(mobile): build exam library`
 
@@ -817,16 +817,16 @@ Commit: `feat(mobile): build exam library`
 
 ## TASK-081 — Mobile exam taking flow
 
-- [ ] Pre-start screen.
-- [ ] Start/restore attempt.
-- [ ] Question/options UI.
-- [ ] Navigation.
-- [ ] Answer persistence.
-- [ ] Server-based timer.
-- [ ] Timeout submit handling.
-- [ ] Submission confirmation.
-- [ ] Result review colors/icons.
-- [ ] Best score display.
+- [x] Pre-start screen.
+- [x] Start/restore attempt.
+- [x] Question/options UI.
+- [x] Navigation.
+- [x] Answer persistence.
+- [x] Server-based timer.
+- [x] Timeout submit handling.
+- [x] Submission confirmation.
+- [x] Result review colors/icons.
+- [x] Best score display.
 
 Acceptance criteria:
 

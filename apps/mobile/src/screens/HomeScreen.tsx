@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext';
 
 interface HomeScreenProps {
   onNavigateToFlashcards?: () => void;
+  onNavigateToExams?: () => void;
 }
 
-export function HomeScreen({ onNavigateToFlashcards }: HomeScreenProps) {
+export function HomeScreen({ onNavigateToFlashcards, onNavigateToExams }: HomeScreenProps) {
   const { user, logout } = useAuth();
 
   return (
@@ -47,11 +48,11 @@ export function HomeScreen({ onNavigateToFlashcards }: HomeScreenProps) {
             <Text style={styles.cardTitle}>Flashcards</Text>
             <Text style={styles.cardDesc}>Flip cards with Japanese audio and furigana</Text>
           </TouchableOpacity>
-          <View style={styles.card}>
+          <TouchableOpacity style={styles.card} onPress={onNavigateToExams} activeOpacity={0.7}>
             <Text style={styles.cardIcon}>📝</Text>
             <Text style={styles.cardTitle}>Exams</Text>
             <Text style={styles.cardDesc}>Timed JLPT mock tests with auto grading</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
