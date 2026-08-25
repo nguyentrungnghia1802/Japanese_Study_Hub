@@ -1,0 +1,429 @@
+# 06 — UI / UX and Page Structure
+
+## 1. UX principles
+
+- Fast to understand
+- Low visual clutter
+- Content first
+- Mobile-friendly
+- Japanese text readable
+- Destructive actions safe
+- Import errors actionable
+- Exam state always obvious
+
+---
+
+## 2. Global navigation
+
+Web recommended primary navigation:
+
+- Dashboard
+- Flashcards
+- Exams
+- Search
+- Settings/Logout
+
+Mobile recommended bottom/tab or stack navigation:
+
+- Home
+- Flashcards
+- Exams
+- Search
+
+---
+
+## 3. Login
+
+Fields:
+
+- Username
+- Password
+- Login button
+
+States:
+
+- Loading
+- Invalid credentials
+- Network error
+
+Do not expose whether username or password specifically was wrong.
+
+---
+
+## 4. Dashboard
+
+Sections:
+
+- Continue/recent learning
+- Recent flashcard sets
+- Recent exams
+- Best scores for recent exams
+- Quick create/import actions
+
+Keep V1 dashboard concise.
+
+---
+
+## 5. Flashcard set list
+
+Each item/card may show:
+
+- Title
+- Description snippet
+- Card count
+- Last updated
+- Primary “Study” action
+- Overflow menu for edit/duplicate/delete/export
+
+Controls:
+
+- Search
+- Sort
+- Create set
+- Import Markdown
+
+Empty state should explain how to create/import the first set.
+
+---
+
+## 6. Flashcard set detail/editor
+
+Header:
+
+- Title
+- Description
+- Study
+- Add card
+- Import/export actions
+
+Card list:
+
+- Position
+- Front preview
+- Back preview
+- Edit
+- Duplicate
+- Delete
+- Reorder
+
+Use virtualization or pagination if the card count becomes large.
+
+---
+
+## 7. Flashcard editor
+
+Fields:
+
+- Front Markdown textarea/editor
+- Back Markdown textarea/editor
+
+Optional live preview.
+
+Actions:
+
+- Save
+- Cancel
+
+Validation:
+
+- Both sides required
+
+---
+
+## 8. Flashcard study screen
+
+Core layout:
+
+```text
+Set title                      15 / 80
+
+┌───────────────────────────────┐
+│                               │
+│           FRONT               │
+│                               │
+└───────────────────────────────┘
+
+Previous        Flip          Next
+```
+
+Actions:
+
+- Flip
+- Previous
+- Next
+- Shuffle/restart
+- Exit
+
+Keyboard web:
+
+- Space = flip
+- Left/right arrows = navigate
+
+---
+
+## 9. Flashcard import UI
+
+Steps:
+
+1. Upload
+2. Validate
+3. Preview
+4. Confirm
+5. Success
+
+Components:
+
+- Drag/drop or file picker
+- Format guide button
+- Template/example
+- Parsed summary
+- Error list
+- Warning list
+- Duplicate policy
+
+Never create domain data before confirmation.
+
+---
+
+## 10. Exam library/folder page
+
+Layout options:
+
+- Left folder tree on desktop
+- Hierarchical list/navigation on mobile
+
+Folder row:
+
+- Name
+- Child count
+- Overflow actions
+
+Exam row/card:
+
+- Logo/cover if present
+- Title
+- Time limit
+- Question count
+- Best score immediately visible when available
+- Start button
+- Edit menu
+
+---
+
+## 11. Exam editor
+
+Sections:
+
+- Metadata
+- Questions
+- Settings
+
+Metadata:
+
+- Title
+- Description
+- Folder
+- Time limit
+- Cover/icon
+
+Settings:
+
+- Shuffle questions toggle
+- Shuffle options toggle
+
+Question editor:
+
+- Question Markdown
+- 2–6 options
+- One radio selector for correct answer
+- Reorder options
+- Reorder questions
+
+The editor shall prevent saving an invalid question.
+
+---
+
+## 12. Exam import UI
+
+Same staged flow as flashcards.
+
+Preview summary:
+
+```text
+Title: JLPT N3 Grammar Test 01
+Time: 30 minutes
+Questions: 40
+Options: 160
+Errors: 0
+Warnings: 0
+```
+
+Error example:
+
+```text
+Question 11 — Answer E does not exist.
+```
+
+Do not place the full answer key at the top of preview.
+
+---
+
+## 13. Exam start screen
+
+Before starting:
+
+- Exam title
+- Description
+- Question count
+- Time limit or “No time limit”
+- Best score
+- Shuffle indicators if useful
+- Start button
+
+Starting creates a server attempt.
+
+---
+
+## 14. Exam taking screen
+
+Recommended desktop structure:
+
+```text
+Question 14 / 50                  37:42
+
+Question content
+
+○ A. ...
+○ B. ...
+○ C. ...
+○ D. ...
+
+Previous                         Next
+
+Question navigator
+1 2 3 4 5 6 ... 50
+```
+
+States:
+
+- Current
+- Answered
+- Unanswered
+
+The color/state should also use non-color cues where practical.
+
+---
+
+## 15. Timer behavior
+
+- Visible for timed exams
+- Derived from server expiration
+- Does not reset on refresh
+- Warn near expiration without obstructing work
+- Auto-submits when server considers attempt expired
+
+---
+
+## 16. Submission confirmation
+
+Show:
+
+- Total questions
+- Answered count
+- Unanswered count
+- Remaining time
+
+Buttons:
+
+- Continue exam
+- Submit
+
+---
+
+## 17. Result screen
+
+Header:
+
+- Exam title
+- Score /100
+- Correct/total
+- Duration
+- Best score
+
+Question review:
+
+Correct selected answer:
+
+- green row + correct icon/text
+
+Wrong selected answer:
+
+- selected wrong row red
+- correct row green
+
+Unanswered:
+
+- explicit “Not answered” label
+- correct row green
+
+---
+
+## 18. Search page
+
+Single search field can show grouped results:
+
+- Flashcard sets
+- Flashcards
+- Exams
+- Folders
+
+Each result links directly to the relevant content.
+
+---
+
+## 19. Loading/empty/error states
+
+Every data page shall define:
+
+- Loading state/skeleton
+- Empty state
+- Recoverable error with Retry
+- Unauthorized redirect
+- Not found state
+
+Avoid blank screens.
+
+---
+
+## 20. Responsive rules
+
+- Desktop may use sidebars/tables.
+- Mobile uses stacked cards/lists.
+- Exam option tap targets must be large enough.
+- Long Japanese lines must wrap correctly.
+- Fixed footer controls must not hide answer content.
+
+---
+
+## 21. Accessibility basics
+
+- Semantic buttons/inputs
+- Keyboard access on web
+- Visible focus
+- Form labels
+- Error text near fields
+- Do not rely solely on red/green color
+- Sufficient contrast
+
+---
+
+## 22. Design non-goals
+
+V1 does not require:
+
+- Heavy animation
+- Gamification
+- Complex themes
+- Social profile screens
+- Advanced charts
+- Custom rich-text editor framework
