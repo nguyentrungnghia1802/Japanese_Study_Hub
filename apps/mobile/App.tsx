@@ -1,32 +1,42 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { LoginScreen } from './src/screens/LoginScreen';
+import { HomeScreen } from './src/screens/HomeScreen';
+
+function MainNavigator() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#6366f1" />
+      </View>
+    );
+  }
+
+  return (
+    <>
+      <StatusBar style="light" />
+      {isAuthenticated ? <HomeScreen /> : <LoginScreen />}
+    </>
+  );
+}
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Japanese Study Hub</Text>
-      <Text style={styles.subtitle}>Self-learning Platform</Text>
-      <StatusBar style="light" />
-    </View>
+    <AuthProvider>
+      <MainNavigator />
+    </AuthProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: '#0f172a',
-    alignItems: 'center',
+    backgroundColor: '#090d16',
     justifyContent: 'center',
-  },
-  title: {
-    color: '#f8fafc',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    color: '#94a3b8',
-    fontSize: 16,
-    marginTop: 8,
+    alignItems: 'center',
   },
 });

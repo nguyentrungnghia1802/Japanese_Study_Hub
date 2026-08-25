@@ -222,12 +222,12 @@ Commit: `feat(web): add authentication flow`
 
 ## TASK-022 — Mobile login flow
 
-- [ ] Build login screen.
-- [ ] Add API client.
-- [ ] Store auth material using secure platform storage where appropriate.
-- [ ] Add protected navigation.
-- [ ] Add logout.
-- [ ] Handle network/auth errors.
+- [x] Build login screen.
+- [x] Add API client.
+- [x] Store auth material using secure platform storage where appropriate.
+- [x] Add protected navigation.
+- [x] Add logout.
+- [x] Handle network/auth errors.
 
 Acceptance criteria:
 
