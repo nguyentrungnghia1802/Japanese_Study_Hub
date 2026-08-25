@@ -27,7 +27,8 @@ Web preference:
 
 Mobile:
 
-- Store sensitive token data using secure platform storage, not plain AsyncStorage if avoidable.
+- Store the access token encrypted with Android Keystore-backed AES/GCM and persist
+  only the ciphertext through DataStore; never log or expose the token.
 
 If using JWT:
 

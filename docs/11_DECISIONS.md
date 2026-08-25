@@ -2,11 +2,15 @@
 
 This file records approved V1 decisions so agents do not repeatedly revisit settled choices.
 
-## ADR-001 — TypeScript end-to-end
+## ADR-001 — TypeScript for Web/API, Kotlin for Android
 
-**Decision:** Use TypeScript across web, mobile, and backend.
+**Decision:** Use TypeScript for Web/API/shared Node packages and Kotlin for the
+Android Native mobile client.
 
-**Reason:** Shared expertise/contracts, lower context switching, strong ecosystem.
+**Reason:** The Web/API benefit from the existing TypeScript contracts while Android
+gets a production-native client with Compose, platform navigation, secure storage,
+and Gradle tooling. The Android client consumes the existing REST contract rather
+than sharing web UI code.
 
 ---
 
@@ -143,3 +147,18 @@ This file records approved V1 decisions so agents do not repeatedly revisit sett
 ## ADR-018 — No enterprise infrastructure by default
 
 **Decision:** Do not add Kubernetes, message brokers, search clusters, or event sourcing without a new requirement.
+
+---
+
+## ADR-019 — Replace Expo mobile with Android Native
+
+**Decision:** Replace the V1 React Native/Expo implementation with a single native
+Android Kotlin application using Jetpack Compose, Material 3, Navigation Compose,
+ViewModel, Coroutines/Flow, Retrofit/OkHttp, Hilt, DataStore, and Android Keystore.
+
+**Reason:** The requested production target is Android Native. Removing the Node-based
+mobile workspace avoids parallel runtimes and makes build-time API configuration,
+secure persistence, timer restoration, and CI verification explicit.
+
+**Compatibility:** Web, Backend, Database, and REST API contracts remain unchanged.
+The current V1 mobile release is Android-only; iOS is a future separate client.

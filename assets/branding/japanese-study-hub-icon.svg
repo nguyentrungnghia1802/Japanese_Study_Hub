@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Japanese Study Hub</title>
+  <desc id="desc">A Japanese character 日 drawn on a flashcard.</desc>
+  <rect width="1024" height="1024" rx="224" fill="#4F46E5" />
+  <rect x="176" y="142" width="672" height="740" rx="112" fill="#FFF8F0" />
+  <path d="M720 142h128v128L720 142Z" fill="#E85D4A" />
+  <path
+    d="M354 346h316v334H354V346Z"
+    fill="none"
+    stroke="#4F46E5"
+    stroke-linejoin="round"
+    stroke-width="48"
+  />
+  <path d="M354 513h316" fill="none" stroke="#4F46E5" stroke-width="48" />
+  <path d="M354 735h166" fill="none" stroke="#E85D4A" stroke-linecap="round" stroke-width="28" />
+</svg>

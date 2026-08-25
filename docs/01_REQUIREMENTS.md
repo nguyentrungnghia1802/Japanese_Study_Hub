@@ -49,7 +49,7 @@ The product shall prioritize:
 - Basic dashboard
 - Soft deletion
 - Responsive web UI
-- Android/iOS-ready mobile app through Expo
+- Android Native mobile app using Kotlin, Jetpack Compose, and Material 3
 - REST backend
 - PostgreSQL persistence
 - Validation, logging, tests, backup, deployment documentation
@@ -884,7 +884,9 @@ Web UI shall be responsive for desktop and mobile widths.
 
 ### COMPAT-003
 
-Mobile app shall target Android and iOS through Expo-compatible React Native.
+The V1 mobile app shall target Android through a native Kotlin + Jetpack Compose
+application. iOS is intentionally outside the scope of this migration and may be
+added later as a separate client without changing the Web/API/Database contract.
 
 ### COMPAT-004
 

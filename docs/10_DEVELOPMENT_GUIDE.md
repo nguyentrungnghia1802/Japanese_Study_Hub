@@ -47,11 +47,27 @@
 
 ## 5. Mobile coding rules
 
-- Reuse API contracts/utilities where safe
+- Mobile is an independent Android Native Kotlin + Jetpack Compose Gradle project;
+  it is not a pnpm workspace package.
+- Keep Retrofit/OkHttp behind repositories and map transport DTOs to domain models.
+- Keep UI state in ViewModels using Coroutines + Flow; do not put network/business
+  logic in Activities or Composables.
 - Do not reuse web DOM-specific UI code
-- Store auth material securely
+- Store auth material encrypted with Android Keystore and persist it through DataStore.
 - Treat network failures as normal mobile conditions
 - Do not implement hidden offline synchronization in V1
+
+From the repository root, mobile checks are run with:
+
+```text
+cd apps/mobile
+./gradlew testDebugUnitTest lintDebug assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+The API endpoint is centralized in `BuildConfig.API_BASE_URL`. Debug builds default
+to `http://localhost:4000/api/v1`, release builds default to the production API, and
+`-PapiBaseUrl=...` is the supported build-time override.
 
 ---
 

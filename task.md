@@ -16,7 +16,7 @@ Requirements: all
 - [x] Record any contradictions before coding.
 - [x] Resolve contradictions by source-of-truth priority.
 - [x] Confirm V1 scope and explicit non-goals.
-- [x] Confirm stack: pnpm + Turborepo + Next.js + Expo + NestJS + PostgreSQL + Prisma.
+- [x] Confirm stack: pnpm + Turborepo + Next.js + Android Native Kotlin/Compose + NestJS + PostgreSQL + Prisma.
 
 Acceptance criteria:
 
@@ -1110,6 +1110,28 @@ Commit: `docs: complete final project documentation audit`
 
 ---
 
+## TASK-143 — Replace Expo mobile with Android Native Kotlin
+
+- [x] Remove the React Native/Expo implementation, dependencies, and configuration.
+- [x] Create a standalone Android Gradle/Kotlin project with Compose and Material 3.
+- [x] Add Navigation Compose, ViewModel, Coroutines/Flow, Retrofit/OkHttp, Hilt,
+      DataStore, and Android Keystore-backed token storage.
+- [x] Preserve the existing Web/API/Database contract and implement auth,
+      dashboard, flashcards, exams, search, retry/error states, timer, submit, and result flows.
+- [x] Centralize development/production API base URL injection at Android build time.
+- [x] Add Android unit tests and CI checks for Gradle tests, lint, and debug APK build.
+- [x] Update workspace configuration, deployment guidance, architecture decisions,
+      traceability, README, and release gates.
+
+Acceptance criteria:
+
+- `apps/mobile` is 100% Kotlin Android Native and builds without Node/pnpm.
+- Debug unit tests, lint, and debug APK build pass locally and in CI.
+
+Commit: `feat(mobile): migrate to native Android Kotlin`
+
+---
+
 # Phase 15 — Final release gate
 
 ## TASK-150 — Full validation
@@ -1125,7 +1147,7 @@ Run from clean checkout/environment where practical:
 - [x] Mobile smoke path passes.
 - [x] Web production build passes.
 - [x] API production build passes.
-- [x] Mobile typecheck/build smoke passes.
+- [x] Mobile Gradle unit tests/lint/debug APK build passes.
 - [x] Fresh database migration passes.
 - [x] Backup restore test has passed.
 - [x] Security release checklist passes.

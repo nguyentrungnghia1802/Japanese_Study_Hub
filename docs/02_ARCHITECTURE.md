@@ -21,7 +21,7 @@ Primary goals:
 ```text
 ┌─────────────────────┐       ┌─────────────────────┐
 │      Web App        │       │     Mobile App      │
-│ Next.js / React     │       │ React Native/Expo   │
+│ Next.js / React     │       │ Kotlin/Compose      │
 └─────────┬───────────┘       └──────────┬──────────┘
           │ HTTPS REST                    │ HTTPS REST
           └──────────────┬────────────────┘
@@ -64,6 +64,10 @@ japanese-learning/
 ├── pnpm-workspace.yaml
 └── turbo.json
 ```
+
+`apps/mobile` is an Android Gradle project rather than a pnpm workspace package.
+Its native source is organized under `app/src/main/java` by `core`, `data`, and
+feature modules; it has no React Native, Expo, or Node runtime dependency.
 
 ### Shared packages
 
@@ -142,14 +146,16 @@ The web app shall not:
 
 ## 6. Mobile architecture
 
-Recommended Expo/React Native responsibilities:
+Android Native Kotlin/Compose responsibilities:
 
 - Authentication state
-- API consumption
-- Mobile-native navigation
+- Retrofit/OkHttp API consumption through a repository
+- Navigation Compose and Material 3 UI
+- ViewModel state backed by Coroutines + Flow
 - Flashcard study interaction
 - Exam interaction
-- Lightweight caching only
+- Encrypted token persistence using Android Keystore + DataStore
+- Active-attempt restoration using DataStore
 
 V1 mobile is online-first.
 

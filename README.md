@@ -54,7 +54,7 @@ If an implementation conflicts with an approved requirement, fix the implementat
 
 - Monorepo: pnpm workspace + Turborepo
 - Web: Next.js + React + TypeScript
-- Mobile: React Native + Expo + TypeScript
+- Mobile: Android Native Kotlin + Jetpack Compose + Material 3
 - Backend: NestJS + TypeScript
 - Database: PostgreSQL
 - ORM: Prisma
@@ -77,7 +77,32 @@ If an implementation conflicts with an approved requirement, fix the implementat
 - Lower exam scores do not overwrite the highest score.
 - Content-changing exam edits invalidate previous best scores through exam versioning.
 
-## 6. Definition of project completion
+## 6. Local development commands
+
+The Web/API/Database remain Node, pnpm, Docker, and PostgreSQL services. The mobile
+client is an independent Gradle project and does not require Node or pnpm to build.
+
+```bash
+pnpm install
+pnpm dev
+
+cd apps/mobile
+./gradlew testDebugUnitTest lintDebug assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+The Android debug build defaults to `http://localhost:4000/api/v1`. For an Android
+emulator whose host machine is the local API, use:
+
+```bash
+./gradlew assembleDebug -PapiBaseUrl=http://10.0.2.2:4000/api/v1
+```
+
+Release builds default to `http://157.173.127.217:4000/api/v1`; a deployment can
+override the centralized build-time value with the same `apiBaseUrl` Gradle property.
+No signing key or release secret is stored in the repository.
+
+## 7. Definition of project completion
 
 The project is complete only when:
 
@@ -85,7 +110,7 @@ The project is complete only when:
 - All mandatory tests pass.
 - No critical or high-severity known bug remains.
 - Database migrations run from a clean database.
-- Web and mobile clients work against the same backend.
+- Web and Android mobile clients work against the same backend.
 - Markdown import/export round trips correctly for supported formats.
 - Deployment documentation has been verified.
 - `task.md` is fully checked.

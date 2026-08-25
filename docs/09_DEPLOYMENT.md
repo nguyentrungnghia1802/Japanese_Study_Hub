@@ -26,7 +26,7 @@ Local services:
 - Web
 - API
 - PostgreSQL
-- Mobile Expo development server
+- Android mobile app built/run from the Gradle project on an emulator or device
 
 ---
 
@@ -38,7 +38,8 @@ Use Docker for:
 - API production image
 - Web production image where deployment target supports it
 
-Mobile is built through Expo/EAS or project-selected native pipeline, not as a long-running server container.
+Mobile is built as an Android APK through the Gradle wrapper. It is not a long-running
+server container and does not require Node.js or pnpm.
 
 ---
 
@@ -88,7 +89,7 @@ NEXT_PUBLIC_API_BASE_URL
 Mobile:
 
 ```text
-EXPO_PUBLIC_API_URL
+BuildConfig.API_BASE_URL
 ```
 
 Never expose backend secrets through public-prefixed client variables.
@@ -98,12 +99,18 @@ Never expose backend secrets through public-prefixed client variables.
 Docker build argument; changing only the running container environment cannot
 change the already-built browser bundle.
 
+The Android API value is embedded into the native binary at Gradle build time. The
+debug variant defaults to `http://localhost:4000/api/v1`, the release variant
+defaults to `http://157.173.127.217:4000/api/v1`, and `-PapiBaseUrl=...` overrides
+either variant without changing source code. Android cleartext traffic is enabled
+for the current HTTP development/production IP and must be replaced with HTTPS when
+the deployment endpoint supports it.
+
 Local values:
 
 ```text
 CORS_ORIGINS=http://localhost:3000
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000/api/v1
-EXPO_PUBLIC_API_URL=http://localhost:4000/api/v1
 ```
 
 Production values for the current host:
@@ -112,6 +119,10 @@ Production values for the current host:
 CORS_ORIGINS=http://157.173.127.217:3000
 NEXT_PUBLIC_API_BASE_URL=http://157.173.127.217:4000/api/v1
 ```
+
+The Android release build uses the same production API URL by default. Production
+API CORS must allow `http://157.173.127.217:3000` for the Web client; Android native
+requests do not send a browser Origin header.
 
 The GHCR publish workflow passes the production Web value to the Docker build.
 When `CORS_ORIGINS` is omitted, the API defaults to localhost outside
@@ -130,7 +141,6 @@ AUTH_PASSWORD_HASH=<generated-hash>
 AUTH_TOKEN_SECRET=<replace-me>
 CORS_ORIGINS=http://localhost:3000
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000/api/v1
-EXPO_PUBLIC_API_URL=http://localhost:4000/api/v1
 ```
 
 No real production values.
@@ -217,7 +227,8 @@ deploy
 smoke test
 ```
 
-Mobile build may be a separate workflow.
+Android mobile Gradle build/lint/unit-test gates may run as a separate workflow or
+as an independent job in the project CI.
 
 ---
 
