@@ -167,16 +167,16 @@ Commit: `feat(db): add initial Prisma schema`
 
 Requirements: AUTH-001..AUTH-009
 
-- [ ] Add auth module.
-- [ ] Load configured username and password hash from env.
-- [ ] Implement secure password verification.
-- [ ] Implement chosen token/session mechanism.
-- [ ] Add authentication guard/middleware.
-- [ ] Add `POST /auth/login`.
-- [ ] Add `POST /auth/logout`.
-- [ ] Add `GET /auth/me`.
-- [ ] Ensure protected routes reject unauthenticated access.
-- [ ] Add login rate limit.
+- [x] Add auth module.
+- [x] Load configured username and password hash from env.
+- [x] Implement secure password verification.
+- [x] Implement chosen token/session mechanism.
+- [x] Add authentication guard/middleware.
+- [x] Add `POST /auth/login`.
+- [x] Add `POST /auth/logout`.
+- [x] Add `GET /auth/me`.
+- [x] Ensure protected routes reject unauthenticated access.
+- [x] Add login rate limit.
 
 Acceptance criteria:
 
@@ -187,10 +187,10 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Correct login.
-- [ ] Wrong login.
-- [ ] Rate limiting.
-- [ ] Protected route.
+- [x] Correct login.
+- [x] Wrong login.
+- [x] Rate limiting.
+- [x] Protected route.
 
 Commit: `feat(auth): implement server authentication`
 
