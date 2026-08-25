@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { ExamFoldersService } from './exam-folders.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 

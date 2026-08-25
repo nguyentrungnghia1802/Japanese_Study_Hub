@@ -1,10 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
-import {
-  ExamDto,
-  QuestionType,
-  CreateExamQuestionDto,
-  ExamQuestionDto,
-} from '@japanese-learning/contracts';
+import { ExamDto, QuestionType, CreateExamQuestionDto } from '@japanese-learning/contracts';
 import { exportExamToMarkdown } from '@japanese-learning/shared';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateExamBodyDto } from './dto/create-exam.dto.js';

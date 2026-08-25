@@ -49,3 +49,4 @@ apps/api/prisma/*.db-journal
 *.mobileprovision
 *.orig.*
 web-build/
+.pgdata/

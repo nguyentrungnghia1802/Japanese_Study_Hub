@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { AttemptStatus, QuestionType } from '@japanese-learning/contracts';
 import { AttemptsService } from './attempts.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -141,7 +141,7 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
       // Verify no isCorrect in question options
       liveAttempt.questions.forEach((q) => {
         q.options.forEach((opt) => {
-          expect((opt as Record<string, unknown>).isCorrect).toBeUndefined();
+          expect((opt as unknown as Record<string, unknown>).isCorrect).toBeUndefined();
         });
       });
     });

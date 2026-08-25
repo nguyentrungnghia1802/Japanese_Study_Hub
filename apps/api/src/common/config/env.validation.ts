@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { plainToInstance } from 'class-transformer';
+import { plainToInstance, Type } from 'class-transformer';
 import { IsEnum, IsNumber, IsOptional, IsString, MinLength, validateSync } from 'class-validator';
 
 export enum Environment {
@@ -13,6 +13,7 @@ export class EnvironmentVariables {
   @IsOptional()
   NODE_ENV: Environment = Environment.Development;
 
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   PORT = 4000;
@@ -40,6 +41,7 @@ export class EnvironmentVariables {
   @IsOptional()
   CORS_ORIGINS = 'http://localhost:3000';
 
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   UPLOAD_MAX_BYTES = 10485760;
