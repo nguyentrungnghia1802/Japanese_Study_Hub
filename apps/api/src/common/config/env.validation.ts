@@ -8,6 +8,13 @@ export enum Environment {
   Test = 'test',
 }
 
+export const LOCAL_CORS_ORIGIN = 'http://localhost:3000';
+export const PRODUCTION_CORS_ORIGIN = 'http://157.173.127.217:3000';
+
+export function getDefaultCorsOrigins(nodeEnv?: string): string {
+  return nodeEnv === Environment.Production ? PRODUCTION_CORS_ORIGIN : LOCAL_CORS_ORIGIN;
+}
+
 export class EnvironmentVariables {
   @IsEnum(Environment)
   @IsOptional()
@@ -39,7 +46,7 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
-  CORS_ORIGINS = 'http://localhost:3000';
+  CORS_ORIGINS = LOCAL_CORS_ORIGIN;
 
   @Type(() => Number)
   @IsNumber()
@@ -52,7 +59,12 @@ export class EnvironmentVariables {
 }
 
 export function validateEnvironment(config: Record<string, unknown>) {
-  const validatedConfig = plainToInstance(EnvironmentVariables, config, {
+  const configWithCorsDefault = {
+    ...config,
+    CORS_ORIGINS:
+      config.CORS_ORIGINS ?? getDefaultCorsOrigins(config.NODE_ENV as string | undefined),
+  };
+  const validatedConfig = plainToInstance(EnvironmentVariables, configWithCorsDefault, {
     enableImplicitConversion: true,
   });
   const errors = validateSync(validatedConfig, {

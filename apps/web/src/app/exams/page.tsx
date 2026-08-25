@@ -21,7 +21,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { ExamDto, ExamFolderDto } from '@japanese-learning/contracts';
-import { apiClient } from '@/lib/api-client';
+import { API_BASE_URL, apiClient } from '@/lib/api-client';
 import { ExamImportModal } from '@/components/exams/exam-import-modal';
 
 export default function ExamsPage() {
@@ -177,8 +177,7 @@ export default function ExamsPage() {
   const handleExportExam = async (id: string, title: string) => {
     try {
       const token = localStorage.getItem('auth_token');
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api/v1';
-      const res = await fetch(`${apiBase}/exams/${id}/export`, {
+      const res = await fetch(`${API_BASE_URL}/exams/${id}/export`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 

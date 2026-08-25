@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { validateEnvironment } from './env.validation.js';
+import {
+  getDefaultCorsOrigins,
+  LOCAL_CORS_ORIGIN,
+  PRODUCTION_CORS_ORIGIN,
+  validateEnvironment,
+} from './env.validation.js';
 
 describe('Environment Validation (TASK-011)', () => {
   it('accepts valid configuration and provides defaults', () => {
@@ -31,5 +36,17 @@ describe('Environment Validation (TASK-011)', () => {
     };
 
     expect(() => validateEnvironment(config)).toThrow('Environment validation failed');
+  });
+
+  it('uses the local CORS origin outside production', () => {
+    expect(getDefaultCorsOrigins('development')).toBe(LOCAL_CORS_ORIGIN);
+    expect(getDefaultCorsOrigins('test')).toBe(LOCAL_CORS_ORIGIN);
+  });
+
+  it('uses the production web origin when NODE_ENV is production', () => {
+    const validated = validateEnvironment({ NODE_ENV: 'production' });
+
+    expect(getDefaultCorsOrigins('production')).toBe(PRODUCTION_CORS_ORIGIN);
+    expect(validated.CORS_ORIGINS).toBe(PRODUCTION_CORS_ORIGIN);
   });
 });

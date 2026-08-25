@@ -18,7 +18,7 @@ import {
   Download,
 } from 'lucide-react';
 import { FlashcardSetDto, FlashcardDto } from '@japanese-learning/contracts';
-import { apiClient } from '@/lib/api-client';
+import { API_BASE_URL, apiClient } from '@/lib/api-client';
 
 export default function FlashcardSetDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -178,8 +178,7 @@ export default function FlashcardSetDetailPage() {
     if (!set) return;
     try {
       const token = localStorage.getItem('auth_token');
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api/v1';
-      const res = await fetch(`${apiBase}/flashcard-sets/${id}/export`, {
+      const res = await fetch(`${API_BASE_URL}/flashcard-sets/${id}/export`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 

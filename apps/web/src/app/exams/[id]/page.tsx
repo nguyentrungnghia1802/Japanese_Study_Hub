@@ -15,7 +15,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { ExamDto } from '@japanese-learning/contracts';
-import { apiClient } from '@/lib/api-client';
+import { API_BASE_URL, apiClient } from '@/lib/api-client';
 
 export default function ExamDetailPage() {
   const params = useParams();
@@ -45,8 +45,7 @@ export default function ExamDetailPage() {
     if (!exam) return;
     try {
       const token = localStorage.getItem('auth_token');
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api/v1';
-      const res = await fetch(`${apiBase}/exams/${exam.id}/export`, {
+      const res = await fetch(`${API_BASE_URL}/exams/${exam.id}/export`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 

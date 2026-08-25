@@ -82,16 +82,40 @@ LOG_LEVEL
 Web:
 
 ```text
-PUBLIC_API_BASE_URL
+NEXT_PUBLIC_API_BASE_URL
 ```
 
 Mobile:
 
 ```text
-PUBLIC_API_BASE_URL
+EXPO_PUBLIC_API_URL
 ```
 
 Never expose backend secrets through public-prefixed client variables.
+
+`NEXT_PUBLIC_API_BASE_URL` is embedded into the Next.js browser bundle during
+`next build`. The Web production image therefore requires this value as a
+Docker build argument; changing only the running container environment cannot
+change the already-built browser bundle.
+
+Local values:
+
+```text
+CORS_ORIGINS=http://localhost:3000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:4000/api/v1
+EXPO_PUBLIC_API_URL=http://localhost:4000/api/v1
+```
+
+Production values for the current host:
+
+```text
+CORS_ORIGINS=http://157.173.127.217:3000
+NEXT_PUBLIC_API_BASE_URL=http://157.173.127.217:4000/api/v1
+```
+
+The GHCR publish workflow passes the production Web value to the Docker build.
+When `CORS_ORIGINS` is omitted, the API defaults to localhost outside
+production and to `http://157.173.127.217:3000` in production.
 
 ---
 
@@ -105,6 +129,8 @@ AUTH_USERNAME=admin
 AUTH_PASSWORD_HASH=<generated-hash>
 AUTH_TOKEN_SECRET=<replace-me>
 CORS_ORIGINS=http://localhost:3000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:4000/api/v1
+EXPO_PUBLIC_API_URL=http://localhost:4000/api/v1
 ```
 
 No real production values.

@@ -1,6 +1,12 @@
 import { ApiErrorResponseDto } from '@japanese-learning/contracts';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api/v1';
+export const DEFAULT_API_BASE_URL = 'http://localhost:4000/api/v1';
+
+export function resolveApiBaseUrl(value?: string): string {
+  return value?.trim() || DEFAULT_API_BASE_URL;
+}
+
+export const API_BASE_URL = resolveApiBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL);
 
 export class ApiError extends Error {
   constructor(

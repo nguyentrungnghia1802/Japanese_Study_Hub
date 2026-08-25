@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
 import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter.js';
+import { getDefaultCorsOrigins } from './common/config/env.validation.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -22,7 +23,12 @@ async function bootstrap() {
     }),
   );
 
-  const corsOrigins = process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'];
+  const corsOrigins = (
+    process.env.CORS_ORIGINS?.trim() || getDefaultCorsOrigins(process.env.NODE_ENV)
+  )
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
   app.enableCors({
     origin: corsOrigins,
     credentials: true,

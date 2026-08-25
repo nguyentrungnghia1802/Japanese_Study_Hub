@@ -19,8 +19,11 @@ jobs:
         include:
           - name: api
             dockerfile: docker/Dockerfile.api
+            build_args: ''
           - name: web
             dockerfile: docker/Dockerfile.web
+            build_args: |
+              NEXT_PUBLIC_API_BASE_URL=http://157.173.127.217:4000/api/v1
 
     steps:
       - name: Checkout repository
@@ -41,6 +44,7 @@ jobs:
         with:
           context: .
           file: ${{ matrix.dockerfile }}
+          build-args: ${{ matrix.build_args }}
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/japanese-study-hub-${{ matrix.name }}:latest
