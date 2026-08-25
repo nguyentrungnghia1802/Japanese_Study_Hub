@@ -1,0 +1,230 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE_SINGLE
+  READING_PASSAGE
+  LISTENING_AUDIO
+}
+
+enum ContextType {
+  TEXT
+  AUDIO
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+}
+
+enum ImportType {
+  FLASHCARD_SET
+  EXAM
+}
+
+model FlashcardSet {
+  id          String      @id @default(uuid()) @db.Uuid
+  title       String      @db.VarChar(255)
+  description String?     @db.Text
+  coverRef    String?     @map("cover_ref") @db.Text
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime?   @map("deleted_at") @db.Timestamptz(6)
+
+  cards Flashcard[]
+
+  @@index([deletedAt])
+  @@map("flashcard_sets")
+}
+
+model Flashcard {
+  id        String       @id @default(uuid()) @db.Uuid
+  setId     String       @map("set_id") @db.Uuid
+  front     String       @db.Text
+  back      String       @db.Text
+  position  Int          @default(0)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime?    @map("deleted_at") @db.Timestamptz(6)
+
+  set FlashcardSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  @@index([setId, position])
+  @@index([deletedAt])
+  @@map("flashcards")
+}
+
+model ExamFolder {
+  id        String       @id @default(uuid()) @db.Uuid
+  parentId  String?      @map("parent_id") @db.Uuid
+  name      String       @db.VarChar(255)
+  position  Int          @default(0)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime?    @map("deleted_at") @db.Timestamptz(6)
+
+  parent   ExamFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children ExamFolder[] @relation("FolderHierarchy")
+  exams    Exam[]
+
+  @@index([parentId, position])
+  @@index([deletedAt])
+  @@map("exam_folders")
+}
+
+model Exam {
+  id               String           @id @default(uuid()) @db.Uuid
+  folderId         String?          @map("folder_id") @db.Uuid
+  title            String           @db.VarChar(255)
+  description      String?          @db.Text
+  coverRef         String?          @map("cover_ref") @db.Text
+  timeLimitSeconds Int?             @map("time_limit_seconds")
+  contentVersion   Int              @default(1) @map("content_version")
+  shuffleQuestions Boolean          @default(false) @map("shuffle_questions")
+  shuffleOptions   Boolean          @default(false) @map("shuffle_options")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(6)
+
+  folder           ExamFolder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  questions        ExamQuestion[]
+  attempts         ExamAttempt[]
+  bestResults      ExamBestResult[]
+  contexts         QuestionContext[]
+
+  @@index([folderId])
+  @@index([deletedAt])
+  @@map("exams")
+}
+
+model QuestionContext {
+  id          String        @id @default(uuid()) @db.Uuid
+  examId      String        @map("exam_id") @db.Uuid
+  type        ContextType
+  textContent String?       @map("text_content") @db.Text
+  mediaRef    String?       @map("media_ref") @db.Text
+  position    Int           @default(0)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  exam      Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  questions ExamQuestion[]
+
+  @@index([examId, position])
+  @@map("question_contexts")
+}
+
+model ExamQuestion {
+  id        String          @id @default(uuid()) @db.Uuid
+  examId    String          @map("exam_id") @db.Uuid
+  contextId String?         @map("context_id") @db.Uuid
+  type      QuestionType    @default(MULTIPLE_CHOICE_SINGLE)
+  content   String          @db.Text
+  position  Int             @default(0)
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  exam    Exam             @relation(fields: [examId], references: [id], onDelete: Cascade)
+  context QuestionContext? @relation(fields: [contextId], references: [id], onDelete: SetNull)
+  options ExamOption[]
+
+  @@index([examId, position])
+  @@map("exam_questions")
+}
+
+model ExamOption {
+  id         String       @id @default(uuid()) @db.Uuid
+  questionId String       @map("question_id") @db.Uuid
+  content    String       @db.Text
+  isCorrect  Boolean      @default(false) @map("is_correct")
+  position   Int          @default(0)
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  question ExamQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId, position])
+  @@map("exam_options")
+}
+
+model ExamAttempt {
+  id                     String              @id @default(uuid()) @db.Uuid
+  examId                 String              @map("exam_id") @db.Uuid
+  examVersion            Int                 @map("exam_version")
+  userKey                String              @default("primary_user") @map("user_key") @db.VarChar(255)
+  startedAt              DateTime            @default(now()) @map("started_at") @db.Timestamptz(6)
+  expiresAt              DateTime?           @map("expires_at") @db.Timestamptz(6)
+  submittedAt            DateTime?           @map("submitted_at") @db.Timestamptz(6)
+  status                 AttemptStatus       @default(IN_PROGRESS)
+  score                  Decimal?            @db.Decimal(5, 2)
+  correctCount           Int?                @map("correct_count")
+  totalQuestions         Int                 @map("total_questions")
+  durationSeconds        Int?                @map("duration_seconds")
+  questionOrderSnapshot  Json?               @map("question_order_snapshot")
+  optionOrderSnapshot    Json?               @map("option_order_snapshot")
+  createdAt              DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  exam    Exam                @relation(fields: [examId], references: [id], onDelete: Cascade)
+  answers ExamAttemptAnswer[]
+
+  @@index([examId, userKey])
+  @@map("exam_attempts")
+}
+
+model ExamAttemptAnswer {
+  id               String       @id @default(uuid()) @db.Uuid
+  attemptId        String       @map("attempt_id") @db.Uuid
+  questionId       String       @map("question_id") @db.Uuid
+  selectedOptionId String?      @map("selected_option_id") @db.Uuid
+  isCorrect        Boolean?     @map("is_correct")
+  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  attempt ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+  @@map("exam_attempt_answers")
+}
+
+model ExamBestResult {
+  id              String   @id @default(uuid()) @db.Uuid
+  examId          String   @map("exam_id") @db.Uuid
+  examVersion     Int      @map("exam_version")
+  userKey         String   @default("primary_user") @map("user_key") @db.VarChar(255)
+  bestScore       Decimal  @map("best_score") @db.Decimal(5, 2)
+  correctCount    Int      @map("correct_count")
+  totalQuestions  Int      @map("total_questions")
+  durationSeconds Int?     @map("duration_seconds")
+  attemptCount    Int      @default(1) @map("attempt_count")
+  achievedAt      DateTime @default(now()) @map("achieved_at") @db.Timestamptz(6)
+  lastAttemptAt   DateTime @default(now()) @map("last_attempt_at") @db.Timestamptz(6)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([userKey, examId, examVersion])
+  @@index([examId])
+  @@map("exam_best_results")
+}
+
+model ImportSession {
+  id                String     @id @default(uuid()) @db.Uuid
+  type              ImportType
+  payloadHash       String     @map("payload_hash") @db.VarChar(64)
+  normalizedPayload Json       @map("normalized_payload")
+  expiresAt         DateTime   @map("expires_at") @db.Timestamptz(6)
+  consumedAt        DateTime?  @map("consumed_at") @db.Timestamptz(6)
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([expiresAt])
+  @@map("import_sessions")
+}

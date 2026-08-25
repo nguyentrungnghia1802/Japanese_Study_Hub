@@ -134,17 +134,17 @@ Commit: `feat(api): establish API foundation`
 
 Requirements: `03_DATABASE.md`
 
-- [ ] Install/configure Prisma.
-- [ ] Define initial enums.
-- [ ] Define flashcard tables.
-- [ ] Define exam folder tables.
-- [ ] Define exam/question/option tables.
-- [ ] Define attempt/best-result tables.
-- [ ] Add optional import session table if chosen.
-- [ ] Add timestamps and soft-delete fields.
-- [ ] Add indexes.
-- [ ] Create initial migration.
-- [ ] Add Prisma service/module.
+- [x] Install/configure Prisma.
+- [x] Define initial enums.
+- [x] Define flashcard tables.
+- [x] Define exam folder tables.
+- [x] Define exam/question/option tables.
+- [x] Define attempt/best-result tables.
+- [x] Add optional import session table if chosen.
+- [x] Add timestamps and soft-delete fields.
+- [x] Add indexes.
+- [x] Create initial migration.
+- [x] Add Prisma service/module.
 
 Acceptance criteria:
 
@@ -154,8 +154,8 @@ Acceptance criteria:
 
 Tests/checks:
 
-- [ ] Fresh migration test.
-- [ ] Basic DB connectivity integration test.
+- [x] Fresh migration test.
+- [x] Basic DB connectivity integration test.
 
 Commit: `feat(db): add initial Prisma schema`
 
