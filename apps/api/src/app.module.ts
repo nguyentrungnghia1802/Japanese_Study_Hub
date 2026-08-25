@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { HealthModule } from './health/health.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { FlashcardsModule } from './flashcards/flashcards.module.js';
 import { validateEnvironment } from './common/config/env.validation.js';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware.js';
 
@@ -14,6 +15,7 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware.j
     }),
     PrismaModule,
     AuthModule,
+    FlashcardsModule,
     HealthModule,
   ],
 })

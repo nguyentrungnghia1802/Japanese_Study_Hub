@@ -244,15 +244,15 @@ Commit: `feat(mobile): add authentication flow`
 
 Requirements: FLASH-SET-001..008
 
-- [ ] Create set service/controller/DTOs.
-- [ ] List with pagination/search/sort.
-- [ ] Get detail.
-- [ ] Create.
-- [ ] Update metadata.
-- [ ] Soft delete.
-- [ ] Restore if supported in V1 UI.
-- [ ] Duplicate set transactionally.
-- [ ] Exclude soft-deleted records by default.
+- [x] Create set service/controller/DTOs.
+- [x] List with pagination/search/sort.
+- [x] Get detail.
+- [x] Create.
+- [x] Update metadata.
+- [x] Soft delete.
+- [x] Restore if supported in V1 UI.
+- [x] Duplicate set transactionally.
+- [x] Exclude soft-deleted records by default.
 
 Acceptance criteria:
 
@@ -261,9 +261,9 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] CRUD integration tests.
-- [ ] Soft delete visibility test.
-- [ ] Duplicate transaction test.
+- [x] CRUD integration tests.
+- [x] Soft delete visibility test.
+- [x] Duplicate transaction test.
 
 Commit: `feat(api): implement flashcard set CRUD`
 
@@ -273,14 +273,14 @@ Commit: `feat(api): implement flashcard set CRUD`
 
 Requirements: FLASH-001..007
 
-- [ ] Create card.
-- [ ] Edit card.
-- [ ] Soft delete card.
-- [ ] Duplicate card.
-- [ ] Reorder cards.
-- [ ] Validate set ownership.
-- [ ] Require non-empty front/back.
-- [ ] Preserve Japanese Unicode.
+- [x] Create card.
+- [x] Edit card.
+- [x] Soft delete card.
+- [x] Duplicate card.
+- [x] Reorder cards.
+- [x] Validate set ownership.
+- [x] Require non-empty front/back.
+- [x] Preserve Japanese Unicode.
 
 Acceptance criteria:
 
@@ -289,10 +289,10 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Create/update/delete.
-- [ ] Front/back validation.
-- [ ] Reorder.
-- [ ] Wrong set ownership rejection.
+- [x] Create/update/delete.
+- [x] Front/back validation.
+- [x] Reorder.
+- [x] Wrong set ownership rejection.
 
 Commit: `feat(api): implement flashcard card management`
 
