@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { LiveExamAttemptDto, ExamAttemptResultDto } from '@japanese-learning/contracts';
-import { mobileApiClient } from '../lib/api-client.js';
+import { apiClient } from '../lib/api-client.js';
 
 interface ExamTakeScreenProps {
   examId: string;
@@ -27,12 +27,12 @@ export function ExamTakeScreen({ examId, onBack }: ExamTakeScreenProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeLeftSeconds, setTimeLeftSeconds] = useState<number | null>(null);
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const initAttempt = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await mobileApiClient<LiveExamAttemptDto>(`/exams/${examId}/attempts`, {
+      const data = await apiClient<LiveExamAttemptDto>(`/exams/${examId}/attempts`, {
         method: 'POST',
       });
       setAttempt(data);
@@ -67,13 +67,10 @@ export function ExamTakeScreen({ examId, onBack }: ExamTakeScreenProps) {
         selectedOptionId,
       }));
 
-      const res = await mobileApiClient<ExamAttemptResultDto>(
-        `/attempts/${attempt.attemptId}/submit`,
-        {
-          method: 'POST',
-          body: JSON.stringify({ answers: formattedAnswers }),
-        },
-      );
+      const res = await apiClient<ExamAttemptResultDto>(`/attempts/${attempt.attemptId}/submit`, {
+        method: 'POST',
+        body: JSON.stringify({ answers: formattedAnswers }),
+      });
 
       setResult(res);
       if (timerRef.current) clearInterval(timerRef.current);
@@ -116,7 +113,7 @@ export function ExamTakeScreen({ examId, onBack }: ExamTakeScreenProps) {
     if (!attempt) return;
 
     try {
-      await mobileApiClient(`/attempts/${attempt.attemptId}/answers`, {
+      await apiClient(`/attempts/${attempt.attemptId}/answers`, {
         method: 'PUT',
         body: JSON.stringify({
           answers: [{ questionId, selectedOptionId: optionId }],

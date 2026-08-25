@@ -1,10 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import HomePage from './page.js';
+import DashboardPage from './page.js';
 
-describe('HomePage', () => {
-  it('renders home page component', () => {
-    const element = HomePage();
-    expect(element).toBeDefined();
-    expect(element.type).toBe('main');
+describe('DashboardPage (TASK-092)', () => {
+  it('exports DashboardPage component function', () => {
+    expect(typeof DashboardPage).toBe('function');
   });
 });

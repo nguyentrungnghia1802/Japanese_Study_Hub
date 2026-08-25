@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { FlashcardsModule } from './flashcards/flashcards.module.js';
 import { ExamsModule } from './exams/exams.module.js';
 import { AttemptsModule } from './attempts/attempts.module.js';
+import { SearchModule } from './search/search.module.js';
 import { ImportsModule } from './imports/imports.module.js';
 import { validateEnvironment } from './common/config/env.validation.js';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware.js';
@@ -21,6 +22,7 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware.j
     FlashcardsModule,
     ExamsModule,
     AttemptsModule,
+    SearchModule,
     ImportsModule,
     HealthModule,
   ],

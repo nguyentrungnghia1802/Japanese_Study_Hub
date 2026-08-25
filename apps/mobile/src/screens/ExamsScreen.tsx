@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { ExamDto } from '@japanese-learning/contracts';
-import { mobileApiClient } from '../lib/api-client.js';
+import { apiClient } from '../lib/api-client.js';
 
 interface ExamsScreenProps {
   onSelectExam: (examId: string) => void;
@@ -27,7 +27,7 @@ export function ExamsScreen({ onSelectExam, onBack }: ExamsScreenProps) {
     try {
       let url = '/exams?limit=50';
       if (searchQuery) url += `&search=${encodeURIComponent(searchQuery)}`;
-      const data = await mobileApiClient<{ items: ExamDto[] }>(url);
+      const data = await apiClient<{ items: ExamDto[] }>(url);
       setExams(data.items || []);
     } catch {
       // ignore

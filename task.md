@@ -843,16 +843,16 @@ Commit: `feat(mobile): build exam taking flow`
 
 Requirements: SEARCH-001..006
 
-- [ ] Choose documented PostgreSQL search strategy.
-- [ ] Add necessary indexes/migration.
-- [ ] Search sets/cards/exams/folders.
-- [ ] Bound/paginate results.
-- [ ] Preserve Japanese Unicode behavior.
+- [x] Choose documented PostgreSQL search strategy.
+- [x] Add necessary indexes/migration.
+- [x] Search sets/cards/exams/folders.
+- [x] Bound/paginate results.
+- [x] Preserve Japanese Unicode behavior.
 
 Tests:
 
-- [ ] Japanese search cases.
-- [ ] Soft-deleted content excluded.
+- [x] Japanese search cases.
+- [x] Soft-deleted content excluded.
 
 Commit: `feat(search): implement learning content search`
 
@@ -860,10 +860,10 @@ Commit: `feat(search): implement learning content search`
 
 ## TASK-091 — Web global search
 
-- [ ] Search page/input.
-- [ ] Group results by domain.
-- [ ] Link results to content.
-- [ ] Loading/empty/error states.
+- [x] Search page/input.
+- [x] Group results by domain.
+- [x] Link results to content.
+- [x] Loading/empty/error states.
 
 Commit: `feat(web): add global search`
 
@@ -873,11 +873,11 @@ Commit: `feat(web): add global search`
 
 Requirements: DASH-001..004
 
-- [ ] Quick navigation.
-- [ ] Recent flashcard sets.
-- [ ] Recent exams.
-- [ ] Best scores where available.
-- [ ] Keep implementation simple.
+- [x] Quick navigation.
+- [x] Recent flashcard sets.
+- [x] Recent exams.
+- [x] Best scores where available.
+- [x] Keep implementation simple.
 
 Commit: `feat(web): add learning dashboard`
 
