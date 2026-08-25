@@ -132,7 +132,10 @@ export class FlashcardsService {
   async exportSetToMarkdown(id: string): Promise<{ filename: string; content: string }> {
     const set = await this.getSet(id);
     const content = exportFlashcardSetToMarkdown(set);
-    const safeTitle = set.title.replace(/[^a-zA-Z0-9_\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff-]/g, '_');
+    const safeTitle = set.title.replace(
+      /[^a-zA-Z0-9_\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff-]/g,
+      '_',
+    );
     const filename = `${safeTitle || 'flashcard_set'}.md`;
     return { filename, content };
   }

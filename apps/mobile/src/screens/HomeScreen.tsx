@@ -2,7 +2,11 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
-export function HomeScreen() {
+interface HomeScreenProps {
+  onNavigateToFlashcards?: () => void;
+}
+
+export function HomeScreen({ onNavigateToFlashcards }: HomeScreenProps) {
   const { user, logout } = useAuth();
 
   return (
@@ -34,11 +38,15 @@ export function HomeScreen() {
 
         {/* Quick Access Grid */}
         <View style={styles.grid}>
-          <View style={styles.card}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={onNavigateToFlashcards}
+            activeOpacity={0.7}
+          >
             <Text style={styles.cardIcon}>📚</Text>
             <Text style={styles.cardTitle}>Flashcards</Text>
             <Text style={styles.cardDesc}>Flip cards with Japanese audio and furigana</Text>
-          </View>
+          </TouchableOpacity>
           <View style={styles.card}>
             <Text style={styles.cardIcon}>📝</Text>
             <Text style={styles.cardTitle}>Exams</Text>

@@ -374,14 +374,14 @@ Commit: `feat(export): add flashcard Markdown export`
 
 ## TASK-040 — Web flashcard library
 
-- [ ] Flashcard set list.
-- [ ] Search.
-- [ ] Sort.
-- [ ] Create/edit/delete/duplicate actions.
-- [ ] Empty/loading/error states.
-- [ ] Set detail/card list.
-- [ ] Card create/edit/delete/duplicate.
-- [ ] Reorder UX.
+- [x] Flashcard set list.
+- [x] Search.
+- [x] Sort.
+- [x] Create/edit/delete/duplicate actions.
+- [x] Empty/loading/error states.
+- [x] Set detail/card list.
+- [x] Card create/edit/delete/duplicate.
+- [x] Reorder UX.
 
 Acceptance criteria:
 
@@ -395,13 +395,13 @@ Commit: `feat(web): build flashcard library`
 
 Requirements: STUDY-001..008
 
-- [ ] Study screen.
-- [ ] Front/back flip.
-- [ ] Previous/next.
-- [ ] Progress indicator.
-- [ ] Shuffle session.
-- [ ] Keyboard shortcuts.
-- [ ] Responsive behavior.
+- [x] Study screen.
+- [x] Front/back flip.
+- [x] Previous/next.
+- [x] Progress indicator.
+- [x] Shuffle session.
+- [x] Keyboard shortcuts.
+- [x] Responsive behavior.
 
 Acceptance criteria:
 
@@ -409,7 +409,7 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Core interaction component/E2E test.
+- [x] Core interaction component/E2E test.
 
 Commit: `feat(web): add flashcard study mode`
 
@@ -417,14 +417,14 @@ Commit: `feat(web): add flashcard study mode`
 
 ## TASK-042 — Web flashcard import/export UI
 
-- [ ] Upload `.md`.
-- [ ] Format guide modal/page.
-- [ ] Copyable example.
-- [ ] Preview summary.
-- [ ] Error/warning list.
-- [ ] Duplicate policy.
-- [ ] Confirm import.
-- [ ] Export action.
+- [x] Upload `.md`.
+- [x] Format guide modal/page.
+- [x] Copyable example.
+- [x] Preview summary.
+- [x] Error/warning list.
+- [x] Duplicate policy.
+- [x] Confirm import.
+- [x] Export action.
 
 Acceptance criteria:
 
@@ -437,12 +437,12 @@ Commit: `feat(web): add flashcard import and export UI`
 
 ## TASK-043 — Mobile flashcard library and study
 
-- [ ] Flashcard set list/search.
-- [ ] Set detail.
-- [ ] Basic card management if included in mobile V1.
-- [ ] Study mode.
-- [ ] Flip/navigation/shuffle.
-- [ ] Mobile loading/error states.
+- [x] Flashcard set list/search.
+- [x] Set detail.
+- [x] Basic card management if included in mobile V1.
+- [x] Study mode.
+- [x] Flip/navigation/shuffle.
+- [x] Mobile loading/error states.
 
 Acceptance criteria:
 
