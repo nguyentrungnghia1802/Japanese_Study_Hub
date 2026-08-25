@@ -86,11 +86,11 @@ Commit: `chore: configure code quality tooling`
 
 Requirements: DATA-004, REL-004
 
-- [ ] Add Docker Compose PostgreSQL service.
-- [ ] Configure persistent local development volume.
-- [ ] Add healthcheck.
-- [ ] Add local connection instructions.
-- [ ] Ensure production secrets are not hard-coded.
+- [x] Add Docker Compose PostgreSQL service.
+- [x] Configure persistent local development volume.
+- [x] Add healthcheck.
+- [x] Add local connection instructions.
+- [x] Ensure production secrets are not hard-coded.
 
 Acceptance criteria:
 
