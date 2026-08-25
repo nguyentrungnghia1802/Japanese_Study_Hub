@@ -103,15 +103,15 @@ Commit: `chore(db): add local PostgreSQL environment`
 
 ## TASK-011 — NestJS API foundation
 
-- [ ] Initialize API app.
-- [ ] Add global configuration validation.
-- [ ] Add global validation pipe/schema approach.
-- [ ] Add consistent error response handling.
-- [ ] Add structured logger.
-- [ ] Add request/correlation ID if practical.
-- [ ] Add `/health` endpoint.
-- [ ] Add OpenAPI/Swagger generation.
-- [ ] Add `/api/v1` prefix.
+- [x] Initialize API app.
+- [x] Add global configuration validation.
+- [x] Add global validation pipe/schema approach.
+- [x] Add consistent error response handling.
+- [x] Add structured logger.
+- [x] Add request/correlation ID if practical.
+- [x] Add `/health` endpoint.
+- [x] Add OpenAPI/Swagger generation.
+- [x] Add `/api/v1` prefix.
 
 Acceptance criteria:
 
@@ -122,9 +122,9 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Health controller/integration test.
-- [ ] Config validation test.
-- [ ] Error envelope smoke test.
+- [x] Health controller/integration test.
+- [x] Config validation test.
+- [x] Error envelope smoke test.
 
 Commit: `feat(api): establish API foundation`
 
