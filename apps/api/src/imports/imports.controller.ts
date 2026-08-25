@@ -3,6 +3,8 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { ImportsService } from './imports.service.js';
 import { PreviewFlashcardsBodyDto } from './dto/preview-flashcards.dto.js';
 import { ConfirmFlashcardsBodyDto } from './dto/confirm-flashcards.dto.js';
+import { PreviewExamBodyDto } from './dto/preview-exam.dto.js';
+import { ConfirmExamBodyDto } from './dto/confirm-exam.dto.js';
 
 @ApiTags('Imports')
 @ApiBearerAuth()
@@ -30,5 +32,27 @@ export class ImportsController {
   @ApiResponse({ status: 409, description: 'Conflict on duplicate title with REJECT policy' })
   async confirmFlashcards(@Body() dto: ConfirmFlashcardsBodyDto) {
     return this.importsService.confirmFlashcards(dto);
+  }
+
+  @Post('exams/preview')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Preview exam markdown import without writing domain records' })
+  @ApiResponse({
+    status: 200,
+    description: 'Exam import preview with token, question summary, and error summary',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid or empty content' })
+  async previewExam(@Body() dto: PreviewExamBodyDto) {
+    return this.importsService.previewExam(dto.content);
+  }
+
+  @Post('exams/confirm')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Confirm and commit an exam import session' })
+  @ApiResponse({ status: 201, description: 'Exam and questions created successfully' })
+  @ApiResponse({ status: 400, description: 'Session expired, invalid or has blocking errors' })
+  @ApiResponse({ status: 409, description: 'Conflict on duplicate title with REJECT policy' })
+  async confirmExam(@Body() dto: ConfirmExamBodyDto) {
+    return this.importsService.confirmExam(dto);
   }
 }

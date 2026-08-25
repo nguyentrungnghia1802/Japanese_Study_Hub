@@ -171,4 +171,96 @@ describe('ImportsService - Flashcards (TASK-033 / IMP-001..010)', () => {
       ).rejects.toThrow(BadRequestException);
     });
   });
+
+  describe('previewExam and confirmExam (TASK-053)', () => {
+    const validExamMd = `# N3 Grammar\n\nTime: 30\n\n## Question 1\nPrompt\n- A. Option 1\n- B. Option 2\n\n# ANSWER KEY\n1: A`;
+
+    it('previews exam markdown without writing exam records', async () => {
+      const result = await service.previewExam(validExamMd);
+
+      expect(result.importToken).toBe('session-uuid-1234');
+      expect(result.preview.metadata.title).toBe('N3 Grammar');
+      expect(result.preview.metadata.questionCount).toBe(1);
+      expect(result.preview.errors).toHaveLength(0);
+    });
+
+    it('confirms exam import session transactionally', async () => {
+      prismaMock.importSession.findFirst.mockResolvedValueOnce({
+        id: 'session-uuid-1234',
+        type: ImportType.EXAM,
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+        consumedAt: null,
+        normalizedPayload: {
+          title: 'N3 Grammar',
+          description: null,
+          timeLimitSeconds: 1800,
+          shuffleQuestions: false,
+          shuffleOptions: false,
+          questions: [
+            {
+              type: 'MULTIPLE_CHOICE_SINGLE',
+              content: 'Prompt',
+              position: 0,
+              options: [
+                { content: 'Option 1', isCorrect: true, position: 0 },
+                { content: 'Option 2', isCorrect: false, position: 1 },
+              ],
+            },
+          ],
+        },
+      });
+
+      const examMock = {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockResolvedValue({ id: 'new-exam-id' }),
+        findUniqueOrThrow: vi.fn().mockResolvedValue({
+          id: 'new-exam-id',
+          title: 'N3 Grammar',
+          description: null,
+          folderId: null,
+          coverRef: null,
+          timeLimitSeconds: 1800,
+          contentVersion: 1,
+          shuffleQuestions: false,
+          shuffleOptions: false,
+          createdAt: sampleDate,
+          updatedAt: sampleDate,
+          questions: [{ id: 'q-1', options: [] }],
+        }),
+      };
+
+      const examQuestionMock = {
+        create: vi.fn().mockResolvedValue({ id: 'q-1' }),
+      };
+
+      const examOptionMock = {
+        createMany: vi.fn().mockResolvedValue({ count: 2 }),
+      };
+
+      const customPrismaMock = {
+        ...prismaMock,
+        exam: examMock,
+        examQuestion: examQuestionMock,
+        examOption: examOptionMock,
+        $transaction: vi.fn().mockImplementation((cb: (tx: unknown) => unknown) =>
+          cb({
+            exam: examMock,
+            examQuestion: examQuestionMock,
+            examOption: examOptionMock,
+            importSession: prismaMock.importSession,
+          }),
+        ),
+      };
+
+      const examImportService = new ImportsService(customPrismaMock as unknown as PrismaService);
+
+      const result = await examImportService.confirmExam({
+        importToken: 'session-uuid-1234',
+      });
+
+      expect(result.id).toBe('new-exam-id');
+      expect(result.title).toBe('N3 Grammar');
+      expect(result.questionCount).toBe(1);
+    });
+  });
 });

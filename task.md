@@ -458,13 +458,13 @@ Commit: `feat(mobile): build flashcard experience`
 
 Requirements: FOLDER-001..008
 
-- [ ] CRUD root folders.
-- [ ] CRUD child folders.
-- [ ] Move/reorder.
-- [ ] Calculate/validate depth.
-- [ ] Reject cycles.
-- [ ] Reject depth > 2.
-- [ ] Define non-empty delete behavior.
+- [x] CRUD root folders.
+- [x] CRUD child folders.
+- [x] Move/reorder.
+- [x] Calculate/validate depth.
+- [x] Reject cycles.
+- [x] Reject depth > 2.
+- [x] Define non-empty delete behavior.
 
 Acceptance criteria:
 
@@ -472,7 +472,7 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] All mandatory folder tests.
+- [x] All mandatory folder tests.
 
 Commit: `feat(exams): implement folder hierarchy`
 
@@ -482,16 +482,16 @@ Commit: `feat(exams): implement folder hierarchy`
 
 Requirements: EXAM-001..007, QUESTION-001..009
 
-- [ ] Exam list/detail/create/update/delete/duplicate.
-- [ ] Time limit validation.
-- [ ] Shuffle settings.
-- [ ] Question CRUD or atomic content endpoint.
-- [ ] Type enum.
-- [ ] Enforce only `MULTIPLE_CHOICE_SINGLE` for V1 creation.
-- [ ] Enforce 2–6 options.
-- [ ] Enforce exactly one correct answer.
-- [ ] Implement content vs metadata edit classification.
-- [ ] Increment content version for content changes.
+- [x] Exam list/detail/create/update/delete/duplicate.
+- [x] Time limit validation.
+- [x] Shuffle settings.
+- [x] Question CRUD or atomic content endpoint.
+- [x] Type enum.
+- [x] Enforce only `MULTIPLE_CHOICE_SINGLE` for V1 creation.
+- [x] Enforce 2–6 options.
+- [x] Enforce exactly one correct answer.
+- [x] Implement content vs metadata edit classification.
+- [x] Increment content version for content changes.
 
 Acceptance criteria:
 
@@ -500,10 +500,10 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] 1/2/6/7 option cases.
-- [ ] 0/1/2 correct cases.
-- [ ] Metadata edit version test.
-- [ ] Content edit version test.
+- [x] 1/2/6/7 option cases.
+- [x] 0/1/2 correct cases.
+- [x] Metadata edit version test.
+- [x] Content edit version test.
 
 Commit: `feat(exams): implement exam content management`
 
@@ -513,17 +513,17 @@ Commit: `feat(exams): implement exam content management`
 
 Requirements: EX-IMPORT-001..010
 
-- [ ] Parse H1 title.
-- [ ] Parse time metadata.
-- [ ] Parse shuffle metadata.
-- [ ] Parse numbered questions.
-- [ ] Parse A–F options.
-- [ ] Parse final answer key.
-- [ ] Validate exact question/key coverage.
-- [ ] Validate option count.
-- [ ] Validate answer option existence.
-- [ ] Produce line/question diagnostics.
-- [ ] Enforce limits.
+- [x] Parse H1 title.
+- [x] Parse time metadata.
+- [x] Parse shuffle metadata.
+- [x] Parse numbered questions.
+- [x] Parse A–F options.
+- [x] Parse final answer key.
+- [x] Validate exact question/key coverage.
+- [x] Validate option count.
+- [x] Validate answer option existence.
+- [x] Produce line/question diagnostics.
+- [x] Enforce limits.
 
 Acceptance criteria:
 
@@ -532,7 +532,7 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] All mandatory exam Markdown cases.
+- [x] All mandatory exam Markdown cases.
 
 Commit: `feat(import): add exam Markdown parser`
 
@@ -540,13 +540,13 @@ Commit: `feat(import): add exam Markdown parser`
 
 ## TASK-053 — Exam import preview/confirm
 
-- [ ] Add preview endpoint.
-- [ ] Add tamper-safe short-lived import session/token.
-- [ ] Preview does not persist exam content.
-- [ ] Confirm validates token/session.
-- [ ] Confirm creates all exam records in one transaction.
-- [ ] Add duplicate name policy.
-- [ ] Prevent duplicate confirm.
+- [x] Add preview endpoint.
+- [x] Add tamper-safe short-lived import session/token.
+- [x] Preview does not persist exam content.
+- [x] Confirm validates token/session.
+- [x] Confirm creates all exam records in one transaction.
+- [x] Add duplicate name policy.
+- [x] Prevent duplicate confirm.
 
 Acceptance criteria:
 
@@ -555,9 +555,9 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Rollback.
-- [ ] Duplicate confirm.
-- [ ] Invalid token.
+- [x] Rollback.
+- [x] Duplicate confirm.
+- [x] Invalid token.
 
 Commit: `feat(import): implement exam import workflow`
 
@@ -565,10 +565,10 @@ Commit: `feat(import): implement exam import workflow`
 
 ## TASK-054 — Exam Markdown export
 
-- [ ] Export canonical metadata.
-- [ ] Export questions/options in order.
-- [ ] Export final `# ANSWER KEY`.
-- [ ] Add endpoint.
+- [x] Export canonical metadata.
+- [x] Export questions/options in order.
+- [x] Export final `# ANSWER KEY`.
+- [x] Add endpoint.
 
 Acceptance criteria:
 
@@ -576,7 +576,7 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Round-trip test.
+- [x] Round-trip test.
 
 Commit: `feat(export): add exam Markdown export`
 

@@ -11,10 +11,14 @@ import {
   ImportType,
   FlashcardImportPreviewResponseDto,
   FlashcardSetResponseDto,
+  ExamImportPreviewResponseDto,
+  ExamDto,
+  CreateExamQuestionDto,
 } from '@japanese-learning/contracts';
-import { parseFlashcardMarkdown } from '@japanese-learning/shared';
+import { parseFlashcardMarkdown, parseExamMarkdown } from '@japanese-learning/shared';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ConfirmFlashcardsBodyDto } from './dto/confirm-flashcards.dto.js';
+import { ConfirmExamBodyDto } from './dto/confirm-exam.dto.js';
 
 @Injectable()
 export class ImportsService {
@@ -49,11 +53,9 @@ export class ImportsService {
       errors,
     };
 
-    // Calculate SHA-256 hash of payload
     const payloadHash = crypto.createHash('sha256').update(rawContent).digest('hex');
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes TTL
 
-    // Store in import_sessions
     const session = await this.prisma.importSession.create({
       data: {
         type: ImportType.FLASHCARD_SET,
@@ -110,7 +112,6 @@ export class ImportsService {
     const duplicatePolicy = dto.duplicatePolicy || DuplicatePolicy.RENAME;
     let targetTitle = payload.title;
 
-    // Check for existing sets with the same title
     const existingSet = await this.prisma.flashcardSet.findFirst({
       where: {
         title: targetTitle,
@@ -136,13 +137,11 @@ export class ImportsService {
       }
     }
 
-    // Execute atomic write transaction
     const createdOrUpdatedSet = await this.prisma.$transaction(async (tx) => {
       let setId: string;
 
       if (existingSet && duplicatePolicy === DuplicatePolicy.OVERWRITE) {
         setId = existingSet.id;
-        // Soft delete or delete previous cards
         await tx.flashcard.deleteMany({
           where: { setId },
         });
@@ -164,7 +163,6 @@ export class ImportsService {
         setId = newSet.id;
       }
 
-      // Create cards
       await tx.flashcard.createMany({
         data: payload.cards.map((c, index) => ({
           setId,
@@ -174,7 +172,6 @@ export class ImportsService {
         })),
       });
 
-      // Mark session as consumed
       await tx.importSession.update({
         where: { id: session.id },
         data: { consumedAt: new Date() },
@@ -204,5 +201,246 @@ export class ImportsService {
       `Successfully imported flashcard set '${createdOrUpdatedSet.title}' (${createdOrUpdatedSet.cardCount} cards)`,
     );
     return createdOrUpdatedSet;
+  }
+
+  async previewExam(rawContent: string): Promise<ExamImportPreviewResponseDto> {
+    if (!rawContent || !rawContent.trim()) {
+      throw new BadRequestException('Import content cannot be empty');
+    }
+
+    const parseResult = parseExamMarkdown(rawContent);
+
+    const warnings = parseResult.issues.filter((i) => i.severity === 'WARNING');
+    const errors = parseResult.issues.filter((i) => i.severity === 'ERROR');
+
+    const title = parseResult.data?.title || 'Untitled Exam';
+    const description = parseResult.data?.description || null;
+    const timeLimitSeconds = parseResult.data?.timeLimitSeconds ?? null;
+    const timeLimitMinutes = timeLimitSeconds ? Math.round(timeLimitSeconds / 60) : null;
+    const shuffleQuestions = parseResult.data?.shuffleQuestions ?? false;
+    const shuffleOptions = parseResult.data?.shuffleOptions ?? false;
+    const questions = parseResult.data?.questions || [];
+    const totalOptions = questions.reduce((acc, q) => acc + q.options.length, 0);
+
+    const preview = {
+      metadata: {
+        title,
+        description,
+        timeLimitMinutes,
+        shuffleQuestions,
+        shuffleOptions,
+        questionCount: questions.length,
+        optionCount: totalOptions,
+      },
+      questions,
+      warnings,
+      errors,
+    };
+
+    const payloadHash = crypto.createHash('sha256').update(rawContent).digest('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes TTL
+
+    const session = await this.prisma.importSession.create({
+      data: {
+        type: ImportType.EXAM,
+        payloadHash,
+        normalizedPayload: JSON.parse(
+          JSON.stringify({
+            title,
+            description,
+            timeLimitSeconds,
+            shuffleQuestions,
+            shuffleOptions,
+            questions,
+            hasErrors: errors.length > 0,
+          }),
+        ),
+        expiresAt,
+      },
+    });
+
+    return {
+      importToken: session.id,
+      expiresAt: expiresAt.toISOString(),
+      preview,
+    };
+  }
+
+  async confirmExam(dto: ConfirmExamBodyDto): Promise<ExamDto> {
+    const session = await this.prisma.importSession.findFirst({
+      where: { id: dto.importToken },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Import session not found or invalid token');
+    }
+
+    if (session.consumedAt) {
+      throw new BadRequestException('Import session has already been consumed');
+    }
+
+    if (new Date() > session.expiresAt) {
+      throw new BadRequestException('Import session has expired. Please upload and preview again.');
+    }
+
+    if (session.type !== ImportType.EXAM) {
+      throw new BadRequestException('Import session type mismatch (expected EXAM)');
+    }
+
+    const payload = session.normalizedPayload as unknown as {
+      title: string;
+      description: string | null;
+      timeLimitSeconds: number | null;
+      shuffleQuestions: boolean;
+      shuffleOptions: boolean;
+      questions: CreateExamQuestionDto[];
+      hasErrors?: boolean;
+    };
+
+    if (payload.hasErrors || payload.questions.length === 0) {
+      throw new BadRequestException('Cannot confirm import session with blocking syntax errors');
+    }
+
+    if (dto.folderId) {
+      const folder = await this.prisma.examFolder.findFirst({
+        where: { id: dto.folderId, deletedAt: null },
+      });
+      if (!folder) {
+        throw new NotFoundException(`Folder with ID '${dto.folderId}' not found`);
+      }
+    }
+
+    const duplicatePolicy = dto.duplicatePolicy || DuplicatePolicy.RENAME;
+    let targetTitle = payload.title;
+
+    const existingExam = await this.prisma.exam.findFirst({
+      where: {
+        title: targetTitle,
+        folderId: dto.folderId || null,
+        deletedAt: null,
+      },
+    });
+
+    if (existingExam) {
+      if (duplicatePolicy === DuplicatePolicy.REJECT) {
+        throw new ConflictException(`An exam named '${targetTitle}' already exists in this folder`);
+      }
+
+      if (duplicatePolicy === DuplicatePolicy.RENAME) {
+        let suffix = 1;
+        while (
+          await this.prisma.exam.findFirst({
+            where: {
+              title: `${targetTitle} (${suffix})`,
+              folderId: dto.folderId || null,
+              deletedAt: null,
+            },
+          })
+        ) {
+          suffix++;
+        }
+        targetTitle = `${targetTitle} (${suffix})`;
+      }
+    }
+
+    // Execute atomic write transaction
+    const finalExam = await this.prisma.$transaction(async (tx) => {
+      let examId: string;
+
+      if (existingExam && duplicatePolicy === DuplicatePolicy.OVERWRITE) {
+        examId = existingExam.id;
+
+        await tx.examQuestion.deleteMany({
+          where: { examId },
+        });
+
+        await tx.exam.update({
+          where: { id: examId },
+          data: {
+            description: payload.description,
+            timeLimitSeconds: payload.timeLimitSeconds,
+            shuffleQuestions: payload.shuffleQuestions,
+            shuffleOptions: payload.shuffleOptions,
+            contentVersion: { increment: 1 },
+            updatedAt: new Date(),
+          },
+        });
+      } else {
+        const created = await tx.exam.create({
+          data: {
+            title: targetTitle,
+            description: payload.description,
+            folderId: dto.folderId || null,
+            timeLimitSeconds: payload.timeLimitSeconds,
+            shuffleQuestions: payload.shuffleQuestions,
+            shuffleOptions: payload.shuffleOptions,
+            contentVersion: 1,
+          },
+        });
+        examId = created.id;
+      }
+
+      // Create questions & options
+      for (let i = 0; i < payload.questions.length; i++) {
+        const q = payload.questions[i];
+        const question = await tx.examQuestion.create({
+          data: {
+            examId,
+            type: q.type,
+            content: q.content.trim(),
+            position: q.position ?? i,
+          },
+        });
+
+        await tx.examOption.createMany({
+          data: q.options.map((opt, oIndex) => ({
+            questionId: question.id,
+            content: opt.content.trim(),
+            isCorrect: opt.isCorrect,
+            position: opt.position ?? oIndex,
+          })),
+        });
+      }
+
+      // Mark session consumed
+      await tx.importSession.update({
+        where: { id: session.id },
+        data: { consumedAt: new Date() },
+      });
+
+      return tx.exam.findUniqueOrThrow({
+        where: { id: examId },
+        include: {
+          questions: {
+            orderBy: { position: 'asc' },
+            include: {
+              options: {
+                orderBy: { position: 'asc' },
+              },
+            },
+          },
+        },
+      });
+    });
+
+    this.logger.log(
+      `Successfully imported exam '${finalExam.title}' (${finalExam.questions.length} questions)`,
+    );
+
+    return {
+      id: finalExam.id,
+      folderId: finalExam.folderId,
+      title: finalExam.title,
+      description: finalExam.description,
+      coverRef: finalExam.coverRef,
+      timeLimitSeconds: finalExam.timeLimitSeconds,
+      contentVersion: finalExam.contentVersion,
+      shuffleQuestions: finalExam.shuffleQuestions,
+      shuffleOptions: finalExam.shuffleOptions,
+      questionCount: finalExam.questions.length,
+      bestScore: null,
+      createdAt: finalExam.createdAt.toISOString(),
+      updatedAt: finalExam.updatedAt.toISOString(),
+    };
   }
 }
