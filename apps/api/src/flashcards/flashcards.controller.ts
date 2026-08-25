@@ -11,8 +11,10 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  Res,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { Response } from 'express';
 import { FlashcardsService } from './flashcards.service.js';
 import { CreateSetBodyDto } from './dto/create-set.dto.js';
 import { UpdateSetBodyDto } from './dto/update-set.dto.js';
@@ -60,6 +62,17 @@ export class FlashcardsController {
     return this.flashcardsService.getSet(id);
   }
 
+  @Get(':id/export')
+  @ApiOperation({ summary: 'Export a flashcard set as canonical Markdown' })
+  @ApiResponse({ status: 200, description: 'Markdown file download' })
+  @ApiResponse({ status: 404, description: 'Set not found' })
+  async exportSet(@Param('id', ParseUUIDPipe) id: string, @Res() res: Response) {
+    const { filename, content } = await this.flashcardsService.exportSetToMarkdown(id);
+    res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    res.send(content);
+  }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Update flashcard set metadata' })
   @ApiResponse({ status: 200, description: 'Flashcard set updated' })
@@ -92,10 +105,7 @@ export class FlashcardsController {
   @ApiOperation({ summary: 'Add a flashcard to a set' })
   @ApiResponse({ status: 201, description: 'Flashcard created' })
   @ApiResponse({ status: 404, description: 'Set not found' })
-  async createCard(
-    @Param('setId', ParseUUIDPipe) setId: string,
-    @Body() dto: CreateCardBodyDto,
-  ) {
+  async createCard(@Param('setId', ParseUUIDPipe) setId: string, @Body() dto: CreateCardBodyDto) {
     return this.flashcardsService.createCard(setId, dto);
   }
 

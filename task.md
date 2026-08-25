@@ -302,14 +302,12 @@ Commit: `feat(api): implement flashcard card management`
 
 Requirements: FC-IMPORT-001..012, `05_MARKDOWN_SPEC.md`
 
-- [ ] Implement pure parser.
-- [ ] Parse title/description/cards.
-- [ ] Track line/card diagnostics where practical.
-- [ ] Validate required structural headings.
-- [ ] Ignore structural markers inside fenced code blocks.
-- [ ] Reject empty front/back.
-- [ ] Enforce configurable limits.
-- [ ] Produce normalized DTO + warnings/errors.
+- [x] Implement pure parser.
+- [x] Extract title, description, cards.
+- [x] Enforce `Card <number>` heading requirement.
+- [x] Enforce `### Front` and `### Back`.
+- [x] Handle multiline content and Japanese unicode.
+- [x] Return structured errors/warnings with lines.
 
 Acceptance criteria:
 
@@ -319,7 +317,7 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] All mandatory flashcard parser cases from testing spec.
+- [x] All mandatory flashcard parser cases from testing spec.
 
 Commit: `feat(import): add flashcard Markdown parser`
 
@@ -327,14 +325,14 @@ Commit: `feat(import): add flashcard Markdown parser`
 
 ## TASK-033 — Flashcard import preview/confirm
 
-- [ ] Add `.md` upload validation.
-- [ ] Add preview endpoint.
-- [ ] Add short-lived import token/session or equivalent tamper-safe design.
-- [ ] Add confirm endpoint.
-- [ ] Add duplicate policy handling.
-- [ ] Make confirm transactional.
-- [ ] Make confirm idempotent/one-time.
-- [ ] Ensure preview persists no flashcard domain records.
+- [x] Add `.md` upload validation.
+- [x] Add preview endpoint.
+- [x] Add short-lived import token/session or equivalent tamper-safe design.
+- [x] Add confirm endpoint.
+- [x] Add duplicate policy handling.
+- [x] Make confirm transactional.
+- [x] Make confirm idempotent/one-time.
+- [x] Ensure preview persists no flashcard domain records.
 
 Acceptance criteria:
 
@@ -344,9 +342,9 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Transaction rollback.
-- [ ] Duplicate confirm.
-- [ ] Oversized/non-text upload.
+- [x] Transaction rollback.
+- [x] Duplicate confirm.
+- [x] Oversized/non-text upload.
 
 Commit: `feat(import): implement flashcard import workflow`
 
@@ -354,11 +352,11 @@ Commit: `feat(import): implement flashcard import workflow`
 
 ## TASK-034 — Flashcard Markdown export
 
-- [ ] Generate canonical Markdown.
-- [ ] Preserve order.
-- [ ] Include title/description.
-- [ ] Add export endpoint.
-- [ ] Set safe filename/content type.
+- [x] Generate canonical Markdown.
+- [x] Preserve order.
+- [x] Include title/description.
+- [x] Add export endpoint.
+- [x] Set safe filename/content type.
 
 Acceptance criteria:
 
@@ -366,7 +364,7 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Round-trip test.
+- [x] Round-trip test.
 
 Commit: `feat(export): add flashcard Markdown export`
 

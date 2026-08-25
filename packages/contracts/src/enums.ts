@@ -21,6 +21,9 @@ export enum ImportType {
 }
 
 export enum DuplicatePolicy {
+  RENAME = 'RENAME',
+  OVERWRITE = 'OVERWRITE',
+  REJECT = 'REJECT',
   CREATE_NEW = 'CREATE_NEW',
   FAIL = 'FAIL',
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { FlashcardsService } from './flashcards.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -111,6 +111,14 @@ describe('FlashcardsService (TASK-030 / FC-001..008)', () => {
       await expect(service.getSet('unknown-id')).rejects.toThrow(NotFoundException);
     });
 
+    it('exports a set to canonical Markdown', async () => {
+      const exported = await service.exportSetToMarkdown(sampleSet.id);
+      expect(exported.filename).toBe('JLPT_N5_Kanji.md');
+      expect(exported.content).toContain('# JLPT N5 Kanji');
+      expect(exported.content).toContain('### Front\n\n日');
+      expect(exported.content).toContain('### Back\n\nSun, Day');
+    });
+
     it('soft deletes set and associated cards', async () => {
       const result = await service.deleteSet(sampleSet.id);
       expect(result.success).toBe(true);
@@ -186,10 +194,7 @@ describe('FlashcardsService (TASK-030 / FC-001..008)', () => {
         position: 6,
       });
 
-      const duplicated = await service.duplicateCard(
-        sampleSet.id,
-        sampleSet.cards[0].id,
-      );
+      const duplicated = await service.duplicateCard(sampleSet.id, sampleSet.cards[0].id);
 
       expect(duplicated.id).toBe('new-card-id');
       expect(duplicated.front).toBe('日 (Copy)');

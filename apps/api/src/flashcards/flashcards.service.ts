@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { exportFlashcardSetToMarkdown } from '@japanese-learning/shared';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateSetBodyDto } from './dto/create-set.dto.js';
 import { UpdateSetBodyDto } from './dto/update-set.dto.js';
@@ -126,6 +127,14 @@ export class FlashcardsService {
       createdAt: set.createdAt.toISOString(),
       updatedAt: set.updatedAt.toISOString(),
     };
+  }
+
+  async exportSetToMarkdown(id: string): Promise<{ filename: string; content: string }> {
+    const set = await this.getSet(id);
+    const content = exportFlashcardSetToMarkdown(set);
+    const safeTitle = set.title.replace(/[^a-zA-Z0-9_\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff-]/g, '_');
+    const filename = `${safeTitle || 'flashcard_set'}.md`;
+    return { filename, content };
   }
 
   async updateSet(id: string, dto: UpdateSetBodyDto) {

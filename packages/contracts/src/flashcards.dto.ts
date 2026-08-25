@@ -19,6 +19,8 @@ export interface FlashcardSetDto {
   cards?: FlashcardDto[];
 }
 
+export type FlashcardSetResponseDto = FlashcardSetDto;
+
 export interface CreateFlashcardSetDto {
   title: string;
   description?: string | null;
