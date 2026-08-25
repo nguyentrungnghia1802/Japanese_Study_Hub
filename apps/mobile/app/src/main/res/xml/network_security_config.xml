@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- The current deployment exposes the API on a trusted internal HTTP IP. HTTPS should replace it when available. -->
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
