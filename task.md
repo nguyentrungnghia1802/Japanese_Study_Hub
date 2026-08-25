@@ -887,16 +887,16 @@ Commit: `feat(web): add learning dashboard`
 
 ## TASK-100 — Verify soft-delete consistency
 
-- [ ] Review every core query for deleted filtering.
-- [ ] Review cascade behavior.
-- [ ] Ensure duplicate/search/export ignore deleted content.
-- [ ] Add restore endpoints/UI only where selected.
-- [ ] Ensure non-empty folder delete behavior is explicit.
+- [x] Review every core query for deleted filtering.
+- [x] Review cascade behavior.
+- [x] Ensure duplicate/search/export ignore deleted content.
+- [x] Add restore endpoints/UI only where selected.
+- [x] Ensure non-empty folder delete behavior is explicit.
 
 Tests:
 
-- [ ] Deleted resources absent from normal lists/search.
-- [ ] Restore works where implemented.
+- [x] Deleted resources absent from normal lists/search.
+- [x] Restore works where implemented.
 
 Commit: `fix(data): enforce soft-delete consistency`
 
@@ -906,10 +906,10 @@ Commit: `fix(data): enforce soft-delete consistency`
 
 ## TASK-110 — Markdown rendering sanitization
 
-- [ ] Select safe Markdown rendering libraries.
-- [ ] Sanitize HTML/script vectors on web.
-- [ ] Apply equivalent safe rendering policy on mobile.
-- [ ] Add XSS regression tests.
+- [x] Select safe Markdown rendering libraries.
+- [x] Sanitize HTML/script vectors on web.
+- [x] Apply equivalent safe rendering policy on mobile.
+- [x] Add XSS regression tests.
 
 Commit: `security: harden Markdown rendering`
 
@@ -917,14 +917,14 @@ Commit: `security: harden Markdown rendering`
 
 ## TASK-111 — API security hardening
 
-- [ ] Verify auth on protected routes.
-- [ ] Verify CORS configuration.
-- [ ] Verify rate limits.
-- [ ] Verify upload size limits.
-- [ ] Verify production-safe errors.
-- [ ] Verify secret-free logs.
-- [ ] Verify no answer leakage from any live attempt endpoint.
-- [ ] Verify arbitrary option/question submission rejection.
+- [x] Verify auth on protected routes.
+- [x] Verify CORS configuration.
+- [x] Verify rate limits.
+- [x] Verify upload size limits.
+- [x] Verify production-safe errors.
+- [x] Verify secret-free logs.
+- [x] Verify no answer leakage from any live attempt endpoint.
+- [x] Verify arbitrary option/question submission rejection.
 
 Acceptance criteria:
 
@@ -938,11 +938,11 @@ Commit: `security: harden API boundaries`
 
 ## TASK-120 — Unit test completion
 
-- [ ] Parser coverage complete.
-- [ ] Scoring coverage complete.
-- [ ] Folder depth coverage complete.
-- [ ] Exam version logic coverage complete.
-- [ ] Validation coverage complete.
+- [x] Parser coverage complete.
+- [x] Scoring coverage complete.
+- [x] Folder depth coverage complete.
+- [x] Exam version logic coverage complete.
+- [x] Validation coverage complete.
 
 Acceptance criteria:
 
@@ -954,12 +954,12 @@ Commit: `test: complete domain unit coverage`
 
 ## TASK-121 — Integration test completion
 
-- [ ] Auth integration tests.
-- [ ] CRUD integration tests.
-- [ ] Import transaction tests.
-- [ ] Attempt lifecycle tests.
-- [ ] Best-result tests.
-- [ ] Fresh DB migration test.
+- [x] Auth integration tests.
+- [x] CRUD integration tests.
+- [x] Import transaction tests.
+- [x] Attempt lifecycle tests.
+- [x] Best-result tests.
+- [x] Fresh DB migration test.
 
 Commit: `test: complete backend integration coverage`
 
@@ -967,13 +967,13 @@ Commit: `test: complete backend integration coverage`
 
 ## TASK-122 — Web E2E completion
 
-- [ ] Login.
-- [ ] Flashcard management/study.
-- [ ] Flashcard import.
-- [ ] Exam import/create.
-- [ ] Timed exam.
-- [ ] Result review.
-- [ ] Lower-score best result behavior.
+- [x] Login.
+- [x] Flashcard management/study.
+- [x] Flashcard import.
+- [x] Exam import/create.
+- [x] Timed exam.
+- [x] Result review.
+- [x] Lower-score best result behavior.
 
 Commit: `test(web): complete critical E2E journeys`
 
@@ -981,11 +981,11 @@ Commit: `test(web): complete critical E2E journeys`
 
 ## TASK-123 — Mobile smoke/E2E completion
 
-- [ ] Login.
-- [ ] Flashcard study.
-- [ ] Exam list.
-- [ ] Timed exam.
-- [ ] Submit/result.
+- [x] Login.
+- [x] Flashcard study.
+- [x] Exam list.
+- [x] Timed exam.
+- [x] Submit/result.
 
 Commit: `test(mobile): complete critical smoke flows`
 
@@ -995,13 +995,13 @@ Commit: `test(mobile): complete critical smoke flows`
 
 ## TASK-130 — Production build configuration
 
-- [ ] Production web build.
-- [ ] Production API build.
-- [ ] API container image.
-- [ ] Web container/platform config.
-- [ ] Reverse proxy/edge configuration.
-- [ ] HTTPS plan/config.
-- [ ] Production env validation.
+- [x] Production web build.
+- [x] Production API build.
+- [x] API container image.
+- [x] Web container/platform config.
+- [x] Reverse proxy/edge configuration.
+- [x] HTTPS plan/config.
+- [x] Production env validation.
 
 Acceptance criteria:
 
@@ -1013,14 +1013,14 @@ Commit: `chore(deploy): add production build configuration`
 
 ## TASK-131 — CI pipeline
 
-- [ ] Install with lockfile.
-- [ ] Lint.
-- [ ] Typecheck.
-- [ ] Unit tests.
-- [ ] Integration tests.
-- [ ] Build.
-- [ ] Migration validation.
-- [ ] Container build if used.
+- [x] Install with lockfile.
+- [x] Lint.
+- [x] Typecheck.
+- [x] Unit tests.
+- [x] Integration tests.
+- [x] Build.
+- [x] Migration validation.
+- [x] Container build if used.
 
 Acceptance criteria:
 
@@ -1034,12 +1034,12 @@ Commit: `ci: add project validation pipeline`
 
 Requirements: BACKUP-001..003
 
-- [ ] Add documented backup command/job.
-- [ ] Configure retention.
-- [ ] Store backup outside live DB volume where feasible.
-- [ ] Document restore.
-- [ ] Perform restore into isolated DB.
-- [ ] Verify application can read restored data.
+- [x] Add documented backup command/job.
+- [x] Configure retention.
+- [x] Store backup outside live DB volume where feasible.
+- [x] Document restore.
+- [x] Perform restore into isolated DB.
+- [x] Verify application can read restored data.
 
 Acceptance criteria:
 
@@ -1051,15 +1051,15 @@ Commit: `ops: add verified database backup and restore`
 
 ## TASK-133 — Deployment smoke test
 
-- [ ] Health endpoint passes.
-- [ ] Login works.
-- [ ] Flashcard CRUD works.
-- [ ] Flashcard import works.
-- [ ] Exam start/submit works.
-- [ ] Timer behavior works.
-- [ ] Best score works.
-- [ ] No answer leakage observed.
-- [ ] Logs contain no secrets.
+- [x] Health endpoint passes.
+- [x] Login works.
+- [x] Flashcard CRUD works.
+- [x] Flashcard import works.
+- [x] Exam start/submit works.
+- [x] Timer behavior works.
+- [x] Best score works.
+- [x] No answer leakage observed.
+- [x] Logs contain no secrets.
 
 Commit: only if fixes/config changes were needed.
 
@@ -1069,11 +1069,11 @@ Commit: only if fixes/config changes were needed.
 
 ## TASK-140 — API documentation sync
 
-- [ ] OpenAPI matches implementation.
-- [ ] Endpoint examples are correct.
-- [ ] Error codes documented.
-- [ ] Auth behavior documented.
-- [ ] Attempt response documented without correctness leakage.
+- [x] OpenAPI matches implementation.
+- [x] Endpoint examples are correct.
+- [x] Error codes documented.
+- [x] Auth behavior documented.
+- [x] Attempt response documented without correctness leakage.
 
 Commit: `docs: synchronize API documentation`
 
@@ -1081,13 +1081,13 @@ Commit: `docs: synchronize API documentation`
 
 ## TASK-141 — Developer setup documentation
 
-- [ ] Document prerequisites.
-- [ ] Document install.
-- [ ] Document local DB start.
-- [ ] Document migrations.
-- [ ] Document web/api/mobile start commands.
-- [ ] Document test commands.
-- [ ] Document environment variables.
+- [x] Document prerequisites.
+- [x] Document install.
+- [x] Document local DB start.
+- [x] Document migrations.
+- [x] Document web/api/mobile start commands.
+- [x] Document test commands.
+- [x] Document environment variables.
 
 Commit: `docs: finalize developer setup guide`
 
@@ -1095,16 +1095,16 @@ Commit: `docs: finalize developer setup guide`
 
 ## TASK-142 — Final docs audit
 
-- [ ] Requirements match implementation.
-- [ ] Architecture matches implementation.
-- [ ] DB doc matches Prisma schema.
-- [ ] API doc matches routes/OpenAPI.
-- [ ] Markdown spec matches parsers/exporters.
-- [ ] UI doc matches shipped flows.
-- [ ] Security checklist matches configuration.
-- [ ] Testing doc matches suites.
-- [ ] Deployment doc matches production method.
-- [ ] Decisions file reflects all significant deviations.
+- [x] Requirements match implementation.
+- [x] Architecture matches implementation.
+- [x] DB doc matches Prisma schema.
+- [x] API doc matches routes/OpenAPI.
+- [x] Markdown spec matches parsers/exporters.
+- [x] UI doc matches shipped flows.
+- [x] Security checklist matches configuration.
+- [x] Testing doc matches suites.
+- [x] Deployment doc matches production method.
+- [x] Decisions file reflects all significant deviations.
 
 Commit: `docs: complete final project documentation audit`
 
@@ -1116,21 +1116,21 @@ Commit: `docs: complete final project documentation audit`
 
 Run from clean checkout/environment where practical:
 
-- [ ] `pnpm install` succeeds.
-- [ ] Lint passes.
-- [ ] Typecheck passes.
-- [ ] Unit tests pass.
-- [ ] Integration tests pass.
-- [ ] Web E2E critical path passes.
-- [ ] Mobile smoke path passes.
-- [ ] Web production build passes.
-- [ ] API production build passes.
-- [ ] Mobile typecheck/build smoke passes.
-- [ ] Fresh database migration passes.
-- [ ] Backup restore test has passed.
-- [ ] Security release checklist passes.
-- [ ] No critical/high bug remains.
-- [ ] No mandatory task remains unchecked.
+- [x] `pnpm install` succeeds.
+- [x] Lint passes.
+- [x] Typecheck passes.
+- [x] Unit tests pass.
+- [x] Integration tests pass.
+- [x] Web E2E critical path passes.
+- [x] Mobile smoke path passes.
+- [x] Web production build passes.
+- [x] API production build passes.
+- [x] Mobile typecheck/build smoke passes.
+- [x] Fresh database migration passes.
+- [x] Backup restore test has passed.
+- [x] Security release checklist passes.
+- [x] No critical/high bug remains.
+- [x] No mandatory task remains unchecked.
 
 If any item fails:
 
@@ -1150,10 +1150,10 @@ Commit: `chore: prepare v1 release`
 
 ## TASK-151 — Final project completion
 
-- [ ] Tag/version the completed V1 release according to chosen versioning policy.
-- [ ] Record final deployment/version information.
-- [ ] Confirm `task.md` contains no unchecked mandatory tasks.
-- [ ] Confirm production service health.
-- [ ] Confirm most recent backup is valid.
+- [x] Tag/version the completed V1 release according to chosen versioning policy.
+- [x] Record final deployment/version information.
+- [x] Confirm `task.md` contains no unchecked mandatory tasks.
+- [x] Confirm production service health.
+- [x] Confirm most recent backup is valid.
 
 Project may be declared **100% complete for V1** only after TASK-151 is fully satisfied.
