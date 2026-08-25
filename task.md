@@ -588,14 +588,14 @@ Commit: `feat(export): add exam Markdown export`
 
 Requirements: ATTEMPT-001..008
 
-- [ ] Implement attempt creation.
-- [ ] Snapshot current exam version.
-- [ ] Record server start time.
-- [ ] Calculate expiration for timed exam.
-- [ ] Snapshot stable shuffled question order when enabled.
-- [ ] Snapshot stable shuffled option order when enabled.
-- [ ] Return attempt DTO without correctness metadata.
-- [ ] Add attempt restore endpoint.
+- [x] Implement attempt creation.
+- [x] Snapshot current exam version.
+- [x] Record server start time.
+- [x] Calculate expiration for timed exam.
+- [x] Snapshot stable shuffled question order when enabled.
+- [x] Snapshot stable shuffled option order when enabled.
+- [x] Return attempt DTO without correctness metadata.
+- [x] Add attempt restore endpoint.
 
 Critical acceptance criteria:
 
@@ -604,10 +604,10 @@ Critical acceptance criteria:
 
 Tests:
 
-- [ ] Untimed start.
-- [ ] Timed start.
-- [ ] Stable shuffle.
-- [ ] No answer leakage regression test.
+- [x] Untimed start.
+- [x] Timed start.
+- [x] Stable shuffle.
+- [x] No answer leakage regression test.
 
 Commit: `feat(exams): implement attempt start and restore`
 
@@ -617,11 +617,11 @@ Commit: `feat(exams): implement attempt start and restore`
 
 Recommended for refresh resilience.
 
-- [ ] Implement answer autosave endpoint or equivalent server persistence.
-- [ ] Validate question belongs to attempt.
-- [ ] Validate option belongs to question.
-- [ ] Allow null/unanswered state.
-- [ ] Reject updates after submission/expiration policy.
+- [x] Implement answer autosave endpoint or equivalent server persistence.
+- [x] Validate question belongs to attempt.
+- [x] Validate option belongs to question.
+- [x] Allow null/unanswered state.
+- [x] Reject updates after submission/expiration policy.
 
 Acceptance criteria:
 
@@ -629,10 +629,10 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Valid save.
-- [ ] Invalid question.
-- [ ] Invalid option.
-- [ ] Submitted attempt rejection.
+- [x] Valid save.
+- [x] Invalid question.
+- [x] Invalid option.
+- [x] Submitted attempt rejection.
 
 Commit: `feat(exams): persist in-progress answers`
 
@@ -642,14 +642,14 @@ Commit: `feat(exams): persist in-progress answers`
 
 Requirements: SCORE-001..007, ATTEMPT-009..012
 
-- [ ] Implement pure scoring service.
-- [ ] Implement submit endpoint.
-- [ ] Enforce server expiration.
-- [ ] Finalize attempt atomically.
-- [ ] Return graded question results after submission.
-- [ ] Implement idempotent duplicate submit.
-- [ ] Calculate duration.
-- [ ] Apply rounding policy.
+- [x] Implement pure scoring service.
+- [x] Implement submit endpoint.
+- [x] Enforce server expiration.
+- [x] Finalize attempt atomically.
+- [x] Return graded question results after submission.
+- [x] Implement idempotent duplicate submit.
+- [x] Calculate duration.
+- [x] Apply rounding policy.
 
 Acceptance criteria:
 
@@ -658,10 +658,10 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Scoring boundary cases.
-- [ ] Unanswered.
-- [ ] Timeout.
-- [ ] Duplicate submit.
+- [x] Scoring boundary cases.
+- [x] Unanswered.
+- [x] Timeout.
+- [x] Duplicate submit.
 
 Commit: `feat(exams): implement submission and scoring`
 
@@ -671,14 +671,14 @@ Commit: `feat(exams): implement submission and scoring`
 
 Requirements: RESULT-001..006
 
-- [ ] Upsert best result after finalized submission.
-- [ ] First score creates best.
-- [ ] Higher score replaces.
-- [ ] Lower score does not replace.
-- [ ] Equal score follows tie policy.
-- [ ] Increment attempt count.
-- [ ] Scope by exam version.
-- [ ] Add best-result endpoint.
+- [x] Upsert best result after finalized submission.
+- [x] First score creates best.
+- [x] Higher score replaces.
+- [x] Lower score does not replace.
+- [x] Equal score follows tie policy.
+- [x] Increment attempt count.
+- [x] Scope by exam version.
+- [x] Add best-result endpoint.
 
 Acceptance criteria:
 
@@ -686,8 +686,8 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] First/higher/lower/equal.
-- [ ] Version change.
+- [x] First/higher/lower/equal.
+- [x] Version change.
 
 Commit: `feat(exams): implement best-result tracking`
 
