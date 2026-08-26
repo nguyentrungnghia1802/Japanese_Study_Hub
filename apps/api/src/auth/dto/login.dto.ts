@@ -8,7 +8,7 @@ export class LoginBodyDto implements LoginRequestDto {
   @IsNotEmpty()
   username!: string;
 
-  @ApiProperty({ example: 'admin123', description: 'Learner password' })
+  @ApiProperty({ example: '<password>', description: 'Learner password' })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
