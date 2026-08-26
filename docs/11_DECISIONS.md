@@ -178,3 +178,49 @@ from accidentally targeting local development while preserving local development
 behavior.
 
 **Compatibility:** The REST API, Web client, Backend, and Database are unchanged.
+
+## ADR-021 — Phase 2 remains a bounded online-first enhancement
+
+**Decision:** Phase 2 keeps PostgreSQL/API as the source of truth and adds only
+bounded in-memory Web query caching, small UI preferences, and selected Android
+Room read caching. It does not introduce full offline synchronization or a second
+authoritative content store.
+
+**Reason:** Warm navigation and returning-user startup improve materially without
+creating sync conflicts or weakening exam integrity.
+
+## ADR-022 — TanStack Query for Web reads
+
+**Decision:** Use TanStack Query as the single Web query/mutation cache with
+centralized keys, explicit invalidation, short stale times, bounded garbage
+collection, and freshness-first live attempts.
+
+**Reason:** It provides request deduplication, cancellation, stale-while-revalidate,
+and mutation invalidation without inventing a custom browser database.
+
+## ADR-023 — FSRS is approved for Phase 2
+
+**Decision:** Implement server-authoritative FSRS with Again/Hard/Good/Easy ratings,
+deterministic scheduling, idempotent review submissions, UTC storage, and a
+bounded review queue. Basic Study All/Shuffle remains separate.
+
+**Reason:** Spaced repetition is the highest-value learning extension in the
+approved Phase 2 scope while the rules remain testable and compact.
+
+## ADR-024 — Web authentication remains bearer-token based for current topology
+
+**Decision:** Keep the existing bearer token in `localStorage` for V1-compatible
+Web/Android behavior until the current HTTP IP-only deployment can provide secure
+cookie prerequisites and CSRF protection. Do not add an insecure cookie migration.
+
+**Reason:** `HttpOnly` cookies without HTTPS/CSRF controls would create a misleading
+security improvement. TASK-221 is explicitly deferred unless deployment changes.
+
+## ADR-025 — Current production transport is HTTP with explicit risk
+
+**Decision:** The current owner deployment remains HTTP on the documented IP/ports
+until a domain/HTTPS edge is accepted. Production docs must state the risk, and
+clients must not claim HTTPS or `Secure` cookie guarantees.
+
+**Reason:** No domain or certificate authority was approved for this personal-use
+deployment. The runtime must match reality rather than overstate security.

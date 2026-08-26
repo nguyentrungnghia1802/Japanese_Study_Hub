@@ -1,1182 +1,1012 @@
-# Project Task Plan — Japanese Learning System
+# Project Task Plan — Japanese Learning System — Phase 2
 
-> Execute tasks in order unless a task explicitly states it may run in parallel.
+> Phase 2 starts from the completed V1 baseline.
 >
+> Execute tasks in dependency order unless a task explicitly states it may run in parallel.
 > Do not move past a failed dependency. Follow `Agent.md`.
+>
+> Core Phase 2 priorities:
+>
+> 1. Make Web navigation and repeated data access feel fast and stable.
+> 2. Add bounded, intentional caching without turning the browser into a second database.
+> 3. Improve session/cookie handling only where it provides clear UX/security value.
+> 4. Add high-value learning features without bloating the personal-use system.
+> 5. Preserve all V1 exam-integrity and server-authority invariants.
+> 6. Keep Web/API/Android behavior documented and regression-tested.
 
 ---
 
-# Phase 0 — Project bootstrap and verification
+# Phase 2A — Baseline, scope, and documentation reset
 
-## TASK-000 — Read and baseline documentation
+## TASK-200 — Freeze V1 and establish Phase 2 source of truth
 
-Requirements: all
+Requirements: all Phase 2 work
 
-- [x] Read all project documentation in required order.
-- [x] Record any contradictions before coding.
-- [x] Resolve contradictions by source-of-truth priority.
-- [x] Confirm V1 scope and explicit non-goals.
-- [x] Confirm stack: pnpm + Turborepo + Next.js + Android Native Kotlin/Compose + NestJS + PostgreSQL + Prisma.
+- [x] Preserve the completed V1 task history before replacing the active `task.md`.
+- [x] Move/archive the completed V1 task plan under a stable release/history path such as `docs/releases/V1_TASKS.md`.
+- [x] Update `README.md` to state that V1 is complete and Phase 2 is active.
+- [x] Update `Agent.md` scope discipline so it permits approved Phase 2 work while preserving all existing engineering, bug, security, and commit rules.
+- [x] Add a Phase 2 section to `docs/01_REQUIREMENTS.md` or create a dedicated `docs/13_PHASE2_REQUIREMENTS.md`.
+- [x] Record Phase 2 architectural/product decisions in `docs/11_DECISIONS.md`.
+- [x] Update `docs/12_TRACEABILITY.md` with Phase 2 requirement groups and tasks.
+- [x] Confirm V1 behavior is the regression baseline and must not be silently broken.
 
 Acceptance criteria:
 
-- No unresolved documentation conflict blocks implementation.
-- The developer/agent can state the domain boundaries and V1 non-goals.
+- V1 history remains available and immutable as release history.
+- The active docs clearly distinguish V1 shipped behavior from Phase 2 additions.
+- `Agent.md` no longer blocks explicitly approved Phase 2 work.
+- No contradiction remains between requirements, decisions, architecture, and this task plan.
 
-Commit: documentation-only commit only if corrections were required.
+Checks:
+
+- [x] Documentation cross-reference audit.
+- [x] Search for stale “Phase 2 not allowed” wording and resolve intentional conflicts.
+
+Commit: `docs: establish phase 2 development baseline`
 
 ---
 
-## TASK-001 — Create monorepo skeleton
+## TASK-201 — Measure current Web/API performance baseline
 
-Requirements: Architecture §3
+Requirements: P2-PERF-BASELINE
 
-- [x] Initialize Git repository if needed.
-- [x] Initialize pnpm workspace.
-- [x] Configure Turborepo.
-- [x] Create `apps/web`.
-- [x] Create `apps/mobile`.
-- [x] Create `apps/api`.
-- [x] Create `packages/contracts`.
-- [x] Create `packages/shared`.
-- [x] Create shared tooling/config package(s) as needed.
-- [x] Configure root scripts for lint, typecheck, test, build.
-- [x] Add `.gitignore`.
-- [x] Add `.editorconfig` if used.
-- [x] Add safe `.env.example` files.
-- [x] Ensure no secret is committed.
+- [ ] Measure current initial page load for login, dashboard, flashcard list, flashcard detail, exam list, exam detail, search.
+- [ ] Measure repeated navigation to the same pages.
+- [ ] Record API request counts per navigation.
+- [ ] Record duplicate requests caused by remounts or independent components.
+- [ ] Record largest API payloads.
+- [ ] Measure current Core Web Vitals where practical: LCP, INP, CLS.
+- [ ] Measure route-transition latency on a normal desktop browser.
+- [ ] Record current server-side response timings for high-traffic GET endpoints.
+- [ ] Identify pages that visibly blank/reload instead of preserving useful prior state.
+- [ ] Add a short baseline report to Phase 2 docs.
 
 Acceptance criteria:
 
-- `pnpm install` succeeds from repository root.
-- Workspace scripts discover all apps/packages.
-- Repository has clean baseline structure.
+- Optimization work has a measurable before-state.
+- At least the major user journeys have request-count and perceived-latency baselines.
+- No optimization is justified only by guesswork.
 
-Tests/checks:
-
-- [x] Root lint script runs.
-- [x] Root typecheck script runs.
-
-Commit: `chore: initialize monorepo workspace`
+Commit: `perf: record phase 2 performance baseline`
 
 ---
 
-## TASK-002 — Establish code quality tooling
+## TASK-202 — Define bounded caching and browser-storage policy
 
-- [x] Configure strict TypeScript.
-- [x] Configure ESLint.
-- [x] Configure formatting policy/tool.
-- [x] Configure test runners.
-- [x] Add root CI-friendly scripts.
-- [x] Ban accidental committed `.env` secrets.
-- [x] Decide supported Node/pnpm versions and document them.
+Requirements: P2-CACHE-001..P2-CACHE-012
+
+Create and document one project-wide cache/storage policy.
+
+- [ ] Classify data into stable reference/list data, normal entity detail data, rapidly changing state, live exam attempt state, authentication/session state, and UI-only preferences.
+- [ ] Default Web content cache to memory only.
+- [ ] Do not persist general API response caches across browser restarts unless a later task explicitly requires it.
+- [ ] Define default stale times:
+  - dashboard/list data: 30–60 seconds;
+  - entity detail: 30–60 seconds;
+  - search result: 15–30 seconds;
+  - live attempt/answer/timer state: always or almost always revalidated;
+  - best-score data after submit: immediately invalidated/refetched.
+- [ ] Define garbage-collection time, starting around 5 minutes for normal cached queries.
+- [ ] Use shorter GC for high-cardinality search queries.
+- [ ] Never cache passwords, password hashes, signing secrets, raw Authorization headers, or correct-answer metadata before grading.
+- [ ] Do not persist live exam attempt correctness-sensitive payloads in a long-lived browser cache.
+- [ ] Define explicit mutation invalidation rules instead of global cache clearing.
+- [ ] Keep cookies metadata-only and small; never store learning-content blobs in cookies.
+- [ ] Prevent unbounded localStorage/sessionStorage growth.
+- [ ] Document when browser HTTP cache, application query cache, and server cache may each be used.
 
 Acceptance criteria:
 
-- Clean generated baseline passes lint/typecheck.
-- Deliberate lint/type error causes CI-equivalent command to fail.
+- Cache behavior is deterministic and documented.
+- Repeated navigation can be fast without stale exam/security behavior.
+- Storage growth is bounded.
+- The browser is not treated as an authoritative offline database.
 
-Commit: `chore: configure code quality tooling`
+Commit: `docs(perf): define bounded cache and storage policy`
 
 ---
 
-# Phase 1 — Local infrastructure and API foundation
+# Phase 2B — Web data layer and smooth navigation
 
-## TASK-010 — PostgreSQL local environment
+## TASK-210 — Standardize the Web client data-fetching layer
 
-Requirements: DATA-004, REL-004
-
-- [x] Add Docker Compose PostgreSQL service.
-- [x] Configure persistent local development volume.
-- [x] Add healthcheck.
-- [x] Add local connection instructions.
-- [x] Ensure production secrets are not hard-coded.
-
-Acceptance criteria:
-
-- PostgreSQL starts from a clean machine with documented command.
-- API can connect using environment configuration.
-
-Commit: `chore(db): add local PostgreSQL environment`
-
----
-
-## TASK-011 — NestJS API foundation
-
-- [x] Initialize API app.
-- [x] Add global configuration validation.
-- [x] Add global validation pipe/schema approach.
-- [x] Add consistent error response handling.
-- [x] Add structured logger.
-- [x] Add request/correlation ID if practical.
-- [x] Add `/health` endpoint.
-- [x] Add OpenAPI/Swagger generation.
-- [x] Add `/api/v1` prefix.
+- [ ] Inspect the current Web API client and existing dependencies.
+- [ ] Reuse an existing equivalent query-cache solution if already present.
+- [ ] Otherwise adopt one mainstream solution such as TanStack Query.
+- [ ] Add one application-level query client/provider.
+- [ ] Centralize query-key construction.
+- [ ] Centralize retry behavior.
+- [ ] Centralize authenticated API error mapping.
+- [ ] Add cancellation/abort support for obsolete requests.
+- [ ] Configure stale/GC defaults from TASK-202.
+- [ ] Disable automatic retry for non-retryable 4xx errors.
+- [ ] Keep mutations explicit and uncached.
+- [ ] Keep exam live-attempt queries under stricter freshness rules.
 
 Acceptance criteria:
 
-- API starts with valid config.
-- API fails clearly with missing mandatory config.
-- `/health` responds.
-- OpenAPI is generated.
+- Feature pages no longer invent independent caching policies.
+- Duplicate concurrent GETs for the same query are deduplicated.
+- Query cache is bounded and observable in development.
 
 Tests:
 
-- [x] Health controller/integration test.
-- [x] Config validation test.
-- [x] Error envelope smoke test.
+- [ ] Retry/error classification tests.
+- [ ] Cache invalidation regression tests.
 
-Commit: `feat(api): establish API foundation`
-
----
-
-## TASK-012 — Prisma foundation and initial schema
-
-Requirements: `03_DATABASE.md`
-
-- [x] Install/configure Prisma.
-- [x] Define initial enums.
-- [x] Define flashcard tables.
-- [x] Define exam folder tables.
-- [x] Define exam/question/option tables.
-- [x] Define attempt/best-result tables.
-- [x] Add optional import session table if chosen.
-- [x] Add timestamps and soft-delete fields.
-- [x] Add indexes.
-- [x] Create initial migration.
-- [x] Add Prisma service/module.
-
-Acceptance criteria:
-
-- Fresh DB can apply all migrations.
-- Prisma client generates.
-- Schema matches documented cardinalities.
-
-Tests/checks:
-
-- [x] Fresh migration test.
-- [x] Basic DB connectivity integration test.
-
-Commit: `feat(db): add initial Prisma schema`
+Commit: `perf(web): establish cached data access layer`
 
 ---
 
-# Phase 2 — Authentication
+## TASK-211 — Migrate Dashboard to stale-while-revalidate behavior
 
-## TASK-020 — Server authentication configuration
-
-Requirements: AUTH-001..AUTH-009
-
-- [x] Add auth module.
-- [x] Load configured username and password hash from env.
-- [x] Implement secure password verification.
-- [x] Implement chosen token/session mechanism.
-- [x] Add authentication guard/middleware.
-- [x] Add `POST /auth/login`.
-- [x] Add `POST /auth/logout`.
-- [x] Add `GET /auth/me`.
-- [x] Ensure protected routes reject unauthenticated access.
-- [x] Add login rate limit.
+- [ ] Move dashboard reads to the standardized query layer.
+- [ ] Reuse cached recent flashcard/exam data when returning to Dashboard.
+- [ ] Show cached data immediately while revalidating in the background.
+- [ ] Avoid duplicate list/detail calls for the same data.
+- [ ] Keep loading skeleton only for true cold load.
+- [ ] Keep prior useful content visible during background refresh.
+- [ ] Invalidate dashboard queries after relevant create/delete/import/submit mutations.
 
 Acceptance criteria:
 
-- Correct credentials authenticate.
-- Incorrect credentials return generic 401.
-- Protected endpoint rejects unauthenticated user.
-- Secrets are not logged.
+- Returning to Dashboard within the stale window does not visually blank the page.
+- Background revalidation does not block navigation.
+
+Commit: `perf(web): cache dashboard queries`
+
+---
+
+## TASK-212 — Migrate Flashcard list/detail/study reads to bounded cache
+
+- [ ] Cache flashcard-set lists with pagination/search/sort-aware keys.
+- [ ] Cache flashcard-set detail by entity ID.
+- [ ] Reuse detail data when entering study mode.
+- [ ] Reuse set metadata when navigating back to list/detail.
+- [ ] Invalidate only affected set/list queries after card or set mutations.
+- [ ] Update cached entity data directly after simple successful metadata edits where safe.
+- [ ] Do not keep deleted resources indefinitely in cache.
+- [ ] Ensure shuffle remains per study session.
+
+Acceptance criteria:
+
+- Re-entering a recently opened set feels immediate.
+- Card edits are reflected without requiring a full-page reload.
+- Delete/duplicate/import operations do not leave visibly stale lists.
+
+Commit: `perf(web): cache flashcard library data`
+
+---
+
+## TASK-213 — Migrate Exam library/detail reads to bounded cache
+
+- [ ] Cache exam folder tree with explicit invalidation after hierarchy mutations.
+- [ ] Cache exam lists with folder/search/sort-aware keys.
+- [ ] Cache exam management/detail separately from live attempt data.
+- [ ] Cache best-result summaries only as normal read data and invalidate immediately after submit.
+- [ ] Ensure exam content edits invalidate exam detail and relevant list views.
+- [ ] Ensure content-version changes never leave old best result displayed as current.
+- [ ] Preserve strict separation between management DTOs and live-attempt DTOs.
+
+Acceptance criteria:
+
+- Returning to the Exam library/detail is fast.
+- Folder moves/renames appear consistently across cached views.
+- No cache path can leak correct-answer metadata into the live attempt UI.
+
+Commit: `perf(web): cache exam library data`
+
+---
+
+## TASK-214 — Keep live exam attempts freshness-first
+
+- [ ] Treat attempt start/restore as freshness-sensitive.
+- [ ] Do not give live attempt payloads long stale windows.
+- [ ] Do not persist live attempt query data across browser restarts through a generic persistent query cache.
+- [ ] Keep server expiration authoritative.
+- [ ] Continue autosaving answers to the backend.
+- [ ] Revalidate attempt state on reconnect, tab restoration, or explicit resume.
+- [ ] Cancel obsolete autosave calls when superseded safely.
+- [ ] Prevent duplicate answer writes when the selected value has not changed.
+- [ ] Invalidate exam best-result/list/detail queries after final submission.
+- [ ] Verify browser/query cache never contains correctness metadata before grading.
+
+Acceptance criteria:
+
+- Smoothness improvements do not weaken timer, answer secrecy, autosave, or submission correctness.
 
 Tests:
 
-- [x] Correct login.
-- [x] Wrong login.
-- [x] Rate limiting.
-- [x] Protected route.
+- [ ] No-answer-leakage cache regression test.
+- [ ] Timer restore regression test.
+- [ ] Submit invalidation regression test.
 
-Commit: `feat(auth): implement server authentication`
+Commit: `perf(exams): preserve fresh live attempt state`
 
 ---
 
-## TASK-021 — Web login flow
+## TASK-215 — Eliminate unnecessary full reloads and navigation resets
 
-- [x] Build login page.
-- [x] Add API client authentication handling.
-- [x] Add protected route/layout behavior.
-- [x] Add logout.
-- [x] Add loading/error states.
-- [x] Ensure auth secret is not in browser bundle.
+- [ ] Audit internal links/forms/buttons that trigger full document navigation or `window.location` unnecessarily.
+- [ ] Replace internal navigation with Next.js routing primitives.
+- [ ] Ensure mutations do not force browser reload unless required.
+- [ ] Preserve global layout/navigation across route transitions.
+- [ ] Add route-level loading UI for true cold requests.
+- [ ] Avoid blank white screens during route change.
+- [ ] Preserve appropriate scroll position on back navigation.
+- [ ] Preserve list filters/sort/search where useful when returning from detail.
+- [ ] Ensure auth redirects still work.
 
 Acceptance criteria:
 
-- Web user can login/logout.
-- Refresh maintains session according to chosen auth design.
-- Unauthorized user is redirected to login.
+- Normal internal navigation stays within the App Router lifecycle.
+- Repeated navigation does not resemble a page refresh.
+
+Commit: `perf(web): remove unnecessary route reloads`
+
+---
+
+## TASK-216 — Add targeted route and data prefetching
+
+- [ ] Use framework route prefetching for high-probability internal navigation.
+- [ ] Prefetch entity detail on deliberate hover/focus or immediately before navigation where beneficial.
+- [ ] Do not prefetch every item in a large list.
+- [ ] Do not prefetch large exam attempt payloads.
+- [ ] Add a conservative prefetch limit.
+- [ ] Disable prefetch where bandwidth cost outweighs UX benefit.
+
+Acceptance criteria:
+
+- Common next-click navigation is measurably faster.
+- Prefetching does not generate request storms.
+
+Commit: `perf(web): add targeted route prefetching`
+
+---
+
+## TASK-217 — Improve perceived loading performance
+
+- [ ] Replace blocking page spinners with skeletons where appropriate.
+- [ ] Use stale cached content during background refresh instead of clearing the screen.
+- [ ] Preserve form data during mutation submission.
+- [ ] Avoid layout shifts when list/detail data arrives.
+- [ ] Show small non-blocking refresh indicators for background fetches.
+- [ ] Keep recoverable error + Retry behavior.
+- [ ] Do not mask hard errors behind permanently stale data.
+
+Acceptance criteria:
+
+- Cold loads are understandable.
+- Warm loads feel instant or near-instant.
+- Background refresh is unobtrusive.
+
+Commit: `ux(web): improve perceived loading performance`
+
+---
+
+# Phase 2C — Browser storage, cookies, and authentication UX
+
+## TASK-220 — Audit current Web authentication storage
+
+- [ ] Document how Web currently persists authentication.
+- [ ] Identify whether token/session data is JavaScript-accessible.
+- [ ] Verify expiry/logout behavior.
+- [ ] Verify cross-tab behavior.
+- [ ] Verify no token is persisted in general query cache.
+- [ ] Compare current behavior against `07_SECURITY.md`.
+- [ ] Decide whether the actual deployment can safely support HttpOnly cookie auth.
+- [ ] Do not weaken security simply to “use cookies”.
+
+Acceptance criteria:
+
+- The project has one explicit documented Web session strategy.
+- Any cookie migration has a clear security reason.
+
+Commit: `security(web): audit session persistence`
+
+---
+
+## TASK-221 — Add minimal cookie-backed Web session support when deployment permits
+
+This task is conditional on TASK-220.
+
+- [ ] Preserve bearer-token support for Android.
+- [ ] If Web cookie auth is adopted, let the API auth guard accept the approved Web session cookie and Android bearer token without duplicating business auth logic.
+- [ ] Use `HttpOnly`.
+- [ ] Use `SameSite` appropriate to topology.
+- [ ] Use `Secure` when HTTPS is active.
+- [ ] Keep cookie payload minimal; no learning content.
+- [ ] Match cookie expiration to server token/session expiration.
+- [ ] Clear cookie on logout.
+- [ ] Configure Web credentials/CORS correctly.
+- [ ] Add CSRF protection if required.
+- [ ] If secure prerequisites are not met, explicitly defer this task instead of implementing an insecure cookie.
+
+Acceptance criteria:
+
+- Web session persistence is secure for the actual deployment.
+- Android authentication remains unaffected.
+- Cookie storage remains tiny.
 
 Tests:
 
-- [x] Component/form test as appropriate.
-- [x] Web E2E login smoke test.
+- [ ] Login/logout cookie behavior.
+- [ ] Protected route with/without cookie.
+- [ ] Android bearer-token regression.
+- [ ] CSRF test if applicable.
 
-Commit: `feat(web): add authentication flow`
-
----
-
-## TASK-022 — Mobile login flow
-
-- [x] Build login screen.
-- [x] Add API client.
-- [x] Store auth material using secure platform storage where appropriate.
-- [x] Add protected navigation.
-- [x] Add logout.
-- [x] Handle network/auth errors.
-
-Acceptance criteria:
-
-- Mobile login/logout works against backend.
-- App restart follows chosen session persistence behavior.
-
-Commit: `feat(mobile): add authentication flow`
+Commit: `security(auth): add web session cookie support`
 
 ---
 
-# Phase 3 — Flashcard backend
+## TASK-222 — Persist only tiny UI preferences
 
-## TASK-030 — Flashcard set CRUD API
-
-Requirements: FLASH-SET-001..008
-
-- [x] Create set service/controller/DTOs.
-- [x] List with pagination/search/sort.
-- [x] Get detail.
-- [x] Create.
-- [x] Update metadata.
-- [x] Soft delete.
-- [x] Restore if supported in V1 UI.
-- [x] Duplicate set transactionally.
-- [x] Exclude soft-deleted records by default.
+- [ ] Identify useful preferences such as preferred sort/filter and last selected library tab.
+- [ ] Do not persist API response bodies as preferences.
+- [ ] Prefer localStorage for non-sensitive client-only preferences unless a cookie is needed server-side.
+- [ ] If a preference cookie is used, keep it compact and versioned.
+- [ ] Add reset/migration behavior for invalid old values.
+- [ ] Bound the number and size of persisted keys.
 
 Acceptance criteria:
 
-- CRUD behavior follows API and DB docs.
-- Duplicate copies cards and ordering.
+- Useful preferences survive refresh/restart.
+- No secrets or learning content are stored as preferences.
+
+Commit: `feat(web): persist minimal ui preferences`
+
+---
+
+# Phase 2D — HTTP/API/DB performance
+
+## TASK-230 — Add safe conditional HTTP caching for selected GET endpoints
+
+- [ ] Audit authenticated GET endpoints safe for private revalidation caching.
+- [ ] Add `ETag` and/or `Last-Modified` where practical.
+- [ ] Use `Cache-Control: private`.
+- [ ] Prefer revalidation where stale data would be confusing.
+- [ ] Do not add public/shared caching for authenticated learning data.
+- [ ] Do not HTTP-cache live exam attempt state in a stale-prone way.
+- [ ] Verify 304 behavior.
+
+Acceptance criteria:
+
+- Safe repeated reads can avoid unnecessary payload transfer.
+- No private response becomes shared-cacheable.
+
+Commit: `perf(api): add safe conditional caching`
+
+---
+
+## TASK-231 — Enable response compression and efficient connections
+
+- [ ] Audit current reverse proxy/container network config.
+- [ ] Enable gzip and/or Brotli where supported for JSON/HTML/JS/CSS.
+- [ ] Avoid compressing already-compressed formats.
+- [ ] Configure sensible keep-alive.
+- [ ] Enable HTTP/2 or newer when the edge supports it.
+- [ ] Verify Markdown export/download remains correct.
+- [ ] Measure transferred bytes before/after.
+
+Acceptance criteria:
+
+- Text/JSON transfer size is reduced without breaking downloads.
+
+Commit: `perf(deploy): enable response compression`
+
+---
+
+## TASK-232 — Reduce API over-fetching
+
+- [ ] Identify large list/detail responses.
+- [ ] Remove fields not needed by list UIs.
+- [ ] Keep management DTOs separate from attempt DTOs.
+- [ ] Bound nested card/question payloads.
+- [ ] Add pagination where an endpoint can grow without limit.
+- [ ] Avoid returning full Markdown bodies in list responses when snippets suffice.
+- [ ] Preserve API compatibility where possible.
+- [ ] Update OpenAPI and clients for intentional changes.
+
+Acceptance criteria:
+
+- List endpoints return only necessary data.
+- No endpoint returns an unbounded full library by default.
+
+Commit: `perf(api): reduce response overfetching`
+
+---
+
+## TASK-233 — Audit Prisma queries and indexes
+
+- [ ] Capture slow/common queries for Dashboard, Flashcards, Exams, Search, best result.
+- [ ] Review `include/select` for over-fetching.
+- [ ] Detect N+1 patterns.
+- [ ] Use `EXPLAIN (ANALYZE, BUFFERS)` on representative queries where practical.
+- [ ] Add indexes only when justified.
+- [ ] Add a new Prisma migration for any change.
+- [ ] Never edit the applied V1 migration.
+- [ ] Test upgrade from current production schema and fresh DB.
+
+Acceptance criteria:
+
+- Common queries have justified index coverage.
+- No core N+1 remains.
+
+Commit: `perf(db): optimize common query paths`
+
+---
+
+## TASK-234 — Optimize Web bundle loading
+
+- [ ] Measure route bundle sizes.
+- [ ] Identify heavy libraries/components.
+- [ ] Dynamically import heavy editors/import helpers only where needed.
+- [ ] Remove unused dependencies.
+- [ ] Ensure icons are tree-shaken or locally scoped.
+- [ ] Optimize fonts/Japanese glyph loading without breaking readability.
+- [ ] Optimize images/icons where useful.
+
+Acceptance criteria:
+
+- Major routes do not eagerly load unrelated heavy code.
+- Initial bundle size does not regress without documented reason.
+
+Commit: `perf(web): reduce route bundle cost`
+
+---
+
+## TASK-235 — Add list virtualization only where justified
+
+- [ ] Measure realistic large flashcard/exam lists.
+- [ ] Add virtualization only where rendering cost is measurable.
+- [ ] Preserve accessibility, keyboard, search/sort/reorder behavior.
+- [ ] Do not virtualize small lists unnecessarily.
+
+Acceptance criteria:
+
+- Large lists remain smooth without unnecessary complexity.
+
+Commit: `perf(web): optimize large list rendering`
+
+---
+
+# Phase 2E — High-value learning features
+
+## TASK-240 — Add recent/resume learning
+
+- [ ] Track recent flashcard set access.
+- [ ] Track recent exam access/attempt.
+- [ ] Add “Continue learning” on Dashboard.
+- [ ] Keep history bounded.
+- [ ] Do not create large event-log infrastructure.
+- [ ] Ensure deleted content disappears.
+- [ ] Surface equivalent behavior on Android where useful.
+
+Acceptance criteria:
+
+- User can quickly return to recent learning content.
+- Storage growth is bounded.
+
+Commit: `feat: add recent learning resume`
+
+---
+
+## TASK-241 — Add Favorites
+
+- [ ] Add favorite state for Flashcard Sets and Exams.
+- [ ] Add API mutations/read filtering.
+- [ ] Add favorite action to Web.
+- [ ] Add favorite action to Android.
+- [ ] Add optional Favorites filter.
+- [ ] Ensure favorites respect soft deletion.
+- [ ] Add migration and tests.
+
+Acceptance criteria:
+
+- Important learning material can be pinned quickly.
+- No complex social model is introduced.
+
+Commit: `feat: add learning favorites`
+
+---
+
+## TASK-242 — Add lightweight tags
+
+- [ ] Add tags only if they clearly improve organization beyond folders/search.
+- [ ] Allow tags on Flashcard Sets and Exams.
+- [ ] Add bounded tag CRUD.
+- [ ] Add filtering by tag.
+- [ ] Add Web UI.
+- [ ] Add Android display/filter where practical.
+- [ ] Avoid hierarchical tags.
+
+Acceptance criteria:
+
+- Tags improve cross-domain organization without unnecessary complexity.
+
+Commit: `feat: add learning tags`
+
+---
+
+# Phase 2F — Spaced repetition (FSRS)
+
+## TASK-250 — Define FSRS requirements and schema
+
+- [ ] Adopt FSRS unless a documented constraint requires another algorithm.
+- [ ] Define server-authoritative scheduling.
+- [ ] Define ratings: Again / Hard / Good / Easy.
+- [ ] Define per-card scheduling state.
+- [ ] Define review-log retention.
+- [ ] Define due/new/review counts.
+- [ ] Define timezone/day-boundary behavior.
+- [ ] Keep basic Study All mode.
+- [ ] Define behavior when card is edited/deleted.
+- [ ] Add schema and migration plan.
+- [ ] Record decision in `docs/11_DECISIONS.md`.
+
+Acceptance criteria:
+
+- Scheduling behavior is deterministic and documented.
+
+Commit: `docs(flashcards): define fsrs scheduling`
+
+---
+
+## TASK-251 — Implement FSRS backend scheduling
+
+- [ ] Add card scheduling state.
+- [ ] Add review log.
+- [ ] Add Prisma migration.
+- [ ] Implement scheduler as a pure/testable domain module where possible.
+- [ ] Add endpoint for due/new cards.
+- [ ] Add endpoint to submit review rating.
+- [ ] Update schedule transactionally.
+- [ ] Prevent duplicate review submission from duplicating state transitions.
+- [ ] Use server time.
+- [ ] Add due-count summary for Dashboard.
+
+Acceptance criteria:
+
+- Same state + rating + review time produces deterministic output.
+- Duplicate submission is safe.
 
 Tests:
 
-- [x] CRUD integration tests.
-- [x] Soft delete visibility test.
-- [x] Duplicate transaction test.
+- [ ] New-card scheduling.
+- [ ] Again/Hard/Good/Easy transitions.
+- [ ] Interval progression.
+- [ ] Duplicate review submission.
+- [ ] Edited/deleted card behavior.
+- [ ] Timezone/day boundary.
 
-Commit: `feat(api): implement flashcard set CRUD`
+Commit: `feat(flashcards): add fsrs scheduler`
 
 ---
 
-## TASK-031 — Flashcard CRUD and ordering API
+## TASK-252 — Add Web Review mode
 
-Requirements: FLASH-001..007
-
-- [x] Create card.
-- [x] Edit card.
-- [x] Soft delete card.
-- [x] Duplicate card.
-- [x] Reorder cards.
-- [x] Validate set ownership.
-- [x] Require non-empty front/back.
-- [x] Preserve Japanese Unicode.
+- [ ] Add “Review due” entry point.
+- [ ] Show new/due counts.
+- [ ] Reuse card flip interaction.
+- [ ] Show Again/Hard/Good/Easy after reveal.
+- [ ] Submit rating to backend.
+- [ ] Prefetch only a small number of next cards.
+- [ ] Keep review session cache bounded.
+- [ ] Show progress and completion.
+- [ ] Keep Study All / Shuffle mode.
 
 Acceptance criteria:
 
-- A card belongs to exactly one set.
-- Reordering is stable and transactional where needed.
+- User can complete due review without page reloads.
+- Review state persists server-side.
 
-Tests:
-
-- [x] Create/update/delete.
-- [x] Front/back validation.
-- [x] Reorder.
-- [x] Wrong set ownership rejection.
-
-Commit: `feat(api): implement flashcard card management`
+Commit: `feat(web): add spaced repetition review`
 
 ---
 
-## TASK-032 — Flashcard Markdown parser
+## TASK-253 — Add Android Review mode
 
-Requirements: FC-IMPORT-001..012, `05_MARKDOWN_SPEC.md`
-
-- [x] Implement pure parser.
-- [x] Extract title, description, cards.
-- [x] Enforce `Card <number>` heading requirement.
-- [x] Enforce `### Front` and `### Back`.
-- [x] Handle multiline content and Japanese unicode.
-- [x] Return structured errors/warnings with lines.
+- [ ] Add due/new counts.
+- [ ] Add Compose Review mode.
+- [ ] Support Again/Hard/Good/Easy.
+- [ ] Use server scheduling state.
+- [ ] Cache only small active review queue locally.
+- [ ] Handle retry without duplicate rating submission.
+- [ ] Preserve basic study mode.
 
 Acceptance criteria:
 
-- Parser does not access DB.
-- Valid canonical format parses deterministically.
-- Invalid input returns actionable errors.
+- Android can complete the same review flow as Web.
 
-Tests:
-
-- [x] All mandatory flashcard parser cases from testing spec.
-
-Commit: `feat(import): add flashcard Markdown parser`
+Commit: `feat(android): add spaced repetition review`
 
 ---
 
-## TASK-033 — Flashcard import preview/confirm
+# Phase 2G — Exam review improvements
 
-- [x] Add `.md` upload validation.
-- [x] Add preview endpoint.
-- [x] Add short-lived import token/session or equivalent tamper-safe design.
-- [x] Add confirm endpoint.
-- [x] Add duplicate policy handling.
-- [x] Make confirm transactional.
-- [x] Make confirm idempotent/one-time.
-- [x] Ensure preview persists no flashcard domain records.
+## TASK-260 — Add wrong-answer review queue
+
+- [ ] Derive/store incorrect and unanswered items from submitted attempts.
+- [ ] Never expose answers before submission.
+- [ ] Add bounded review-queue endpoint.
+- [ ] Add Web “Review mistakes”.
+- [ ] Add Android “Review mistakes”.
+- [ ] Allow dismiss/clear.
+- [ ] Respect exam content versioning.
+- [ ] Remove invalid references after delete/version changes.
 
 Acceptance criteria:
 
-- Invalid preview cannot be confirmed.
-- DB failure leaves no partial set.
-- Double confirm does not duplicate data.
+- Mistake review never changes authoritative exam scoring.
+- Version boundaries remain correct.
 
-Tests:
-
-- [x] Transaction rollback.
-- [x] Duplicate confirm.
-- [x] Oversized/non-text upload.
-
-Commit: `feat(import): implement flashcard import workflow`
+Commit: `feat(exams): add wrong answer review`
 
 ---
 
-## TASK-034 — Flashcard Markdown export
+## TASK-261 — Add incorrect-only practice mode
 
-- [x] Generate canonical Markdown.
-- [x] Preserve order.
-- [x] Include title/description.
-- [x] Add export endpoint.
-- [x] Set safe filename/content type.
+- [ ] Implement as practice/review, not a normal scored exam unless explicitly documented.
+- [ ] Build subset from incorrect/unanswered items.
+- [ ] Do not overwrite official best score.
+- [ ] Show clear Practice labeling.
+- [ ] Support Web.
+- [ ] Support Android if shared API allows.
+- [ ] Add tests ensuring best-result isolation.
 
 Acceptance criteria:
 
-- Exported file re-imports with equivalent semantic data.
+- User can focus on weak questions without corrupting official results.
 
-Tests:
-
-- [x] Round-trip test.
-
-Commit: `feat(export): add flashcard Markdown export`
+Commit: `feat(exams): add incorrect-only practice`
 
 ---
 
-# Phase 4 — Flashcard web/mobile UI
+# Phase 2H — Android smoothness and light read cache
 
-## TASK-040 — Web flashcard library
+## TASK-270 — Add bounded Room read cache
 
-- [x] Flashcard set list.
-- [x] Search.
-- [x] Sort.
-- [x] Create/edit/delete/duplicate actions.
-- [x] Empty/loading/error states.
-- [x] Set detail/card list.
-- [x] Card create/edit/delete/duplicate.
-- [x] Reorder UX.
+- [ ] Keep Android online-first.
+- [ ] Do not implement full offline sync.
+- [ ] Add Room only for selected read-mostly data:
+  - flashcard set summaries;
+  - exam summaries;
+  - recent/resume metadata;
+  - optional small flashcard detail cache.
+- [ ] Never cache pre-grading correct-answer metadata.
+- [ ] Bound row count and/or cache age.
+- [ ] Add expiry cleanup.
+- [ ] Treat server as source of truth.
+- [ ] Show cached data immediately and refresh in background.
+- [ ] Clearly display offline/stale state.
 
 Acceptance criteria:
 
-- Core set/card management can be completed without direct DB/admin tools.
+- Android opens useful content quickly after prior sync.
+- Cache cannot grow without bound.
 
-Commit: `feat(web): build flashcard library`
+Commit: `perf(android): add bounded read cache`
 
 ---
 
-## TASK-041 — Web flashcard study mode
+## TASK-271 — Optimize Android startup/navigation
 
-Requirements: STUDY-001..008
-
-- [x] Study screen.
-- [x] Front/back flip.
-- [x] Previous/next.
-- [x] Progress indicator.
-- [x] Shuffle session.
-- [x] Keyboard shortcuts.
-- [x] Responsive behavior.
+- [ ] Measure cold/warm startup.
+- [ ] Avoid blocking startup on unnecessary network calls.
+- [ ] Restore auth efficiently.
+- [ ] Load cached Home/library first where available.
+- [ ] Refresh in background.
+- [ ] Avoid recomposition hotspots.
+- [ ] Keep ViewModel state stable across navigation/config changes.
+- [ ] Use lazy/paging lists where justified.
 
 Acceptance criteria:
 
-- User can study a full set without editor UI.
+- Returning user reaches useful content faster.
+- Navigation does not repeatedly reload identical data.
 
-Tests:
-
-- [x] Core interaction component/E2E test.
-
-Commit: `feat(web): add flashcard study mode`
+Commit: `perf(android): improve startup and navigation`
 
 ---
 
-## TASK-042 — Web flashcard import/export UI
+# Phase 2I — Search and import productivity
 
-- [x] Upload `.md`.
-- [x] Format guide modal/page.
-- [x] Copyable example.
-- [x] Preview summary.
-- [x] Error/warning list.
-- [x] Duplicate policy.
-- [x] Confirm import.
-- [x] Export action.
+## TASK-280 — Improve global search responsiveness
+
+- [ ] Preserve Japanese Unicode behavior.
+- [ ] Add relevance/ranking appropriate to personal scale.
+- [ ] Highlight matched snippets safely.
+- [ ] Debounce Web search.
+- [ ] Cancel obsolete requests.
+- [ ] Cache recent search queries briefly.
+- [ ] Bound search cache cardinality.
+- [ ] Add Android debounce/cancellation equivalently.
 
 Acceptance criteria:
 
-- User can import a valid file without reading backend docs.
-- Invalid file clearly identifies problems.
+- Search feels responsive without request storms.
 
-Commit: `feat(web): add flashcard import and export UI`
+Commit: `perf(search): improve search responsiveness`
 
 ---
 
-## TASK-043 — Mobile flashcard library and study
+## TASK-281 — Add multi-file Markdown import workflow
 
-- [x] Flashcard set list/search.
-- [x] Set detail.
-- [x] Basic card management if included in mobile V1.
-- [x] Study mode.
-- [x] Flip/navigation/shuffle.
-- [x] Mobile loading/error states.
+- [ ] Allow selecting multiple Markdown files for sequential preview where useful.
+- [ ] Never bypass preview + confirm invariants.
+- [ ] Keep each import transaction independent.
+- [ ] Show per-file success/error state.
+- [ ] Prevent duplicate confirm.
+- [ ] Use bounded concurrency.
+- [ ] Preserve current single-file import behavior.
 
 Acceptance criteria:
 
-- Mobile user can at minimum discover sets and study them fully.
+- Multiple personal study files can be imported efficiently without weakening safety.
 
-Commit: `feat(mobile): build flashcard experience`
+Commit: `feat(import): add multi-file import workflow`
 
 ---
 
-# Phase 5 — Exam backend content management
+# Phase 2J — Security and operations
 
-## TASK-050 — Exam folder service
+## TASK-290 — Reconcile production HTTP/HTTPS posture
 
-Requirements: FOLDER-001..008
-
-- [x] CRUD root folders.
-- [x] CRUD child folders.
-- [x] Move/reorder.
-- [x] Calculate/validate depth.
-- [x] Reject cycles.
-- [x] Reject depth > 2.
-- [x] Define non-empty delete behavior.
+- [ ] Audit current IP:port production deployment.
+- [ ] Choose/document the simplest realistic HTTPS path for personal use.
+- [ ] Do not add a domain requirement unless accepted by the owner.
+- [ ] If HTTPS is implemented, update Web/API/Android URLs, CORS, deployment docs, and Secure cookie behavior.
+- [ ] If HTTPS is deferred, document the accepted risk and do not falsely claim Secure-cookie production.
 
 Acceptance criteria:
 
-- Every hierarchy mutation preserves a valid max-depth-2 tree.
+- Security docs reflect the actual runtime.
 
-Tests:
-
-- [x] All mandatory folder tests.
-
-Commit: `feat(exams): implement folder hierarchy`
+Commit: `security(deploy): align production transport policy`
 
 ---
 
-## TASK-051 — Exam CRUD and question validation
+## TASK-291 — Add one-command VPS deploy/update workflow
 
-Requirements: EXAM-001..007, QUESTION-001..009
-
-- [x] Exam list/detail/create/update/delete/duplicate.
-- [x] Time limit validation.
-- [x] Shuffle settings.
-- [x] Question CRUD or atomic content endpoint.
-- [x] Type enum.
-- [x] Enforce only `MULTIPLE_CHOICE_SINGLE` for V1 creation.
-- [x] Enforce 2–6 options.
-- [x] Enforce exactly one correct answer.
-- [x] Implement content vs metadata edit classification.
-- [x] Increment content version for content changes.
+- [ ] Pull latest GHCR Web/API images.
+- [ ] Run database migration safely.
+- [ ] Recreate/update containers.
+- [ ] Run health checks.
+- [ ] Stop on failed migration/health check.
+- [ ] Prune only safe dangling images after success.
+- [ ] Never delete database volumes.
+- [ ] Document rollback where practical.
+- [ ] Keep compatibility with the owner's chosen `:latest` policy.
 
 Acceptance criteria:
 
-- Invalid exam content cannot be persisted.
-- Content mutation and version increment are atomic.
+- Production update is one documented safe command/script.
 
-Tests:
-
-- [x] 1/2/6/7 option cases.
-- [x] 0/1/2 correct cases.
-- [x] Metadata edit version test.
-- [x] Content edit version test.
-
-Commit: `feat(exams): implement exam content management`
+Commit: `ops: add simple production update workflow`
 
 ---
 
-## TASK-052 — Exam Markdown parser
+## TASK-292 — Verify Phase 2 backup/restore
 
-Requirements: EX-IMPORT-001..010
-
-- [x] Parse H1 title.
-- [x] Parse time metadata.
-- [x] Parse shuffle metadata.
-- [x] Parse numbered questions.
-- [x] Parse A–F options.
-- [x] Parse final answer key.
-- [x] Validate exact question/key coverage.
-- [x] Validate option count.
-- [x] Validate answer option existence.
-- [x] Produce line/question diagnostics.
-- [x] Enforce limits.
+- [ ] Verify daily PostgreSQL backup still runs.
+- [ ] Verify retention.
+- [ ] Verify backup is outside live DB volume.
+- [ ] Perform isolated restore after Phase 2 migrations.
+- [ ] Verify Phase 2 data is restored.
+- [ ] Record restore date/result.
 
 Acceptance criteria:
 
-- Canonical exam file parses deterministically.
-- Answer key is required and validated at the end.
+- Phase 2 schema/data are demonstrably restorable.
 
-Tests:
-
-- [x] All mandatory exam Markdown cases.
-
-Commit: `feat(import): add exam Markdown parser`
+Commit: `ops: verify phase 2 backup restore`
 
 ---
 
-## TASK-053 — Exam import preview/confirm
+## TASK-293 — Add lightweight production observability
 
-- [x] Add preview endpoint.
-- [x] Add tamper-safe short-lived import session/token.
-- [x] Preview does not persist exam content.
-- [x] Confirm validates token/session.
-- [x] Confirm creates all exam records in one transaction.
-- [x] Add duplicate name policy.
-- [x] Prevent duplicate confirm.
+- [ ] Add request-duration logging/metrics at a lightweight level.
+- [ ] Track slow API requests above a documented threshold.
+- [ ] Track safe failed login/import/exam submit events.
+- [ ] Track health/readiness.
+- [ ] Do not add enterprise observability infrastructure.
+- [ ] Never log tokens/passwords/full imported content/answer keys.
+- [ ] Add a simple command/view for recent production errors.
 
 Acceptance criteria:
 
-- No partial exam can be created.
-- Preview errors block confirmation.
+- Performance regressions can be diagnosed from normal server logs.
 
-Tests:
-
-- [x] Rollback.
-- [x] Duplicate confirm.
-- [x] Invalid token.
-
-Commit: `feat(import): implement exam import workflow`
+Commit: `ops: add lightweight performance observability`
 
 ---
 
-## TASK-054 — Exam Markdown export
+# Phase 2K — Tests and regression gates
 
-- [x] Export canonical metadata.
-- [x] Export questions/options in order.
-- [x] Export final `# ANSWER KEY`.
-- [x] Add endpoint.
+## TASK-300 — Add Web cache/navigation tests
 
-Acceptance criteria:
+- [ ] Repeated list/detail navigation reuses warm query state.
+- [ ] Relevant mutation invalidates correct queries.
+- [ ] Unrelated mutation does not clear the entire cache.
+- [ ] Stale data revalidates.
+- [ ] Recoverable error can retry.
+- [ ] Live attempt freshness rules hold.
+- [ ] No correct-answer leakage through cached data.
 
-- Export/import round trip preserves supported semantics.
-
-Tests:
-
-- [x] Round-trip test.
-
-Commit: `feat(export): add exam Markdown export`
+Commit: `test(web): cover cache and navigation behavior`
 
 ---
 
-# Phase 6 — Exam attempt engine
+## TASK-301 — Add performance regression guardrails
 
-## TASK-060 — Attempt start and snapshot
+- [ ] Define reasonable bundle-size thresholds.
+- [ ] Add CI check for accidental major bundle growth where reliable.
+- [ ] Add API response-size smoke checks.
+- [ ] Add query-count/N+1 regression check where practical.
+- [ ] Avoid flaky micro-benchmark gates.
+- [ ] Keep baseline metrics documented.
 
-Requirements: ATTEMPT-001..008
-
-- [x] Implement attempt creation.
-- [x] Snapshot current exam version.
-- [x] Record server start time.
-- [x] Calculate expiration for timed exam.
-- [x] Snapshot stable shuffled question order when enabled.
-- [x] Snapshot stable shuffled option order when enabled.
-- [x] Return attempt DTO without correctness metadata.
-- [x] Add attempt restore endpoint.
-
-Critical acceptance criteria:
-
-- Inspect serialized response: no correct answer information exists.
-- Refresh returns same expiration and ordering.
-
-Tests:
-
-- [x] Untimed start.
-- [x] Timed start.
-- [x] Stable shuffle.
-- [x] No answer leakage regression test.
-
-Commit: `feat(exams): implement attempt start and restore`
+Commit: `test(perf): add regression guardrails`
 
 ---
 
-## TASK-061 — In-progress answer persistence
+## TASK-302 — Extend integration tests for Phase 2 features
 
-Recommended for refresh resilience.
+- [ ] Favorites tests.
+- [ ] Tags tests if implemented.
+- [ ] Recent/resume tests.
+- [ ] FSRS scheduling/idempotency tests.
+- [ ] Wrong-answer review tests.
+- [ ] Practice-mode isolation tests.
+- [ ] V1 → Phase 2 migration test.
+- [ ] Fresh DB migration through all migrations.
 
-- [x] Implement answer autosave endpoint or equivalent server persistence.
-- [x] Validate question belongs to attempt.
-- [x] Validate option belongs to question.
-- [x] Allow null/unanswered state.
-- [x] Reject updates after submission/expiration policy.
-
-Acceptance criteria:
-
-- Refresh/reopen does not lose server-saved selections.
-
-Tests:
-
-- [x] Valid save.
-- [x] Invalid question.
-- [x] Invalid option.
-- [x] Submitted attempt rejection.
-
-Commit: `feat(exams): persist in-progress answers`
+Commit: `test: complete phase 2 integration coverage`
 
 ---
 
-## TASK-062 — Server-side submission and scoring
+## TASK-303 — Extend Web E2E critical path
 
-Requirements: SCORE-001..007, ATTEMPT-009..012
+- [ ] Login.
+- [ ] Warm navigate Dashboard → Flashcards → detail → back without full reload.
+- [ ] Create/edit card and observe cache-consistent UI.
+- [ ] Review due flashcards if FSRS implemented.
+- [ ] Warm navigate Exam library/detail.
+- [ ] Complete exam and verify best-score cache refresh.
+- [ ] Review mistakes.
+- [ ] Verify no answer leakage.
+- [ ] Verify stale data eventually refreshes.
 
-- [x] Implement pure scoring service.
-- [x] Implement submit endpoint.
-- [x] Enforce server expiration.
-- [x] Finalize attempt atomically.
-- [x] Return graded question results after submission.
-- [x] Implement idempotent duplicate submit.
-- [x] Calculate duration.
-- [x] Apply rounding policy.
-
-Acceptance criteria:
-
-- Server result is authoritative and deterministic.
-- Repeated submit returns same finalized result.
-
-Tests:
-
-- [x] Scoring boundary cases.
-- [x] Unanswered.
-- [x] Timeout.
-- [x] Duplicate submit.
-
-Commit: `feat(exams): implement submission and scoring`
+Commit: `test(web): complete phase 2 e2e journeys`
 
 ---
 
-## TASK-063 — Best-result service
+## TASK-304 — Extend Android smoke/E2E path
 
-Requirements: RESULT-001..006
+- [ ] Login/session restore.
+- [ ] Cached library startup.
+- [ ] Background refresh.
+- [ ] Flashcard study.
+- [ ] FSRS review if implemented.
+- [ ] Exam list.
+- [ ] Timed exam.
+- [ ] Result review.
+- [ ] Mistake review.
+- [ ] Offline/read-cache degraded behavior.
+- [ ] Reconnect behavior.
 
-- [x] Upsert best result after finalized submission.
-- [x] First score creates best.
-- [x] Higher score replaces.
-- [x] Lower score does not replace.
-- [x] Equal score follows tie policy.
-- [x] Increment attempt count.
-- [x] Scope by exam version.
-- [x] Add best-result endpoint.
-
-Acceptance criteria:
-
-- Current exam version displays only applicable best result.
-
-Tests:
-
-- [x] First/higher/lower/equal.
-- [x] Version change.
-
-Commit: `feat(exams): implement best-result tracking`
+Commit: `test(android): complete phase 2 smoke journeys`
 
 ---
 
-# Phase 7 — Exam web UI
+# Phase 2L — Documentation synchronization
 
-## TASK-070 — Web exam library and folder UI
+## TASK-310 — Update Requirements and Decisions
 
-- [x] Folder navigation/tree.
-- [x] Maximum-depth UX guard.
-- [x] Create/rename/move/delete folder UI.
-- [x] Exam list.
-- [x] Best score shown under/near exam title/logo.
-- [x] Search/sort.
-- [x] Empty/loading/error states.
+- [ ] Document all delivered Phase 2 features.
+- [ ] Document deferred optional tasks.
+- [ ] Record cache/storage policy.
+- [ ] Record Web session/cookie decision.
+- [ ] Record FSRS decision.
+- [ ] Record Android read-cache boundary.
+- [ ] Record HTTPS/runtime decision.
+- [ ] Remove stale V1-only statements that are no longer true.
 
-Acceptance criteria:
-
-- User can organize exams without admin/database access.
-
-Commit: `feat(web): build exam library and folders`
+Commit: `docs: synchronize phase 2 requirements and decisions`
 
 ---
 
-## TASK-071 — Web exam editor
+## TASK-311 — Update Architecture/API/DB/Deployment docs
 
-- [x] Exam metadata form.
-- [x] Folder selector.
-- [x] Time limit.
-- [x] Shuffle toggles.
-- [x] Question editor.
-- [x] 2–6 option UX.
-- [x] Single correct-answer radio selection.
-- [x] Reorder questions/options.
-- [x] Validation messages.
-- [x] Warn/handle score applicability when content changes.
+- [ ] Architecture reflects Web query cache and Android Room cache where implemented.
+- [ ] API docs reflect new endpoints/headers/cookie behavior.
+- [ ] DB docs reflect new tables/indexes.
+- [ ] Deployment docs reflect actual update process.
+- [ ] Security docs reflect actual auth/cookie/HTTPS behavior.
+- [ ] Testing docs include Phase 2 suites.
+- [ ] Development guide includes new commands and cache-debug guidance.
 
-Acceptance criteria:
-
-- Invalid question cannot be saved.
-- Editing content causes backend version behavior correctly.
-
-Commit: `feat(web): build exam editor`
+Commit: `docs: synchronize phase 2 technical documentation`
 
 ---
 
-## TASK-072 — Web exam import/export UI
+## TASK-312 — Update traceability matrix
 
-- [x] `.md` upload.
-- [x] Format guide.
-- [x] Copyable template.
-- [x] Preview metadata/question counts.
-- [x] Errors/warnings.
-- [x] Confirm import.
-- [x] Export action.
-- [x] Keep answer key visually de-emphasized in preview.
+- [ ] Map every Phase 2 requirement group to implementation tasks.
+- [ ] Map every Phase 2 requirement group to verification tasks.
+- [ ] Add cache/session/security invariants.
+- [ ] Add FSRS invariants if implemented.
+- [ ] Add Android bounded-cache invariant.
+- [ ] Add Phase 2 release audit procedure.
 
-Acceptance criteria:
-
-- Valid exam can be imported from UI end-to-end.
-
-Commit: `feat(web): add exam import and export UI`
+Commit: `docs: update phase 2 traceability`
 
 ---
 
-## TASK-073 — Web exam pre-start and taking screen
-
-- [x] Pre-start summary.
-- [x] Start attempt through backend.
-- [x] Render question content/options.
-- [x] Previous/next.
-- [x] Question navigator.
-- [x] Answered/unanswered/current states.
-- [x] Autosave selections.
-- [x] Render server-based timer.
-- [x] Handle refresh/restore.
-- [x] Warn near timeout.
-- [x] Auto-submit on expiry.
-
-Critical acceptance criteria:
-
-- Refresh does not reset timer.
-- Browser DevTools payload does not contain correct answers.
-
-Tests:
-
-- [x] E2E timed attempt flow.
-
-Commit: `feat(web): build exam taking experience`
-
----
-
-## TASK-074 — Web submission confirmation and result review
-
-- [x] Show answered/unanswered counts.
-- [x] Submit confirmation.
-- [x] Display score /100.
-- [x] Display correct/total.
-- [x] Display duration.
-- [x] Correct option green.
-- [x] Wrong selected option red + correct green.
-- [x] Unanswered state + correct green.
-- [x] Display updated best score.
-
-Acceptance criteria:
-
-- Result rendering matches scoring response for all answer states.
-
-Commit: `feat(web): add exam result review`
-
----
-
-# Phase 8 — Mobile exam experience
-
-## TASK-080 — Mobile exam library
-
-- [x] Folder navigation appropriate for mobile.
-- [x] Exam list.
-- [x] Time/question metadata.
-- [x] Best score display.
-- [x] Search if included in shared mobile search.
-
-Commit: `feat(mobile): build exam library`
-
----
-
-## TASK-081 — Mobile exam taking flow
-
-- [x] Pre-start screen.
-- [x] Start/restore attempt.
-- [x] Question/options UI.
-- [x] Navigation.
-- [x] Answer persistence.
-- [x] Server-based timer.
-- [x] Timeout submit handling.
-- [x] Submission confirmation.
-- [x] Result review colors/icons.
-- [x] Best score display.
-
-Acceptance criteria:
-
-- Complete timed exam can be taken on emulator/device.
-- App restart/reopen behavior does not grant extra time.
-
-Commit: `feat(mobile): build exam taking flow`
-
----
-
-# Phase 9 — Search and dashboard
-
-## TASK-090 — Backend search
-
-Requirements: SEARCH-001..006
-
-- [x] Choose documented PostgreSQL search strategy.
-- [x] Add necessary indexes/migration.
-- [x] Search sets/cards/exams/folders.
-- [x] Bound/paginate results.
-- [x] Preserve Japanese Unicode behavior.
-
-Tests:
-
-- [x] Japanese search cases.
-- [x] Soft-deleted content excluded.
-
-Commit: `feat(search): implement learning content search`
-
----
-
-## TASK-091 — Web global search
-
-- [x] Search page/input.
-- [x] Group results by domain.
-- [x] Link results to content.
-- [x] Loading/empty/error states.
-
-Commit: `feat(web): add global search`
-
----
-
-## TASK-092 — Dashboard
-
-Requirements: DASH-001..004
-
-- [x] Quick navigation.
-- [x] Recent flashcard sets.
-- [x] Recent exams.
-- [x] Best scores where available.
-- [x] Keep implementation simple.
-
-Commit: `feat(web): add learning dashboard`
-
----
-
-# Phase 10 — Soft delete, trash, data safety
-
-## TASK-100 — Verify soft-delete consistency
-
-- [x] Review every core query for deleted filtering.
-- [x] Review cascade behavior.
-- [x] Ensure duplicate/search/export ignore deleted content.
-- [x] Add restore endpoints/UI only where selected.
-- [x] Ensure non-empty folder delete behavior is explicit.
-
-Tests:
-
-- [x] Deleted resources absent from normal lists/search.
-- [x] Restore works where implemented.
-
-Commit: `fix(data): enforce soft-delete consistency`
-
----
-
-# Phase 11 — Security hardening
-
-## TASK-110 — Markdown rendering sanitization
-
-- [x] Select safe Markdown rendering libraries.
-- [x] Sanitize HTML/script vectors on web.
-- [x] Apply equivalent safe rendering policy on mobile.
-- [x] Add XSS regression tests.
-
-Commit: `security: harden Markdown rendering`
-
----
-
-## TASK-111 — API security hardening
-
-- [x] Verify auth on protected routes.
-- [x] Verify CORS configuration.
-- [x] Verify rate limits.
-- [x] Verify upload size limits.
-- [x] Verify production-safe errors.
-- [x] Verify secret-free logs.
-- [x] Verify no answer leakage from any live attempt endpoint.
-- [x] Verify arbitrary option/question submission rejection.
-
-Acceptance criteria:
-
-- `07_SECURITY.md` release checklist passes locally/staging.
-
-Commit: `security: harden API boundaries`
-
----
-
-# Phase 12 — Testing completion
-
-## TASK-120 — Unit test completion
-
-- [x] Parser coverage complete.
-- [x] Scoring coverage complete.
-- [x] Folder depth coverage complete.
-- [x] Exam version logic coverage complete.
-- [x] Validation coverage complete.
-
-Acceptance criteria:
-
-- All mandatory unit cases in `08_TESTING.md` pass.
-
-Commit: `test: complete domain unit coverage`
-
----
-
-## TASK-121 — Integration test completion
-
-- [x] Auth integration tests.
-- [x] CRUD integration tests.
-- [x] Import transaction tests.
-- [x] Attempt lifecycle tests.
-- [x] Best-result tests.
-- [x] Fresh DB migration test.
-
-Commit: `test: complete backend integration coverage`
-
----
-
-## TASK-122 — Web E2E completion
-
-- [x] Login.
-- [x] Flashcard management/study.
-- [x] Flashcard import.
-- [x] Exam import/create.
-- [x] Timed exam.
-- [x] Result review.
-- [x] Lower-score best result behavior.
-
-Commit: `test(web): complete critical E2E journeys`
-
----
-
-## TASK-123 — Mobile smoke/E2E completion
-
-- [x] Login.
-- [x] Flashcard study.
-- [x] Exam list.
-- [x] Timed exam.
-- [x] Submit/result.
-
-Commit: `test(mobile): complete critical smoke flows`
-
----
-
-# Phase 13 — Deployment and operations
-
-## TASK-130 — Production build configuration
-
-- [x] Production web build.
-- [x] Production API build.
-- [x] API container image.
-- [x] Web container/platform config.
-- [x] Reverse proxy/edge configuration.
-- [x] HTTPS plan/config.
-- [x] Production env validation.
-
-Acceptance criteria:
-
-- Production-equivalent environment boots successfully.
-
-Commit: `chore(deploy): add production build configuration`
-
----
-
-## TASK-131 — CI pipeline
-
-- [x] Install with lockfile.
-- [x] Lint.
-- [x] Typecheck.
-- [x] Unit tests.
-- [x] Integration tests.
-- [x] Build.
-- [x] Migration validation.
-- [x] Container build if used.
-
-Acceptance criteria:
-
-- Broken lint/test/build causes pipeline failure.
-
-Commit: `ci: add project validation pipeline`
-
----
-
-## TASK-132 — Backup and restore
-
-Requirements: BACKUP-001..003
-
-- [x] Add documented backup command/job.
-- [x] Configure retention.
-- [x] Store backup outside live DB volume where feasible.
-- [x] Document restore.
-- [x] Perform restore into isolated DB.
-- [x] Verify application can read restored data.
-
-Acceptance criteria:
-
-- Restore test is actually performed, not only documented.
-
-Commit: `ops: add verified database backup and restore`
-
----
-
-## TASK-133 — Deployment smoke test
-
-- [x] Health endpoint passes.
-- [x] Login works.
-- [x] Flashcard CRUD works.
-- [x] Flashcard import works.
-- [x] Exam start/submit works.
-- [x] Timer behavior works.
-- [x] Best score works.
-- [x] No answer leakage observed.
-- [x] Logs contain no secrets.
-
-Commit: only if fixes/config changes were needed.
-
----
-
-# Phase 14 — Documentation synchronization
-
-## TASK-140 — API documentation sync
-
-- [x] OpenAPI matches implementation.
-- [x] Endpoint examples are correct.
-- [x] Error codes documented.
-- [x] Auth behavior documented.
-- [x] Attempt response documented without correctness leakage.
-
-Commit: `docs: synchronize API documentation`
-
----
-
-## TASK-141 — Developer setup documentation
-
-- [x] Document prerequisites.
-- [x] Document install.
-- [x] Document local DB start.
-- [x] Document migrations.
-- [x] Document web/api/mobile start commands.
-- [x] Document test commands.
-- [x] Document environment variables.
-
-Commit: `docs: finalize developer setup guide`
-
----
-
-## TASK-142 — Final docs audit
-
-- [x] Requirements match implementation.
-- [x] Architecture matches implementation.
-- [x] DB doc matches Prisma schema.
-- [x] API doc matches routes/OpenAPI.
-- [x] Markdown spec matches parsers/exporters.
-- [x] UI doc matches shipped flows.
-- [x] Security checklist matches configuration.
-- [x] Testing doc matches suites.
-- [x] Deployment doc matches production method.
-- [x] Decisions file reflects all significant deviations.
-
-Commit: `docs: complete final project documentation audit`
-
----
-
-## TASK-143 — Replace Expo mobile with Android Native Kotlin
-
-- [x] Remove the React Native/Expo implementation, dependencies, and configuration.
-- [x] Create a standalone Android Gradle/Kotlin project with Compose and Material 3.
-- [x] Add Navigation Compose, ViewModel, Coroutines/Flow, Retrofit/OkHttp, Hilt,
-      DataStore, and Android Keystore-backed token storage.
-- [x] Preserve the existing Web/API/Database contract and implement auth,
-      dashboard, flashcards, exams, search, retry/error states, timer, submit, and result flows.
-- [x] Centralize development/production API base URL injection at Android build time.
-- [x] Add Android unit tests and CI checks for Gradle tests, lint, debug APK, and
-      production-configured APK builds.
-- [x] Update workspace configuration, deployment guidance, architecture decisions,
-      traceability, README, and release gates.
-
-Acceptance criteria:
-
-- `apps/mobile` is 100% Kotlin Android Native and builds without Node/pnpm.
-- Debug unit tests, lint, and debug APK build pass locally and in CI.
-
-Commit: `feat(mobile): migrate to native Android Kotlin`
-
----
-
-# Phase 15 — Final release gate
-
-## TASK-150 — Full validation
-
-Run from clean checkout/environment where practical:
-
-- [x] `pnpm install` succeeds.
-- [x] Lint passes.
-- [x] Typecheck passes.
-- [x] Unit tests pass.
-- [x] Integration tests pass.
-- [x] Web E2E critical path passes.
-- [x] Mobile smoke path passes.
-- [x] Web production build passes.
-- [x] API production build passes.
-- [x] Mobile Gradle unit tests/lint/debug APK and production-configured APK builds pass.
-- [x] Fresh database migration passes.
-- [x] Backup restore test has passed.
-- [x] Security release checklist passes.
-- [x] No critical/high bug remains.
-- [x] No mandatory task remains unchecked.
+# Phase 2M — Final release gate
+
+## TASK-320 — Full Phase 2 validation
+
+Run from clean checkout/environment where practical.
+
+- [ ] `pnpm install --frozen-lockfile` succeeds.
+- [ ] Root lint passes.
+- [ ] Root typecheck passes.
+- [ ] Unit tests pass.
+- [ ] Backend integration tests pass.
+- [ ] Web E2E passes.
+- [ ] Web production build passes.
+- [ ] API production build passes.
+- [ ] Android unit tests pass.
+- [ ] Android lint passes.
+- [ ] Android debug APK builds.
+- [ ] Android production APK builds.
+- [ ] Fresh database can apply all migrations.
+- [ ] Upgrade database from V1 schema to Phase 2 succeeds.
+- [ ] Production backup restore with Phase 2 schema succeeds.
+- [ ] Production API health passes.
+- [ ] Production Web loads.
+- [ ] Production Android connects.
+- [ ] Repeated warm Web navigation no longer behaves like a full reload.
+- [ ] Query cache obeys bounded stale/GC policy.
+- [ ] No learning-content cache grows unbounded.
+- [ ] Cookies remain minimal and contain no learning content/secrets.
+- [ ] Live exam payload still contains no correct-answer information.
+- [ ] Server timer remains authoritative.
+- [ ] Duplicate exam submit remains idempotent.
+- [ ] FSRS review submit is retry/idempotency safe if implemented.
+- [ ] Security checklist passes for actual production topology.
+- [ ] No critical/high bug remains.
+- [ ] Docs match implementation.
+- [ ] No mandatory Phase 2 task remains unchecked.
 
 If any item fails:
 
 - [ ] Stop release.
+- [ ] Reproduce failure.
 - [ ] Fix root cause.
 - [ ] Add regression test when applicable.
 - [ ] Re-run affected checks.
-- [ ] Re-run full validation.
+- [ ] Re-run full Phase 2 validation.
 
 Acceptance criteria:
 
-- Every item above is green.
+- Every mandatory item above is green.
 
-Commit: `chore: prepare v1 release`
+Commit: `chore: prepare phase 2 release`
 
 ---
 
-## TASK-151 — Final project completion
+## TASK-321 — Phase 2 completion and release record
 
-- [x] Tag/version the completed V1 release according to chosen versioning policy.
-- [x] Record final deployment/version information.
-- [x] Confirm `task.md` contains no unchecked mandatory tasks.
-- [x] Confirm production service health.
-- [x] Confirm most recent backup is valid.
+- [ ] Tag/version the completed Phase 2 release.
+- [ ] Record final production image/deployment information.
+- [ ] Record Android production APK/version.
+- [ ] Record latest verified backup/restore date.
+- [ ] Archive the completed Phase 2 task plan under release history.
+- [ ] Create the next active `task.md` only when a new phase is explicitly approved.
 
-Project may be declared **100% complete for V1** only after TASK-151 is fully satisfied.
+Project may be declared **100% complete for Phase 2** only after TASK-321 is fully satisfied.
+
+Commit: `chore: finalize phase 2 release`

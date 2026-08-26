@@ -213,20 +213,15 @@ If a test is wrong because requirements changed, update the requirement/docs fir
 
 ## 14. Scope discipline
 
-Do not implement Phase 2 features unless required to support V1 architecture.
+V1 is the shipped regression baseline. The active `task.md` explicitly approves
+Phase 2 work, including bounded caching, recent learning, favorites, tags, FSRS,
+exam review, Android read caching, and the documented operations work. Implement
+those approved Phase 2 requirements when their dependency order reaches them,
+while preserving every V1 invariant and the same bug/security/commit rules.
 
-Do not add:
-
-- FSRS
-- social features
-- complex analytics
-- microservices
-- GraphQL
-- offline sync
-- AI generation
-- reading/listening UI
-
-without an explicit requirement update.
+Do not implement features outside the active approved task plan. Unapproved
+additions remain out of scope: social features, complex analytics, microservices,
+GraphQL, full offline sync, AI generation, and reading/listening UI.
 
 ---
 

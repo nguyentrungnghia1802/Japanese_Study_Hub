@@ -21,20 +21,22 @@ The system is intentionally simple in V1 while preserving clean extension points
 
 Read documents in this order before implementation:
 
-1. `docs/01_REQUIREMENTS.md`
-2. `docs/02_ARCHITECTURE.md`
-3. `docs/03_DATABASE.md`
-4. `docs/04_API.md`
-5. `docs/05_MARKDOWN_SPEC.md`
-6. `docs/06_UI_UX.md`
-7. `docs/07_SECURITY.md`
-8. `docs/08_TESTING.md`
-9. `docs/09_DEPLOYMENT.md`
-10. `docs/10_DEVELOPMENT_GUIDE.md`
-11. `docs/11_DECISIONS.md`
-12. `docs/12_TRACEABILITY.md`
-13. `Agent.md`
-14. `task.md`
+1. `README.md`
+2. `docs/01_REQUIREMENTS.md`
+3. `docs/11_DECISIONS.md`
+4. `docs/02_ARCHITECTURE.md`
+5. `docs/03_DATABASE.md`
+6. `docs/04_API.md`
+7. `docs/05_MARKDOWN_SPEC.md`
+8. `docs/06_UI_UX.md`
+9. `docs/07_SECURITY.md`
+10. `docs/08_TESTING.md`
+11. `docs/09_DEPLOYMENT.md`
+12. `docs/10_DEVELOPMENT_GUIDE.md`
+13. `docs/12_TRACEABILITY.md`
+14. `docs/13_PHASE2_REQUIREMENTS.md` when Phase 2 is active
+15. `Agent.md`
+16. `task.md`
 
 ## 3. Source-of-truth priority
 
@@ -111,6 +113,11 @@ Gradle property. The `production` variant uses the local debug keystore only for
 owner/device validation; no signing key or release secret is stored in the repository.
 
 ## 7. Definition of project completion
+
+V1 was completed and released before the current Phase 2 task plan. Phase 2 is
+now the active development scope and must preserve the V1 behavior baseline. The
+project may be declared Phase 2-complete only after every mandatory item through
+TASK-321 is verified, documented, and committed.
 
 The project is complete only when:
 
