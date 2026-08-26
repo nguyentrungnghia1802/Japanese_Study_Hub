@@ -10,6 +10,52 @@ data class Flashcard(
     val position: Int,
 )
 
+enum class FlashcardReviewRating { AGAIN, HARD, GOOD, EASY }
+
+data class FlashcardSchedule(
+    val state: String,
+    val dueAt: String,
+    val stability: Double?,
+    val difficulty: Double?,
+    val elapsedDays: Int,
+    val scheduledDays: Int,
+    val learningSteps: Int,
+    val reps: Int,
+    val lapses: Int,
+    val lastReviewedAt: String?,
+)
+
+data class FlashcardReviewCard(
+    val id: String,
+    val setId: String,
+    val front: String,
+    val back: String,
+    val position: Int,
+    val schedule: FlashcardSchedule,
+)
+
+data class FlashcardReviewSummary(
+    val serverNow: String,
+    val dueCount: Int,
+    val newCount: Int,
+    val reviewCount: Int,
+)
+
+data class FlashcardReviewQueue(
+    val serverNow: String,
+    val cards: List<FlashcardReviewCard>,
+)
+
+data class FlashcardReviewResult(
+    val cardId: String,
+    val rating: FlashcardReviewRating,
+    val stateBefore: String,
+    val stateAfter: String,
+    val dueAtBefore: String,
+    val dueAtAfter: String,
+    val schedule: FlashcardSchedule,
+)
+
 data class LearningTag(
     val id: String,
     val slug: String,

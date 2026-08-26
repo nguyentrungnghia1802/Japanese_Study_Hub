@@ -179,6 +179,16 @@ The screen shows reviewed/remaining progress, a recoverable Retry state, and an
 explicit completion state. Only a small next-card prefetch is allowed; the
 active review array and React Query cache remain bounded and memory-only.
 
+Android review mode:
+
+- The `Ôn tập` navigation destination opens the same server-authoritative flow.
+- Compose shows Due/New counts, reviewed/remaining progress, and an explicit
+  completion state.
+- Again, Hard, Good, and Easy remain disabled until the meaning is revealed.
+- A failed rating keeps the revealed card and its client request id so retrying
+  cannot submit a second transition. The active ViewModel queue is capped at 20;
+  V1 remains online-first and does not add offline FSRS synchronization.
+
 ---
 
 ## 9. Flashcard import UI

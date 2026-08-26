@@ -162,7 +162,9 @@ available. Deleted or materially invalid cards leave review queues safely.
 
 TASK-252 delivers the Web flow with Dashboard/navigation entry points, a maximum
 20-card active batch, bounded next-card prefetch, in-place progress/completion,
-and server-submitted ratings. TASK-253 covers the equivalent Android flow.
+and server-submitted ratings. TASK-253 delivers the equivalent Android flow
+through a Compose destination, the same four ratings, bounded in-memory active
+queue, and retry-safe client request ids. Both clients preserve Study All/Shuffle.
 
 ### P2-FSRS-004 — Timezone boundary
 

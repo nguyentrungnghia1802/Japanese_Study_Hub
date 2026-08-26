@@ -45,6 +45,64 @@ data class FlashcardDto(
 )
 
 @Serializable
+data class FlashcardReviewScheduleDto(
+    val state: String = "NEW",
+    val dueAt: String = "",
+    val stability: Double? = null,
+    val difficulty: Double? = null,
+    val elapsedDays: Int = 0,
+    val scheduledDays: Int = 0,
+    val learningSteps: Int = 0,
+    val reps: Int = 0,
+    val lapses: Int = 0,
+    val lastReviewedAt: String? = null,
+)
+
+@Serializable
+data class FlashcardReviewCardDto(
+    val id: String,
+    val setId: String,
+    val front: String,
+    val back: String,
+    val position: Int,
+    val createdAt: String,
+    val updatedAt: String,
+    val schedule: FlashcardReviewScheduleDto,
+)
+
+@Serializable
+data class FlashcardReviewSummaryDto(
+    val serverNow: String = "",
+    val dueCount: Int = 0,
+    val newCount: Int = 0,
+    val reviewCount: Int = 0,
+)
+
+@Serializable
+data class FlashcardReviewQueueResponseDto(
+    val serverNow: String = "",
+    val cards: List<FlashcardReviewCardDto> = emptyList(),
+)
+
+@Serializable
+data class SubmitFlashcardReviewRequest(
+    val rating: String,
+    val clientRequestId: String,
+)
+
+@Serializable
+data class FlashcardReviewResponseDto(
+    val cardId: String,
+    val rating: String,
+    val reviewedAt: String,
+    val stateBefore: String,
+    val stateAfter: String,
+    val dueAtBefore: String,
+    val dueAtAfter: String,
+    val schedule: FlashcardReviewScheduleDto,
+)
+
+@Serializable
 data class FlashcardSetDto(
     val id: String,
     val title: String,

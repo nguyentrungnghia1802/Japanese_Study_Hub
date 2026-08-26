@@ -6,6 +6,11 @@ import com.japaneselearning.mobile.data.model.DashboardSummary
 import com.japaneselearning.mobile.data.model.Exam
 import com.japaneselearning.mobile.data.model.ExamFolder
 import com.japaneselearning.mobile.data.model.ExamResult
+import com.japaneselearning.mobile.data.model.FlashcardReviewCard
+import com.japaneselearning.mobile.data.model.FlashcardReviewQueue
+import com.japaneselearning.mobile.data.model.FlashcardReviewRating
+import com.japaneselearning.mobile.data.model.FlashcardReviewResult
+import com.japaneselearning.mobile.data.model.FlashcardReviewSummary
 import com.japaneselearning.mobile.data.model.FlashcardSet
 import com.japaneselearning.mobile.data.model.LiveAttempt
 import com.japaneselearning.mobile.data.model.LearningTag
@@ -20,6 +25,9 @@ import com.japaneselearning.mobile.data.remote.ExamQuestionDto
 import com.japaneselearning.mobile.data.remote.FavoriteRequest
 import com.japaneselearning.mobile.data.remote.FlashcardDto
 import com.japaneselearning.mobile.data.remote.FlashcardSetDto
+import com.japaneselearning.mobile.data.remote.FlashcardReviewResponseDto
+import com.japaneselearning.mobile.data.remote.FlashcardReviewScheduleDto
+import com.japaneselearning.mobile.data.remote.FlashcardReviewSummaryDto
 import com.japaneselearning.mobile.data.remote.LiveAttemptDto
 import com.japaneselearning.mobile.data.remote.SearchResultsDto
 import com.japaneselearning.mobile.data.remote.StudyApi
@@ -45,6 +53,16 @@ interface StudyRepository {
     ): List<FlashcardSet>
 
     suspend fun getFlashcardSet(setId: String): FlashcardSet
+
+    suspend fun getFlashcardReviewSummary(): FlashcardReviewSummary
+
+    suspend fun getFlashcardReviewQueue(limit: Int = 20): FlashcardReviewQueue
+
+    suspend fun submitFlashcardReview(
+        cardId: String,
+        rating: FlashcardReviewRating,
+        clientRequestId: String,
+    ): FlashcardReviewResult
 
     suspend fun setFlashcardFavorite(setId: String, favorite: Boolean): FlashcardSet
 
@@ -112,6 +130,34 @@ class StudyRepositoryImpl @Inject constructor(
 
     override suspend fun getFlashcardSet(setId: String): FlashcardSet =
         mapSet(request { api.getFlashcardSet(setId) })
+
+    override suspend fun getFlashcardReviewSummary(): FlashcardReviewSummary =
+        mapReviewSummary(request { api.getFlashcardReviewSummary() })
+
+    override suspend fun getFlashcardReviewQueue(limit: Int): FlashcardReviewQueue {
+        val boundedLimit = limit.coerceIn(1, 20)
+        val response = request { api.getFlashcardReviewQueue(boundedLimit) }
+        return com.japaneselearning.mobile.data.model.FlashcardReviewQueue(
+            serverNow = response.serverNow,
+            cards = response.cards.map(::mapReviewCard),
+        )
+    }
+
+    override suspend fun submitFlashcardReview(
+        cardId: String,
+        rating: FlashcardReviewRating,
+        clientRequestId: String,
+    ): FlashcardReviewResult = mapReviewResult(
+        request {
+            api.submitFlashcardReview(
+                cardId,
+                com.japaneselearning.mobile.data.remote.SubmitFlashcardReviewRequest(
+                    rating = rating.name,
+                    clientRequestId = clientRequestId,
+                ),
+            )
+        },
+    )
 
     override suspend fun setFlashcardFavorite(setId: String, favorite: Boolean): FlashcardSet =
         mapSet(request { api.setFlashcardFavorite(setId, FavoriteRequest(favorite)) })
@@ -220,6 +266,47 @@ class StudyRepositoryImpl @Inject constructor(
         front = dto.front,
         back = dto.back,
         position = dto.position,
+    )
+
+    private fun mapReviewCard(dto: com.japaneselearning.mobile.data.remote.FlashcardReviewCardDto) =
+        FlashcardReviewCard(
+            id = dto.id,
+            setId = dto.setId,
+            front = dto.front,
+            back = dto.back,
+            position = dto.position,
+            schedule = mapSchedule(dto.schedule),
+        )
+
+    private fun mapSchedule(dto: FlashcardReviewScheduleDto) =
+        com.japaneselearning.mobile.data.model.FlashcardSchedule(
+            state = dto.state,
+            dueAt = dto.dueAt,
+            stability = dto.stability,
+            difficulty = dto.difficulty,
+            elapsedDays = dto.elapsedDays,
+            scheduledDays = dto.scheduledDays,
+            learningSteps = dto.learningSteps,
+            reps = dto.reps,
+            lapses = dto.lapses,
+            lastReviewedAt = dto.lastReviewedAt,
+        )
+
+    private fun mapReviewSummary(dto: FlashcardReviewSummaryDto) = FlashcardReviewSummary(
+        serverNow = dto.serverNow,
+        dueCount = dto.dueCount,
+        newCount = dto.newCount,
+        reviewCount = dto.reviewCount,
+    )
+
+    private fun mapReviewResult(dto: FlashcardReviewResponseDto) = FlashcardReviewResult(
+        cardId = dto.cardId,
+        rating = FlashcardReviewRating.valueOf(dto.rating),
+        stateBefore = dto.stateBefore,
+        stateAfter = dto.stateAfter,
+        dueAtBefore = dto.dueAtBefore,
+        dueAtAfter = dto.dueAtAfter,
+        schedule = mapSchedule(dto.schedule),
     )
 
     private fun mapFolder(dto: ExamFolderDto): ExamFolder = ExamFolder(

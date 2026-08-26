@@ -5,6 +5,10 @@ import com.japaneselearning.mobile.data.model.DashboardSummary
 import com.japaneselearning.mobile.data.model.Exam
 import com.japaneselearning.mobile.data.model.ExamFolder
 import com.japaneselearning.mobile.data.model.ExamResult
+import com.japaneselearning.mobile.data.model.FlashcardReviewQueue
+import com.japaneselearning.mobile.data.model.FlashcardReviewRating
+import com.japaneselearning.mobile.data.model.FlashcardReviewResult
+import com.japaneselearning.mobile.data.model.FlashcardReviewSummary
 import com.japaneselearning.mobile.data.model.FlashcardSet
 import com.japaneselearning.mobile.data.model.LiveAttempt
 import com.japaneselearning.mobile.data.model.SearchResults
@@ -70,6 +74,13 @@ private class FakeRepository(private val tokenStore: TokenStore) : StudyReposito
     override suspend fun logout() = Unit
     override suspend fun listFlashcardSets(search: String?, favoriteOnly: Boolean, tag: String?) = emptyList<FlashcardSet>()
     override suspend fun getFlashcardSet(setId: String): FlashcardSet = error("unused")
+    override suspend fun getFlashcardReviewSummary(): FlashcardReviewSummary = error("unused")
+    override suspend fun getFlashcardReviewQueue(limit: Int): FlashcardReviewQueue = error("unused")
+    override suspend fun submitFlashcardReview(
+        cardId: String,
+        rating: FlashcardReviewRating,
+        clientRequestId: String,
+    ): FlashcardReviewResult = error("unused")
     override suspend fun setFlashcardFavorite(setId: String, favorite: Boolean): FlashcardSet = error("unused")
     override suspend fun setFlashcardTags(setId: String, tags: List<String>): FlashcardSet = error("unused")
     override suspend fun listTags() = emptyList<com.japaneselearning.mobile.data.model.LearningTag>()

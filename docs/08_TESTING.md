@@ -244,6 +244,7 @@ At minimum verify on target emulator/device:
 - Login
 - Fetch lists
 - Study flashcards
+- Review due flashcards, reveal, rate, and retry a failed rating safely
 - Start exam
 - Timer display
 - Select answers

@@ -618,17 +618,23 @@ Commit: `feat(web): add spaced repetition review`
 
 ## TASK-253 — Add Android Review mode
 
-- [ ] Add due/new counts.
-- [ ] Add Compose Review mode.
-- [ ] Support Again/Hard/Good/Easy.
-- [ ] Use server scheduling state.
-- [ ] Cache only small active review queue locally.
-- [ ] Handle retry without duplicate rating submission.
-- [ ] Preserve basic study mode.
+- [x] Add due/new counts.
+- [x] Add Compose Review mode.
+- [x] Support Again/Hard/Good/Easy.
+- [x] Use server scheduling state.
+- [x] Cache only small active review queue locally.
+- [x] Handle retry without duplicate rating submission.
+- [x] Preserve basic study mode.
 
 Acceptance criteria:
 
 - Android can complete the same review flow as Web.
+
+Verification:
+
+- [x] Android unit tests cover the 20-card queue bound and stable retry request
+      id.
+- [x] Android debug compilation and unit tests pass with the configured SDK.
 
 Commit: `feat(android): add spaced repetition review`
 

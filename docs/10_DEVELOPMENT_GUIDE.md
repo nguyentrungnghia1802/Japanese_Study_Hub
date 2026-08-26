@@ -56,6 +56,9 @@
 - Store auth material encrypted with Android Keystore and persist it through DataStore.
 - Treat network failures as normal mobile conditions
 - Do not implement hidden offline synchronization in V1
+- Keep the active FSRS review queue in the ViewModel and cap it at 20 cards.
+- Reuse the same client request id when a rating is retried after a network
+  failure; the server remains authoritative for the next due time.
 
 From the repository root, mobile checks are run with:
 
@@ -64,6 +67,10 @@ cd apps/mobile
 ./gradlew testDebugUnitTest lintDebug assembleDebug
 adb install -r "app/build/outputs/apk/debug/Japanese Study Hub-debug.apk"
 ```
+
+The Android review unit tests cover the queue bound, reveal/rating state, and
+request-id reuse after a failed submission. The review screen uses the same
+Retrofit base URL and bearer session as the rest of the app.
 
 The API endpoint is centralized in `BuildConfig.API_BASE_URL`. Debug builds default
 to `http://localhost:4000/api/v1`. On a physical device connected over USB, run

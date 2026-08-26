@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.FolderCopy
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Style
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -34,12 +35,14 @@ import com.japaneselearning.mobile.feature.exams.ExamTakeScreen
 import com.japaneselearning.mobile.feature.exams.ExamsScreen
 import com.japaneselearning.mobile.feature.flashcards.FlashcardDetailScreen
 import com.japaneselearning.mobile.feature.flashcards.FlashcardStudyScreen
+import com.japaneselearning.mobile.feature.flashcards.FlashcardReviewScreen
 import com.japaneselearning.mobile.feature.flashcards.FlashcardsScreen
 import com.japaneselearning.mobile.feature.search.SearchScreen
 
 object Routes {
     const val DASHBOARD = "dashboard"
     const val FLASHCARDS = "flashcards"
+    const val REVIEW = "review"
     const val FLASHCARD_DETAIL = "flashcard/{setId}"
     const val FLASHCARD_STUDY = "flashcard/{setId}/study"
     const val EXAMS = "exams"
@@ -68,6 +71,7 @@ private fun AuthenticatedApp(onLogout: () -> Unit) {
     val topLevel = listOf(
         BottomDestination(Routes.DASHBOARD, "Tổng quan") { Icon(Icons.Default.Dashboard, null) },
         BottomDestination(Routes.FLASHCARDS, "Bộ thẻ") { Icon(Icons.Default.Style, null) },
+        BottomDestination(Routes.REVIEW, "Ôn tập") { Icon(Icons.Default.Replay, null) },
         BottomDestination(Routes.EXAMS, "Đề thi") { Icon(Icons.Default.FolderCopy, null) },
         BottomDestination(Routes.SEARCH, "Tìm kiếm") { Icon(Icons.Default.Search, null) },
     )
@@ -119,6 +123,9 @@ private fun StudyNavHost(
         }
         composable(Routes.FLASHCARDS) {
             FlashcardsScreen(onOpenSet = { setId -> navController.navigate("flashcard/$setId") })
+        }
+        composable(Routes.REVIEW) {
+            FlashcardReviewScreen(onBack = { navController.navigate(Routes.FLASHCARDS) })
         }
         composable(
             Routes.FLASHCARD_DETAIL,

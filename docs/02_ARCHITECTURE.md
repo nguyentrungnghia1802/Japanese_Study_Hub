@@ -159,6 +159,7 @@ Android Native Kotlin/Compose responsibilities:
 - Navigation Compose and Material 3 UI
 - ViewModel state backed by Coroutines + Flow
 - Flashcard study interaction
+- Server-authoritative FSRS review interaction through a bounded ViewModel queue
 - Exam interaction
 - Encrypted token persistence using Android Keystore + DataStore
 - Active-attempt restoration using DataStore
@@ -166,6 +167,12 @@ Android Native Kotlin/Compose responsibilities:
 V1 mobile is online-first.
 
 Do not implement a bidirectional offline sync engine in V1.
+
+The Android FSRS screen requests the server summary and a maximum 20-card due
+queue through `StudyRepository`. It keeps only that active batch in the
+ViewModel, sends ratings with a stable client request id for transient retries,
+and never calculates or overwrites scheduling state locally. Basic Study
+All/Shuffle remains a separate route and does not mutate FSRS state.
 
 ---
 

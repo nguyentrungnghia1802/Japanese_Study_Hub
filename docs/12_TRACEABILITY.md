@@ -120,12 +120,12 @@ Any uncovered requirement or mismatch reopens the relevant task; do not waive it
 | Mutations invalidate only affected query families                 | TASK-210..217      | TASK-300                     |
 | Live attempts are freshness-first and never cached with answers   | TASK-214           | TASK-300, TASK-320           |
 | Bearer auth remains compatible while cookie migration is deferred | TASK-220..221      | TASK-300, TASK-320           |
-| FSRS review transition is deterministic and idempotent            | TASK-250..252      | TASK-302, TASK-303, TASK-320 |
+| FSRS review transition is deterministic and idempotent            | TASK-250..253      | TASK-302, TASK-303, TASK-304, TASK-320 |
 | Practice review cannot update official best result                | TASK-260..261      | TASK-302, TASK-303           |
 | Android read cache has row/age limits and no answer keys          | TASK-270           | TASK-304, TASK-320           |
 | Phase 2 schema/data restores from backup                          | TASK-292           | TASK-320                     |
 | Tags stay flat, normalized, and bounded                           | TASK-242           | TASK-302, TASK-303           |
-| FSRS state uses server UTC, bounded queue/logs, and idempotency   | TASK-250..252      | TASK-302, TASK-303, TASK-320 |
+| FSRS state uses server UTC, bounded queue/logs, and idempotency   | TASK-250..253      | TASK-302, TASK-303, TASK-304, TASK-320 |
 
 ### Phase 2 release audit
 

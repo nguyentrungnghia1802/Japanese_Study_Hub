@@ -29,6 +29,18 @@ interface StudyApi {
     @GET("flashcard-sets/{setId}")
     suspend fun getFlashcardSet(@Path("setId") setId: String): FlashcardSetDto
 
+    @GET("review/summary")
+    suspend fun getFlashcardReviewSummary(): FlashcardReviewSummaryDto
+
+    @GET("review/queue")
+    suspend fun getFlashcardReviewQueue(@Query("limit") limit: Int = 20): FlashcardReviewQueueResponseDto
+
+    @POST("review/{cardId}")
+    suspend fun submitFlashcardReview(
+        @Path("cardId") cardId: String,
+        @Body request: SubmitFlashcardReviewRequest,
+    ): FlashcardReviewResponseDto
+
     @PUT("flashcard-sets/{setId}/favorite")
     suspend fun setFlashcardFavorite(
         @Path("setId") setId: String,
