@@ -284,3 +284,15 @@ single-file preview/confirm flow is preserved.
 
 **Reason:** Batch selection reduces repetitive file-picker work without
 weakening the preview-before-persist or transactional import invariants.
+
+## ADR-031 — IP-only production remains HTTP until a domain is accepted
+
+**Decision:** Keep the current Web/API/Android HTTP URLs aligned with the
+observed IP-only deployment and document the transport risk. The simplest
+upgrade path is a Caddy TLS edge backed by an owner-approved domain; no domain,
+certificate, Secure cookie, or client URL migration is assumed before that
+approval and deployment validation.
+
+**Reason:** A self-signed or invented certificate would not give the personal
+deployment a trustworthy client transport. Runtime documentation must describe
+what is actually reachable.

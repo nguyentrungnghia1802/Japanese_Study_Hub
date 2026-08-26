@@ -816,15 +816,22 @@ Commit: `feat(import): add multi-file import workflow`
 
 ## TASK-290 — Reconcile production HTTP/HTTPS posture
 
-- [ ] Audit current IP:port production deployment.
-- [ ] Choose/document the simplest realistic HTTPS path for personal use.
-- [ ] Do not add a domain requirement unless accepted by the owner.
-- [ ] If HTTPS is implemented, update Web/API/Android URLs, CORS, deployment docs, and Secure cookie behavior.
-- [ ] If HTTPS is deferred, document the accepted risk and do not falsely claim Secure-cookie production.
+- [x] Audit current IP:port production deployment.
+- [x] Choose/document the simplest realistic HTTPS path for personal use.
+- [x] Do not add a domain requirement unless accepted by the owner.
+- [x] Current HTTPS-dependent URL/CORS/Secure-cookie changes remain deferred until HTTPS is actually implemented.
+- [x] If HTTPS is deferred, document the accepted risk and do not falsely claim Secure-cookie production.
 
 Acceptance criteria:
 
 - Security docs reflect the actual runtime.
+
+Verification:
+
+- [x] Read-only TCP, HTTP, and HTTPS checks are recorded in
+      `docs/security/production-transport-audit.md`.
+- [x] Client URLs and cookie policy remain aligned with the documented HTTP-only
+      topology; no unverified HTTPS deployment claim was added.
 
 Commit: `security(deploy): align production transport policy`
 

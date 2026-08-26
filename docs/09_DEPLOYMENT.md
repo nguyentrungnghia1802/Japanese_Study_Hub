@@ -62,6 +62,13 @@ Reverse Proxy / Platform Edge
 
 PostgreSQL should not be directly public unless platform architecture requires controlled exposure.
 
+Current production differs from this recommended topology: the owner endpoint
+is IP-only HTTP on ports 3000/4000, with no checked-in TLS reverse-proxy
+configuration. The read-only 2026-08-27 audit found HTTP health/Web success and
+HTTPS handshake failure. Treat this as an explicit accepted-risk exception until
+the owner supplies a domain/certificate; see
+docs/security/production-transport-audit.md.
+
 ---
 
 ## 5. Environment variables

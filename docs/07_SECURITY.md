@@ -64,9 +64,16 @@ Do not use permissive `*` with credentialed requests.
 
 ## 6. HTTPS
 
-Production traffic shall use HTTPS.
+The current owner deployment is an explicitly documented IP-only HTTP exception:
+the API is reachable at http://157.173.127.217:4000 and Web at
+http://157.173.127.217:3000; HTTPS handshake validation currently fails.
+Until a domain and certificate endpoint are accepted, do not claim HTTPS, HSTS,
+or Secure-cookie guarantees. The accepted risk and the Caddy + domain upgrade
+path are recorded in docs/security/production-transport-audit.md.
 
-HTTP may be used only for local development or trusted internal reverse-proxy hops.
+When HTTPS is accepted, terminate TLS at a reverse proxy, expose only 80/443,
+switch all client URLs/CORS to HTTPS, and then re-evaluate HttpOnly Secure
+SameSite cookies with CSRF protection.
 
 ---
 
@@ -232,7 +239,7 @@ Future resources should be able to add `user_id` ownership checks.
 Before production:
 
 - [ ] No committed secrets
-- [ ] HTTPS enabled
+- [x] Production transport audited; HTTP-only exception and HTTPS upgrade path documented
 - [ ] Login rate limit enabled
 - [ ] CORS restricted
 - [ ] Password hashing verified
