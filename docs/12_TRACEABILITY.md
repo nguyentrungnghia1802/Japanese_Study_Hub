@@ -129,6 +129,7 @@ Any uncovered requirement or mismatch reopens the relevant task; do not waive it
 | Mistake queue contains only submitted/current-version prompts      | TASK-260           | TASK-302, TASK-303, TASK-304           |
 | Practice review cannot update official best result                | TASK-261           | TASK-302, TASK-303, TASK-304           |
 | Search preserves Unicode, ranking, cancellation, and cache bounds | TASK-280           | TASK-300, TASK-303, TASK-304           |
+| Multi-file import preserves preview/confirm isolation             | TASK-281           | TASK-302, TASK-303                     |
 
 ### Phase 2 release audit
 

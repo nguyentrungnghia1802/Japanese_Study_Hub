@@ -217,6 +217,11 @@ still follows independent preview → confirm → transaction semantics. One fil
 failure does not partially consume another file, and duplicate confirmation remains
 impossible.
 
+Implementation boundary: both flashcard and exam Web import modals accept a
+maximum of 20 .md/.txt files, preview them sequentially, show per-file status,
+and require independent confirmation. The original paste/single-file path is
+unchanged.
+
 ## 7. Android read-cache requirements
 
 ### P2-ANDROID-CACHE

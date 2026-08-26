@@ -254,6 +254,11 @@ The confirm request should carry either:
 
 Preferred design: server-side temporary import session/token with expiration to prevent client tampering and duplicate import.
 
+The Web batch picker accepts at most 20 Markdown-compatible files and runs
+preview calls sequentially. Each file keeps its own preview token, status, and
+confirm action; a failed preview or confirmation does not consume or roll back
+another file. The existing single-file textarea/file flow remains unchanged.
+
 ---
 
 ## 10. Exam start flow

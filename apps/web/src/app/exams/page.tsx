@@ -1358,6 +1358,9 @@ export default function ExamsPage() {
           void invalidateExamQueries(queryClient);
           router.push(`/exams/${id}`);
         }}
+        onBatchSuccess={() => {
+          void invalidateExamQueries(queryClient);
+        }}
       />
     </div>
   );

@@ -858,6 +858,9 @@ export default function FlashcardsPage() {
           void invalidateFlashcardQueries(queryClient);
           router.push(`/flashcards/${id}`);
         }}
+        onBatchSuccess={() => {
+          void invalidateFlashcardQueries(queryClient);
+        }}
       />
     </div>
   );

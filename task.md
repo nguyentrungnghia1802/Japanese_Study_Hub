@@ -788,17 +788,25 @@ Commit: `perf(search): improve search responsiveness`
 
 ## TASK-281 — Add multi-file Markdown import workflow
 
-- [ ] Allow selecting multiple Markdown files for sequential preview where useful.
-- [ ] Never bypass preview + confirm invariants.
-- [ ] Keep each import transaction independent.
-- [ ] Show per-file success/error state.
-- [ ] Prevent duplicate confirm.
-- [ ] Use bounded concurrency.
-- [ ] Preserve current single-file import behavior.
+- [x] Allow selecting multiple Markdown files for sequential preview where useful.
+- [x] Never bypass preview + confirm invariants.
+- [x] Keep each import transaction independent.
+- [x] Show per-file success/error state.
+- [x] Prevent duplicate confirm.
+- [x] Use bounded concurrency.
+- [x] Preserve current single-file import behavior.
 
 Acceptance criteria:
 
-- Multiple personal study files can be imported efficiently without weakening safety.
+- [x] Multiple personal study files can be imported efficiently without weakening safety.
+
+Verification:
+
+- [x] Web utility tests prove sequential concurrency-one previews, isolated
+      per-file failure, extension validation, and the 20-file bound.
+- [x] Both flashcard and exam modals preserve single-file preview/confirm and
+      add per-file batch confirmation guarded against duplicate clicks.
+- [x] Web typecheck, lint, and unit tests pass.
 
 Commit: `feat(import): add multi-file import workflow`
 

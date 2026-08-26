@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   X,
   Upload,
@@ -13,11 +13,18 @@ import {
 } from 'lucide-react';
 import { DuplicatePolicy, FlashcardImportPreviewResponseDto } from '@japanese-learning/contracts';
 import { apiClient } from '@/lib/api-client';
+import {
+  isMarkdownImportFile,
+  MAX_MULTI_FILE_IMPORTS,
+  MultiFileImportItem,
+  previewFilesSequential,
+} from '@/lib/multi-file-import';
 
 interface FlashcardImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (setId: string) => void;
+  onBatchSuccess?: () => void;
 }
 
 const SAMPLE_MARKDOWN = `# JLPT N5 Essential Vocabulary
@@ -47,7 +54,12 @@ Teacher, instructor, master.
 Student.
 `;
 
-export function FlashcardImportModal({ isOpen, onClose, onSuccess }: FlashcardImportModalProps) {
+export function FlashcardImportModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  onBatchSuccess,
+}: FlashcardImportModalProps) {
   const [content, setContent] = useState('');
   const [duplicatePolicy, setDuplicatePolicy] = useState<DuplicatePolicy>(DuplicatePolicy.RENAME);
   const [previewData, setPreviewData] = useState<FlashcardImportPreviewResponseDto | null>(null);
@@ -55,6 +67,12 @@ export function FlashcardImportModal({ isOpen, onClose, onSuccess }: FlashcardIm
   const [isConfirming, setIsConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedSample, setCopiedSample] = useState(false);
+  const [batchFiles, setBatchFiles] = useState<File[]>([]);
+  const [batchItems, setBatchItems] = useState<
+    MultiFileImportItem<FlashcardImportPreviewResponseDto>[]
+  >([]);
+  const [isBatchPreviewing, setIsBatchPreviewing] = useState(false);
+  const confirmingBatchIndexes = useRef(new Set<number>());
 
   if (!isOpen) return null;
 
@@ -65,14 +83,32 @@ export function FlashcardImportModal({ isOpen, onClose, onSuccess }: FlashcardIm
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    e.currentTarget.value = '';
+    if (!files.length) return;
 
-    if (!file.name.endsWith('.md') && !file.name.endsWith('.txt')) {
-      setError('Please select a .md or .txt file.');
+    const invalidFile = files.find((file) => !isMarkdownImportFile(file.name));
+    if (invalidFile) {
+      setError('Please select only .md or .txt files.');
       return;
     }
 
+    if (files.length > MAX_MULTI_FILE_IMPORTS) {
+      setError(`Select no more than ${MAX_MULTI_FILE_IMPORTS} files at once.`);
+      return;
+    }
+
+    setError(null);
+    setPreviewData(null);
+    setBatchItems([]);
+    if (files.length > 1) {
+      setBatchFiles(files);
+      setContent('');
+      return;
+    }
+
+    setBatchFiles([]);
+    const file = files[0];
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
@@ -80,6 +116,43 @@ export function FlashcardImportModal({ isOpen, onClose, onSuccess }: FlashcardIm
       setError(null);
     };
     reader.readAsText(file);
+  };
+
+  const handleBatchPreview = async () => {
+    if (!batchFiles.length) return;
+
+    setError(null);
+    setIsBatchPreviewing(true);
+    setBatchItems(
+      batchFiles.map((file, index) => ({
+        index,
+        fileName: file.name,
+        status: 'PENDING',
+        preview: null,
+        error: null,
+      })),
+    );
+
+    try {
+      const items = await previewFilesSequential(
+        batchFiles,
+        (fileContent) =>
+          apiClient<FlashcardImportPreviewResponseDto>('/imports/flashcards/preview', {
+            method: 'POST',
+            body: JSON.stringify({ content: fileContent }),
+          }),
+        (item) => {
+          setBatchItems((current) =>
+            current.map((candidate) => (candidate.index === item.index ? item : candidate)),
+          );
+        },
+      );
+      setBatchItems(items);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to preview selected files.');
+    } finally {
+      setIsBatchPreviewing(false);
+    }
   };
 
   const handlePreview = async () => {
@@ -130,6 +203,53 @@ export function FlashcardImportModal({ isOpen, onClose, onSuccess }: FlashcardIm
       setError(apiErr.message || 'Failed to import flashcards.');
     } finally {
       setIsConfirming(false);
+    }
+  };
+
+  const handleBatchConfirm = async (index: number) => {
+    const item = batchItems[index];
+    if (
+      !item?.preview ||
+      confirmingBatchIndexes.current.has(index) ||
+      (item.status !== 'PREVIEWED' && item.status !== 'ERROR') ||
+      item.preview.preview.errors.length > 0
+    ) {
+      return;
+    }
+
+    confirmingBatchIndexes.current.add(index);
+    setBatchItems((current) =>
+      current.map((candidate) =>
+        candidate.index === index ? { ...candidate, status: 'CONFIRMING', error: null } : candidate,
+      ),
+    );
+    try {
+      await apiClient<{ id: string }>('/imports/flashcards/confirm', {
+        method: 'POST',
+        body: JSON.stringify({
+          importToken: item.preview.importToken,
+          duplicatePolicy,
+        }),
+      });
+      const nextItems = batchItems.map((candidate) =>
+        candidate.index === index
+          ? { ...candidate, status: 'IMPORTED' as const, error: null }
+          : candidate,
+      );
+      setBatchItems(nextItems);
+      if (nextItems.every((candidate) => candidate.status === 'IMPORTED')) {
+        onBatchSuccess?.();
+        onClose();
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to import flashcards.';
+      setBatchItems((current) =>
+        current.map((candidate) =>
+          candidate.index === index ? { ...candidate, status: 'ERROR', error: message } : candidate,
+        ),
+      );
+    } finally {
+      confirmingBatchIndexes.current.delete(index);
     }
   };
 
@@ -269,10 +389,11 @@ export function FlashcardImportModal({ isOpen, onClose, onSuccess }: FlashcardIm
                   }}
                 >
                   <FileText size={16} />
-                  <span>Choose .md File</span>
+                  <span>Choose .md File(s)</span>
                   <input
                     type="file"
                     accept=".md,.txt"
+                    multiple
                     onChange={handleFileUpload}
                     style={{ display: 'none' }}
                   />
@@ -298,28 +419,117 @@ export function FlashcardImportModal({ isOpen, onClose, onSuccess }: FlashcardIm
                 </button>
               </div>
 
-              {/* Text area */}
-              <div>
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder={`# Set Title\n\nDescription: Optional description\n\n## Card 1\n### Front\nKanji\n### Back\nReading / Meaning`}
-                  rows={12}
+              {batchFiles.length > 0 ? (
+                <div
                   style={{
-                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
                     padding: '1rem',
                     borderRadius: 'var(--radius-md)',
-                    background: 'rgba(15, 23, 42, 0.6)',
+                    background: 'rgba(15, 23, 42, 0.45)',
                     border: '1px solid var(--border-subtle)',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'monospace',
-                    fontSize: '0.875rem',
-                    lineHeight: '1.5',
-                    outline: 'none',
-                    resize: 'vertical',
                   }}
-                />
-              </div>
+                >
+                  <div>
+                    <strong style={{ color: 'var(--text-primary)' }}>
+                      Batch preview ({batchFiles.length} files)
+                    </strong>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', marginTop: '0.25rem' }}>
+                      Files are previewed sequentially. Confirm each file independently.
+                    </p>
+                  </div>
+                  {batchItems.length === 0 && (
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                      Click “Preview selected files” to analyze these files without importing them.
+                    </p>
+                  )}
+                  {batchItems.map((item) => {
+                    const hasErrors = Boolean(item.preview?.preview.errors.length);
+                    const canConfirm =
+                      Boolean(item.preview) &&
+                      !hasErrors &&
+                      (item.status === 'PREVIEWED' || item.status === 'ERROR');
+                    return (
+                      <div
+                        key={item.index}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                          padding: '0.75rem',
+                          borderRadius: 'var(--radius-sm)',
+                          background: 'rgba(30, 41, 59, 0.55)',
+                        }}
+                      >
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ color: 'var(--text-primary)', fontWeight: '600' }}>
+                            {item.fileName}
+                          </div>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                            {item.status === 'PREVIEWING'
+                              ? 'Previewing…'
+                              : item.status === 'PREVIEWED'
+                                ? item.preview
+                                  ? `${item.preview.preview.cardCount} cards ready`
+                                  : 'Preview ready'
+                                : item.status === 'CONFIRMING'
+                                  ? 'Importing…'
+                                  : item.status === 'IMPORTED'
+                                    ? 'Imported'
+                                    : item.status === 'ERROR'
+                                      ? item.error || (hasErrors ? 'Preview has blocking errors.' : 'Import failed.')
+                                      : 'Waiting'}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => void handleBatchConfirm(item.index)}
+                          disabled={
+                            !canConfirm ||
+                            batchItems.some((candidate) => candidate.status === 'CONFIRMING')
+                          }
+                          style={{
+                            flexShrink: 0,
+                            padding: '0.4rem 0.75rem',
+                            borderRadius: 'var(--radius-sm)',
+                            background: canConfirm ? 'var(--gradient-brand)' : '#334155',
+                            color: '#fff',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            opacity: canConfirm ? 1 : 0.6,
+                          }}
+                        >
+                          {item.status === 'ERROR' && item.preview && !hasErrors ? 'Retry' : 'Confirm'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div>
+                  <textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder={`# Set Title\n\nDescription: Optional description\n\n## Card 1\n### Front\nKanji\n### Back\nReading / Meaning`}
+                    rows={12}
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'rgba(15, 23, 42, 0.6)',
+                      border: '1px solid var(--border-subtle)',
+                      color: 'var(--text-primary)',
+                      fontFamily: 'monospace',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                      outline: 'none',
+                      resize: 'vertical',
+                    }}
+                  />
+                </div>
+              )}
             </>
           ) : (
             /* Preview State */
@@ -572,8 +782,12 @@ export function FlashcardImportModal({ isOpen, onClose, onSuccess }: FlashcardIm
               </button>
               <button
                 type="button"
-                onClick={handlePreview}
-                disabled={isLoadingPreview || !content.trim()}
+                onClick={batchFiles.length > 0 ? handleBatchPreview : handlePreview}
+                disabled={
+                  isLoadingPreview ||
+                  isBatchPreviewing ||
+                  (batchFiles.length === 0 && !content.trim())
+                }
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -585,11 +799,24 @@ export function FlashcardImportModal({ isOpen, onClose, onSuccess }: FlashcardIm
                   fontWeight: '600',
                   fontSize: '0.875rem',
                   boxShadow: 'var(--shadow-glow)',
-                  opacity: isLoadingPreview || !content.trim() ? 0.6 : 1,
+                  opacity:
+                    isLoadingPreview ||
+                    isBatchPreviewing ||
+                    (batchFiles.length === 0 && !content.trim())
+                      ? 0.6
+                      : 1,
                 }}
               >
                 <BookOpen size={16} />
-                <span>{isLoadingPreview ? 'Analyzing Markdown...' : 'Preview Import'}</span>
+                <span>
+                  {isBatchPreviewing
+                    ? 'Previewing selected files...'
+                    : batchFiles.length > 0
+                      ? <>Preview selected {batchFiles.length} files</>
+                      : isLoadingPreview
+                        ? 'Analyzing Markdown...'
+                        : 'Preview Import'}
+                </span>
               </button>
             </>
           )}

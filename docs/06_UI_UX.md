@@ -213,6 +213,12 @@ Components:
 
 Never create domain data before confirmation.
 
+The Markdown picker may select up to 20 files. Batch preview displays each file
+status independently and processes previews one at a time. Every successful file
+still requires its own Confirm action; a failed file remains visible with its
+error and cannot silently consume an import token. Single-file paste/upload
+continues to use the existing preview screen.
+
 ---
 
 ## 10. Exam library/folder page

@@ -87,6 +87,9 @@ For critical user journeys:
 - DB failure rolls back all records
 - Duplicate confirm token does not duplicate import
 - Export/import round trip
+- Multi-file preview is sequential and bounded
+- One file preview/confirm failure leaves other files available
+- Multi-file confirm cannot be double-submitted
 
 ---
 

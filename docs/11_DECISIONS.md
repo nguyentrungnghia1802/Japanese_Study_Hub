@@ -273,3 +273,14 @@ Both clients render matched snippets as normal text nodes.
 
 **Reason:** This removes typing request storms and stale-result races while
 preserving Japanese Unicode and avoiding unsafe HTML highlighting.
+
+## ADR-030 — Multi-file import is sequential preview with independent confirmation
+
+**Decision:** The Web picker may accept at most 20 Markdown-compatible files.
+Preview requests run with concurrency one and retain a separate short-lived
+server import token/status for each file. Confirmation is per file and guarded
+against duplicate clicks. A failure affects only that file; the existing
+single-file preview/confirm flow is preserved.
+
+**Reason:** Batch selection reduces repetitive file-picker work without
+weakening the preview-before-persist or transactional import invariants.
