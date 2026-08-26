@@ -1070,12 +1070,12 @@ Commit: `docs: synchronize phase 2 technical documentation`
 
 ## TASK-312 — Update traceability matrix
 
-- [ ] Map every Phase 2 requirement group to implementation tasks.
-- [ ] Map every Phase 2 requirement group to verification tasks.
-- [ ] Add cache/session/security invariants.
-- [ ] Add FSRS invariants if implemented.
-- [ ] Add Android bounded-cache invariant.
-- [ ] Add Phase 2 release audit procedure.
+- [x] Map every Phase 2 requirement group to implementation tasks.
+- [x] Map every Phase 2 requirement group to verification tasks.
+- [x] Add cache/session/security invariants.
+- [x] Add FSRS invariants if implemented.
+- [x] Add Android bounded-cache invariant.
+- [x] Add Phase 2 release audit procedure.
 
 Commit: `docs: update phase 2 traceability`
 
