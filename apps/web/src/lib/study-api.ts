@@ -10,6 +10,7 @@ import {
   SearchResultsDto,
   LiveExamAttemptDto,
   RecentLearningResponseDto,
+  TagDto,
 } from '@japanese-learning/contracts';
 import { apiClient } from './api-client';
 import { ExamListQuery, FlashcardListQuery } from './query-keys';
@@ -73,6 +74,16 @@ export const studyApi = {
   flashcardSet: (setId: string, signal?: AbortSignal) =>
     apiClient<FlashcardSetDto>(`/flashcard-sets/${setId}`, { signal }),
 
+  tags: (limit = 100, signal?: AbortSignal) =>
+    apiClient<TagDto[]>(`/tags${buildQuery({ limit })}`, { signal }),
+
+  setFlashcardTags: (setId: string, tags: string[], signal?: AbortSignal) =>
+    apiClient<FlashcardSetDto>(`/flashcard-sets/${setId}/tags`, {
+      method: 'PUT',
+      body: JSON.stringify({ tags }),
+      signal,
+    }),
+
   setFlashcardFavorite: (setId: string, favorite: boolean, signal?: AbortSignal) =>
     apiClient<FlashcardSetDto>(`/flashcard-sets/${setId}/favorite`, {
       method: 'PUT',
@@ -98,6 +109,13 @@ export const studyApi = {
 
   exam: (examId: string, signal?: AbortSignal) =>
     apiClient<ExamDto>(`/exams/${examId}`, { signal }),
+
+  setExamTags: (examId: string, tags: string[], signal?: AbortSignal) =>
+    apiClient<ExamDto>(`/exams/${examId}/tags`, {
+      method: 'PUT',
+      body: JSON.stringify({ tags }),
+      signal,
+    }),
 
   setExamFavorite: (examId: string, favorite: boolean, signal?: AbortSignal) =>
     apiClient<ExamDto>(`/exams/${examId}/favorite`, {

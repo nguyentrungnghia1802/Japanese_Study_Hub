@@ -215,6 +215,25 @@ describe('ExamsService (TASK-051 / EXAM-001..007, QUESTION-001..009)', () => {
       );
     });
 
+    it('filters exams by normalized tag slug', async () => {
+      await service.listExams({ tag: '  Grammar  ' });
+
+      expect(prismaMock.exam.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            tags: { some: { tag: { slug: 'grammar' } } },
+          }),
+        }),
+      );
+      expect(prismaMock.exam.count).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            tags: { some: { tag: { slug: 'grammar' } } },
+          }),
+        }),
+      );
+    });
+
     it('sets favorite idempotently after verifying the exam is active', async () => {
       prismaMock.exam.findFirst
         .mockResolvedValueOnce({

@@ -44,6 +44,7 @@ export default function ExamsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sort, setSort] = useState<UiSortValue>('createdAt_desc');
   const [favoriteOnly, setFavoriteOnly] = useState(false);
+  const [tagFilter, setTagFilter] = useState('');
 
   // Folder modal
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
@@ -123,6 +124,7 @@ export default function ExamsPage() {
       pageSize: 50,
       sort,
       favorite: favoriteOnly ? true : undefined,
+      tag: tagFilter || undefined,
     }),
     queryFn: ({ signal }) =>
       studyApi.exams(
@@ -133,6 +135,7 @@ export default function ExamsPage() {
           pageSize: 50,
           sort,
           favorite: favoriteOnly ? true : undefined,
+          tag: tagFilter || undefined,
         },
         signal,
       ),
@@ -141,6 +144,11 @@ export default function ExamsPage() {
 
   const folders = foldersQuery.data ?? [];
   const exams = examsQuery.data?.items ?? [];
+  const tagsQuery = useQuery({
+    queryKey: queryKeys.tags(),
+    queryFn: ({ signal }) => studyApi.tags(100, signal),
+  });
+  const availableTags = tagsQuery.data ?? [];
   const isLoading = examsQuery.isLoading;
   const isRefreshing = examsQuery.isFetching && !isLoading;
 
@@ -675,6 +683,31 @@ export default function ExamsPage() {
               <option value="all">All exams</option>
               <option value="favorites">Favorites</option>
             </select>
+            <select
+              value={tagFilter}
+              onChange={(event) => setTagFilter(event.target.value)}
+              aria-label="Filter exams by tag"
+              style={{
+                position: 'absolute',
+                right: '15.5rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                padding: '0.35rem 0.5rem',
+                borderRadius: 'var(--radius-sm)',
+                background: '#1e293b',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.8rem',
+                maxWidth: '8rem',
+              }}
+            >
+              <option value="">All tags</option>
+              {availableTags.map((tag) => (
+                <option key={tag.id} value={tag.slug}>
+                  {tag.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Exam Grid */}
@@ -950,6 +983,24 @@ export default function ExamsPage() {
                       >
                         {exam.description}
                       </p>
+                    )}
+                    {exam.tags.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                        {exam.tags.map((tag) => (
+                          <span
+                            key={tag.id}
+                            style={{
+                              padding: '0.2rem 0.5rem',
+                              borderRadius: '9999px',
+                              background: 'rgba(168, 85, 247, 0.12)',
+                              color: '#c084fc',
+                              fontSize: '0.72rem',
+                            }}
+                          >
+                            {tag.name}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
 

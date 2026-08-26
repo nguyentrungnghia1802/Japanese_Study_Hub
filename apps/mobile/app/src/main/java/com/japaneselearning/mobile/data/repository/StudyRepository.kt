@@ -8,6 +8,7 @@ import com.japaneselearning.mobile.data.model.ExamFolder
 import com.japaneselearning.mobile.data.model.ExamResult
 import com.japaneselearning.mobile.data.model.FlashcardSet
 import com.japaneselearning.mobile.data.model.LiveAttempt
+import com.japaneselearning.mobile.data.model.LearningTag
 import com.japaneselearning.mobile.data.model.SearchResults
 import com.japaneselearning.mobile.data.model.User
 import com.japaneselearning.mobile.data.remote.AnswerDto
@@ -25,6 +26,7 @@ import com.japaneselearning.mobile.data.remote.StudyApi
 import com.japaneselearning.mobile.data.remote.LoginRequest
 import com.japaneselearning.mobile.data.remote.SaveAnswersRequest
 import com.japaneselearning.mobile.data.remote.SubmitAttemptRequest
+import com.japaneselearning.mobile.data.remote.SetTagsRequest
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
@@ -36,11 +38,19 @@ interface StudyRepository {
 
     suspend fun logout()
 
-    suspend fun listFlashcardSets(search: String? = null, favoriteOnly: Boolean = false): List<FlashcardSet>
+    suspend fun listFlashcardSets(
+        search: String? = null,
+        favoriteOnly: Boolean = false,
+        tag: String? = null,
+    ): List<FlashcardSet>
 
     suspend fun getFlashcardSet(setId: String): FlashcardSet
 
     suspend fun setFlashcardFavorite(setId: String, favorite: Boolean): FlashcardSet
+
+    suspend fun setFlashcardTags(setId: String, tags: List<String>): FlashcardSet
+
+    suspend fun listTags(): List<LearningTag>
 
     suspend fun listExamFolders(): List<ExamFolder>
 
@@ -48,11 +58,14 @@ interface StudyRepository {
         folderId: String? = null,
         search: String? = null,
         favoriteOnly: Boolean = false,
+        tag: String? = null,
     ): List<Exam>
 
     suspend fun getExam(examId: String): Exam
 
     suspend fun setExamFavorite(examId: String, favorite: Boolean): Exam
+
+    suspend fun setExamTags(examId: String, tags: List<String>): Exam
 
     suspend fun startAttempt(examId: String): LiveAttempt
 
@@ -92,8 +105,8 @@ class StudyRepositoryImpl @Inject constructor(
         tokenStore.clear()
     }
 
-    override suspend fun listFlashcardSets(search: String?, favoriteOnly: Boolean): List<FlashcardSet> =
-        request { api.listFlashcardSets(search = search, favorite = favoriteOnly.takeIf { it }) }
+    override suspend fun listFlashcardSets(search: String?, favoriteOnly: Boolean, tag: String?): List<FlashcardSet> =
+        request { api.listFlashcardSets(search = search, favorite = favoriteOnly.takeIf { it }, tag = tag) }
             .items
             .map(::mapSet)
 
@@ -103,6 +116,12 @@ class StudyRepositoryImpl @Inject constructor(
     override suspend fun setFlashcardFavorite(setId: String, favorite: Boolean): FlashcardSet =
         mapSet(request { api.setFlashcardFavorite(setId, FavoriteRequest(favorite)) })
 
+    override suspend fun setFlashcardTags(setId: String, tags: List<String>): FlashcardSet =
+        mapSet(request { api.setFlashcardTags(setId, SetTagsRequest(tags)) })
+
+    override suspend fun listTags(): List<LearningTag> =
+        request { api.listTags() }.map(::mapTag)
+
     override suspend fun listExamFolders(): List<ExamFolder> =
         request { api.listExamFolders() }.map(::mapFolder)
 
@@ -110,12 +129,14 @@ class StudyRepositoryImpl @Inject constructor(
         folderId: String?,
         search: String?,
         favoriteOnly: Boolean,
+        tag: String?,
     ): List<Exam> =
         request {
             api.listExams(
                 folderId = folderId,
                 search = search,
                 favorite = favoriteOnly.takeIf { it },
+                tag = tag,
             )
         }.items.map(::mapExam)
 
@@ -124,6 +145,9 @@ class StudyRepositoryImpl @Inject constructor(
 
     override suspend fun setExamFavorite(examId: String, favorite: Boolean): Exam =
         mapExam(request { api.setExamFavorite(examId, FavoriteRequest(favorite)) })
+
+    override suspend fun setExamTags(examId: String, tags: List<String>): Exam =
+        mapExam(request { api.setExamTags(examId, SetTagsRequest(tags)) })
 
     override suspend fun startAttempt(examId: String): LiveAttempt =
         mapAttempt(request { api.startAttempt(examId) })
@@ -180,7 +204,14 @@ class StudyRepositoryImpl @Inject constructor(
         description = dto.description,
         cardCount = dto.cardCount,
         isFavorite = dto.isFavorite,
+        tags = dto.tags.map(::mapTag),
         cards = dto.cards.orEmpty().map(::mapCard),
+    )
+
+    private fun mapTag(dto: com.japaneselearning.mobile.data.remote.TagDto) = LearningTag(
+        id = dto.id,
+        slug = dto.slug,
+        name = dto.name,
     )
 
     private fun mapCard(dto: FlashcardDto) = com.japaneselearning.mobile.data.model.Flashcard(
@@ -208,6 +239,7 @@ class StudyRepositoryImpl @Inject constructor(
         questionCount = dto.questionCount,
         bestScore = dto.bestScore ?: dto.bestResult?.bestScore,
         isFavorite = dto.isFavorite,
+        tags = dto.tags.map(::mapTag),
         questions = dto.questions.orEmpty().map(::mapQuestion),
     )
 

@@ -113,6 +113,25 @@ describe('FlashcardsService (TASK-030 / FC-001..008)', () => {
       );
     });
 
+    it('filters flashcard sets by normalized tag slug', async () => {
+      await service.listSets({ tag: '  Grammar  ' });
+
+      expect(prismaMock.flashcardSet.count).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            tags: { some: { tag: { slug: 'grammar' } } },
+          }),
+        }),
+      );
+      expect(prismaMock.flashcardSet.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            tags: { some: { tag: { slug: 'grammar' } } },
+          }),
+        }),
+      );
+    });
+
     it('gets a single set with cards', async () => {
       const result = await service.getSet(sampleSet.id);
       expect(result.id).toBe(sampleSet.id);

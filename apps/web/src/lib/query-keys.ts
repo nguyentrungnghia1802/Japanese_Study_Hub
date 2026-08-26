@@ -26,6 +26,7 @@ export const queryKeys = {
   flashcardSetsRoot: () => [...root, 'flashcard-sets'] as const,
   flashcardSets: (query: FlashcardListQuery = {}) => [...root, 'flashcard-sets', query] as const,
   flashcardSet: (setId: string) => [...root, 'flashcard-set', setId] as const,
+  tags: () => [...root, 'tags'] as const,
   examFolders: () => [...root, 'exam-folders'] as const,
   examsRoot: () => [...root, 'exams'] as const,
   exams: (query: ExamListQuery = {}) => [...root, 'exams', query] as const,

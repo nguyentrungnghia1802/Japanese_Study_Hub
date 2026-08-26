@@ -82,6 +82,26 @@ fun ExamsScreen(
                 FolderChip(folder, depth, viewModel::selectFolder)
             }
         }
+        if (!state.tags.data.isNullOrEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FilterChip(
+                    selected = state.selectedTag == null,
+                    onClick = { viewModel.setTag(null) },
+                    label = { Text("Tất cả tag") },
+                )
+                state.tags.data.orEmpty().forEach { tag ->
+                    FilterChip(
+                        selected = state.selectedTag == tag.slug,
+                        onClick = { viewModel.setTag(tag.slug) },
+                        label = { Text(tag.name) },
+                    )
+                }
+            }
+        }
         Spacer(Modifier.height(12.dp))
         when {
             state.exams.isLoading && state.exams.data == null -> LoadingState()
@@ -114,6 +134,19 @@ fun ExamsScreen(
                                     color = MaterialTheme.colorScheme.primary,
                                     fontWeight = FontWeight.SemiBold,
                                 )
+                            }
+                            if (exam.tags.isNotEmpty()) {
+                                Row(
+                                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                ) {
+                                    exam.tags.take(5).forEach { tag ->
+                                        AssistChip(
+                                            onClick = { viewModel.setTag(tag.slug) },
+                                            label = { Text(tag.name) },
+                                        )
+                                    }
+                                }
                             }
                         }
                         IconButton(

@@ -11,6 +11,9 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateExamBodyDto } from './dto/create-exam.dto.js';
 import { UpdateExamMetadataBodyDto } from './dto/update-exam-metadata.dto.js';
 import { UpdateExamContentBodyDto } from './dto/update-exam-content.dto.js';
+import { mapTagRelations } from '../common/tags.js';
+import { Prisma } from '@prisma/client';
+import { normalizeTagSlug } from '../common/tag.service.js';
 
 @Injectable()
 export class ExamsService {
@@ -123,21 +126,18 @@ export class ExamsService {
     limit?: number;
     sort?: string;
     favorite?: boolean;
+    tag?: string;
   }): Promise<PaginatedResultDto<ExamListItemDto>> {
     const page = Math.max(1, params?.page || 1);
     const limit = Math.min(100, Math.max(1, params?.limit || 20));
     const skip = (page - 1) * limit;
 
-    const where: {
-      deletedAt: null;
-      folderId?: string | null;
-      OR?: Array<{
-        title?: { contains: string; mode: 'insensitive' };
-        description?: { contains: string; mode: 'insensitive' };
-      }>;
-    } = {
+    const where: Prisma.ExamWhereInput = {
       deletedAt: null,
       ...(params?.favorite !== undefined ? { isFavorite: params.favorite } : {}),
+      ...(params?.tag?.trim()
+        ? { tags: { some: { tag: { slug: normalizeTagSlug(params.tag) } } } }
+        : {}),
     };
 
     if (params?.folderId !== undefined) {
@@ -172,6 +172,9 @@ export class ExamsService {
             orderBy: { bestScore: 'desc' },
             take: 1,
           },
+          tags: {
+            include: { tag: { select: { id: true, slug: true, name: true } } },
+          },
         },
       }),
       this.prisma.exam.count({ where }),
@@ -187,6 +190,7 @@ export class ExamsService {
           description: e.description,
           coverRef: e.coverRef,
           isFavorite: e.isFavorite,
+          tags: mapTagRelations(e.tags),
           timeLimitSeconds: e.timeLimitSeconds,
           contentVersion: e.contentVersion,
           questionCount: e._count.questions,
@@ -218,6 +222,9 @@ export class ExamsService {
           orderBy: { bestScore: 'desc' },
           take: 1,
         },
+        tags: {
+          include: { tag: { select: { id: true, slug: true, name: true } } },
+        },
       },
     });
 
@@ -234,6 +241,7 @@ export class ExamsService {
       description: exam.description,
       coverRef: exam.coverRef,
       isFavorite: exam.isFavorite,
+      tags: mapTagRelations(exam.tags),
       timeLimitSeconds: exam.timeLimitSeconds,
       contentVersion: exam.contentVersion,
       shuffleQuestions: exam.shuffleQuestions,

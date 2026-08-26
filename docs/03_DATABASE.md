@@ -37,6 +37,9 @@ Exam 1 ─────────── N ExamBestResult
 QuestionContext 1 ─ N ExamQuestion   (reserved/future-friendly)
 
 RecentLearning N ─── 1 FlashcardSet or Exam (polymorphic, validated by API)
+
+FlashcardSet N ─── N Tag (FlashcardSetTag)
+Exam N ────────── N Tag (ExamTag)
 ```
 
 ### 3.1 `recent_learning`
@@ -47,6 +50,14 @@ Phase 2 adds a bounded resume projection for the V1 logical user. It stores
 The API retains at most 20 rows and returns at most 10. `entity_id` is
 intentionally polymorphic because the single-user V1 model has no shared content
 parent; reads validate the target against the active, non-deleted set or exam.
+
+### 3.2 bounded flat tags
+
+Phase 2 adds `tags`, `flashcard_set_tags`, and `exam_tags`. `tags.slug` is
+unique, names are normalized by the API, and join-table composite primary keys
+prevent duplicate assignments. The join foreign keys cascade on deletion. The
+API enforces a maximum of 32 Unicode code points per name, 20 tags per active
+resource, and 2,000 shared tag rows; there is intentionally no hierarchy.
 
 ---
 
@@ -69,6 +80,9 @@ Indexes:
 
 - `(deleted_at)` if useful for trash queries
 - title search/index strategy as selected
+
+Set DTOs expose only bounded tag summaries. Tag filtering resolves the unique
+normalized slug through `flashcard_set_tags`.
 
 ---
 
@@ -145,6 +159,17 @@ Indexes:
 
 - `(folder_id)`
 - title search strategy
+
+Exam DTOs expose the same bounded shared tag summaries. Tag filtering resolves
+the unique normalized slug through `exam_tags`.
+
+## 7.1 `tags` and assignment tables
+
+`tags` stores the shared normalized `slug` and display `name`; `slug` is unique
+and `name` is indexed for bounded library pickers. `flashcard_set_tags` and
+`exam_tags` use `(set_id, tag_id)` and `(exam_id, tag_id)` composite primary
+keys, plus reverse `tag_id` indexes. All four foreign keys cascade. The API
+enforces 32 code points per name, 20 tags per resource, and 2,000 tag rows.
 
 ---
 

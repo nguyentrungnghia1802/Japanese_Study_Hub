@@ -25,6 +25,7 @@ import { invalidateFlashcardQueries } from '@/lib/query-invalidation';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
 import { SkeletonBlock } from '@/components/ui/skeleton';
+import { TagEditor } from '@/components/tags/tag-editor';
 
 export default function FlashcardSetDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -70,6 +71,12 @@ export default function FlashcardSetDetailPage() {
     } catch (err: unknown) {
       alert(`Failed to update favorite: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
+  };
+
+  const handleTagsSave = async (names: string[]) => {
+    const updated = await studyApi.setFlashcardTags(id, names);
+    queryClient.setQueryData<FlashcardSetDto>(queryKeys.flashcardSet(id), updated);
+    await invalidateFlashcardQueries(queryClient, id);
   };
 
   useEffect(() => {
@@ -479,6 +486,7 @@ export default function FlashcardSetDetailPage() {
               <span>•</span>
               <span>Updated {new Date(set.updatedAt).toLocaleDateString()}</span>
             </div>
+            <TagEditor tags={set.tags} onSave={handleTagsSave} />
           </div>
         )}
       </div>

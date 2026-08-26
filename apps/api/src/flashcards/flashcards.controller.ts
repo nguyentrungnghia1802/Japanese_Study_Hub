@@ -23,6 +23,8 @@ import { UpdateCardBodyDto } from './dto/update-card.dto.js';
 import { ReorderCardsBodyDto } from './dto/reorder-cards.dto.js';
 import { LearningService } from '../learning/learning.service.js';
 import { SetFavoriteBodyDto } from '../common/dto/set-favorite.dto.js';
+import { SetEntityTagsBodyDto } from '../common/dto/set-entity-tags.dto.js';
+import { TagService } from '../common/tag.service.js';
 
 @ApiTags('Flashcards')
 @ApiBearerAuth()
@@ -31,6 +33,7 @@ export class FlashcardsController {
   constructor(
     private readonly flashcardsService: FlashcardsService,
     private readonly learningService: LearningService,
+    private readonly tagService: TagService,
   ) {}
 
   @Post()
@@ -47,6 +50,7 @@ export class FlashcardsController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number, maximum: 100 })
   @ApiQuery({ name: 'favorite', required: false, type: Boolean })
+  @ApiQuery({ name: 'tag', required: false, type: String, description: 'Normalized tag slug' })
   @ApiQuery({
     name: 'sort',
     required: false,
@@ -59,6 +63,7 @@ export class FlashcardsController {
     @Query('limit') limit?: string,
     @Query('sort') sort?: string,
     @Query('favorite') favorite?: string,
+    @Query('tag') tag?: string,
   ) {
     return this.flashcardsService.listSets({
       search,
@@ -66,6 +71,7 @@ export class FlashcardsController {
       limit: limit ? parseInt(limit, 10) : undefined,
       sort,
       favorite: favorite === 'true' ? true : favorite === 'false' ? false : undefined,
+      tag,
     });
   }
 
@@ -85,6 +91,15 @@ export class FlashcardsController {
   @ApiResponse({ status: 404, description: 'Set not found' })
   async setFavorite(@Param('id', ParseUUIDPipe) id: string, @Body() dto: SetFavoriteBodyDto) {
     return this.flashcardsService.setFavorite(id, dto.favorite);
+  }
+
+  @Put(':id/tags')
+  @ApiOperation({ summary: 'Replace the bounded flat tags on a flashcard set' })
+  @ApiResponse({ status: 200, description: 'Flashcard set tags updated' })
+  @ApiResponse({ status: 404, description: 'Set not found' })
+  async setTags(@Param('id', ParseUUIDPipe) id: string, @Body() dto: SetEntityTagsBodyDto) {
+    await this.tagService.replaceFlashcardSetTags(id, dto.tags);
+    return this.flashcardsService.getSet(id);
   }
 
   @Get(':id/export')

@@ -21,6 +21,8 @@ import { UpdateExamMetadataBodyDto } from './dto/update-exam-metadata.dto.js';
 import { UpdateExamContentBodyDto } from './dto/update-exam-content.dto.js';
 import { LearningService } from '../learning/learning.service.js';
 import { SetFavoriteBodyDto } from '../common/dto/set-favorite.dto.js';
+import { SetEntityTagsBodyDto } from '../common/dto/set-entity-tags.dto.js';
+import { TagService } from '../common/tag.service.js';
 
 @ApiTags('Exams')
 @ApiBearerAuth()
@@ -29,6 +31,7 @@ export class ExamsController {
   constructor(
     private readonly examsService: ExamsService,
     private readonly learningService: LearningService,
+    private readonly tagService: TagService,
   ) {}
 
   @Post()
@@ -47,6 +50,7 @@ export class ExamsController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number, maximum: 100 })
   @ApiQuery({ name: 'favorite', required: false, type: Boolean })
+  @ApiQuery({ name: 'tag', required: false, type: String, description: 'Normalized tag slug' })
   @ApiQuery({
     name: 'sort',
     required: false,
@@ -60,6 +64,7 @@ export class ExamsController {
     @Query('limit') limit?: string,
     @Query('sort') sort?: string,
     @Query('favorite') favorite?: string,
+    @Query('tag') tag?: string,
   ) {
     return this.examsService.listExams({
       folderId,
@@ -68,6 +73,7 @@ export class ExamsController {
       limit: limit ? parseInt(limit, 10) : undefined,
       sort,
       favorite: favorite === 'true' ? true : favorite === 'false' ? false : undefined,
+      tag,
     });
   }
 
@@ -87,6 +93,15 @@ export class ExamsController {
   @ApiResponse({ status: 404, description: 'Exam not found' })
   async setFavorite(@Param('id', ParseUUIDPipe) id: string, @Body() dto: SetFavoriteBodyDto) {
     return this.examsService.setFavorite(id, dto.favorite);
+  }
+
+  @Put(':id/tags')
+  @ApiOperation({ summary: 'Replace the bounded flat tags on an exam' })
+  @ApiResponse({ status: 200, description: 'Exam tags updated' })
+  @ApiResponse({ status: 404, description: 'Exam not found' })
+  async setTags(@Param('id', ParseUUIDPipe) id: string, @Body() dto: SetEntityTagsBodyDto) {
+    await this.tagService.replaceExamTags(id, dto.tags);
+    return this.examsService.getExam(id);
   }
 
   @Get(':id/export')

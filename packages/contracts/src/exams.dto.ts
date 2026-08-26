@@ -1,4 +1,5 @@
 import { QuestionType, AttemptStatus } from './enums.js';
+import { TagDto } from './tags.dto.js';
 
 export interface ExamFolderDto {
   id: string;
@@ -47,6 +48,7 @@ export interface ExamDto {
   description: string | null;
   coverRef: string | null;
   isFavorite: boolean;
+  tags: TagDto[];
   timeLimitSeconds: number | null;
   contentVersion: number;
   shuffleQuestions: boolean;

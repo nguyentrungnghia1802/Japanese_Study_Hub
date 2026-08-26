@@ -39,6 +39,7 @@ export default function FlashcardsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sort, setSort] = useState<UiSortValue>('createdAt_desc');
   const [favoriteOnly, setFavoriteOnly] = useState(false);
+  const [tagFilter, setTagFilter] = useState('');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -87,6 +88,7 @@ export default function FlashcardsPage() {
       pageSize: 20,
       sort,
       favorite: favoriteOnly ? true : undefined,
+      tag: tagFilter || undefined,
     }),
     queryFn: ({ signal }) =>
       studyApi.flashcardSets(
@@ -96,6 +98,7 @@ export default function FlashcardsPage() {
           pageSize: 20,
           sort,
           favorite: favoriteOnly ? true : undefined,
+          tag: tagFilter || undefined,
         },
         signal,
       ),
@@ -103,6 +106,11 @@ export default function FlashcardsPage() {
   });
 
   const sets = setsQuery.data?.items ?? [];
+  const tagsQuery = useQuery({
+    queryKey: queryKeys.tags(),
+    queryFn: ({ signal }) => studyApi.tags(100, signal),
+  });
+  const availableTags = tagsQuery.data ?? [];
   const isLoading = setsQuery.isLoading;
   const isRefreshing = setsQuery.isFetching && !isLoading;
 
@@ -357,6 +365,31 @@ export default function FlashcardsPage() {
           <option value="all">All decks</option>
           <option value="favorites">Favorites</option>
         </select>
+        <select
+          value={tagFilter}
+          onChange={(event) => setTagFilter(event.target.value)}
+          aria-label="Filter flashcard decks by tag"
+          style={{
+            position: 'absolute',
+            right: '15.5rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            padding: '0.35rem 0.5rem',
+            borderRadius: 'var(--radius-sm)',
+            background: '#1e293b',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-secondary)',
+            fontSize: '0.8rem',
+            maxWidth: '8rem',
+          }}
+        >
+          <option value="">All tags</option>
+          {availableTags.map((tag) => (
+            <option key={tag.id} value={tag.slug}>
+              {tag.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Sets Grid */}
@@ -586,6 +619,24 @@ export default function FlashcardsPage() {
                   >
                     {set.description}
                   </p>
+                )}
+                {set.tags.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                    {set.tags.map((tag) => (
+                      <span
+                        key={tag.id}
+                        style={{
+                          padding: '0.2rem 0.5rem',
+                          borderRadius: '9999px',
+                          background: 'rgba(168, 85, 247, 0.12)',
+                          color: '#c084fc',
+                          fontSize: '0.72rem',
+                        }}
+                      >
+                        {tag.name}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
 

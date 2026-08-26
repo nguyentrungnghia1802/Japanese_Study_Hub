@@ -518,13 +518,13 @@ Commit: `feat: add learning favorites`
 
 ## TASK-242 — Add lightweight tags
 
-- [ ] Add tags only if they clearly improve organization beyond folders/search.
-- [ ] Allow tags on Flashcard Sets and Exams.
-- [ ] Add bounded tag CRUD.
-- [ ] Add filtering by tag.
-- [ ] Add Web UI.
-- [ ] Add Android display/filter where practical.
-- [ ] Avoid hierarchical tags.
+- [x] Add tags only if they clearly improve organization beyond folders/search.
+- [x] Allow tags on Flashcard Sets and Exams.
+- [x] Add bounded tag CRUD.
+- [x] Add filtering by tag.
+- [x] Add Web UI.
+- [x] Add Android display/filter where practical.
+- [x] Avoid hierarchical tags.
 
 Acceptance criteria:
 

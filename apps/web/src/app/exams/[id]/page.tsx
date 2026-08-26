@@ -19,6 +19,7 @@ import {
 import { API_BASE_URL, getApiErrorMessage } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
+import { TagEditor } from '@/components/tags/tag-editor';
 
 export default function ExamDetailPage() {
   const params = useParams();
@@ -51,6 +52,17 @@ export default function ExamDetailPage() {
     } catch (err: unknown) {
       alert(`Failed to update favorite: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
+  };
+
+  const handleTagsSave = async (names: string[]) => {
+    const updated = await studyApi.setExamTags(id, names);
+    queryClient.setQueryData(queryKeys.exam(id), updated);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.examsRoot() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.searchRoot() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.tags() }),
+    ]);
   };
 
   const handleExport = async () => {
@@ -249,6 +261,8 @@ export default function ExamDetailPage() {
             {exam.description}
           </p>
         )}
+
+        <TagEditor tags={exam.tags} onSave={handleTagsSave} />
 
         {/* Best Score Banner */}
         <div

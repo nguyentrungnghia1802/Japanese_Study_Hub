@@ -1,3 +1,5 @@
+import { TagDto } from './tags.dto.js';
+
 export interface FlashcardDto {
   id: string;
   setId: string;
@@ -14,6 +16,7 @@ export interface FlashcardSetDto {
   description: string | null;
   coverRef: string | null;
   isFavorite: boolean;
+  tags: TagDto[];
   cardCount: number;
   createdAt: string;
   updatedAt: string;

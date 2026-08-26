@@ -12,6 +12,9 @@ data class LoginRequest(
 data class FavoriteRequest(val favorite: Boolean)
 
 @Serializable
+data class SetTagsRequest(val tags: List<String>)
+
+@Serializable
 data class UserDto(val username: String)
 
 @Serializable
@@ -48,6 +51,7 @@ data class FlashcardSetDto(
     val description: String? = null,
     val coverRef: String? = null,
     val isFavorite: Boolean = false,
+    val tags: List<TagDto> = emptyList(),
     val cardCount: Int,
     val createdAt: String,
     val updatedAt: String,
@@ -116,6 +120,7 @@ data class ExamDto(
     val description: String? = null,
     val coverRef: String? = null,
     val isFavorite: Boolean = false,
+    val tags: List<TagDto> = emptyList(),
     val timeLimitSeconds: Int? = null,
     val contentVersion: Int,
     val shuffleQuestions: Boolean = false,
@@ -126,6 +131,13 @@ data class ExamDto(
     val createdAt: String,
     val updatedAt: String,
     val questions: List<ExamQuestionDto>? = null,
+)
+
+@Serializable
+data class TagDto(
+    val id: String,
+    val slug: String,
+    val name: String,
 )
 
 @Serializable

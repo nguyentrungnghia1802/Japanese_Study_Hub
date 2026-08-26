@@ -247,6 +247,14 @@ The editor shall prevent saving an invalid question.
 
 Same staged flow as flashcards.
 
+## 13. Learning tags
+
+Flashcard-set and exam library cards may display a small bounded set of flat
+tag chips. Library filters offer one tag at a time alongside folders/search and
+favorites. Detail views provide an add/remove editor with a 20-tag limit; save
+replaces the assignment and reports normalization/server errors inline. Tags
+are optional and never hide the primary Study/Take actions.
+
 Preview summary:
 
 ```text

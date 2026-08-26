@@ -9,6 +9,7 @@ export async function invalidateFlashcardQueries(
     queryClient.invalidateQueries({ queryKey: queryKeys.flashcardSetsRoot() }),
     queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() }),
     queryClient.invalidateQueries({ queryKey: queryKeys.searchRoot() }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.tags() }),
   ];
 
   if (setId) {
@@ -27,6 +28,7 @@ export async function invalidateExamQueries(
     queryClient.invalidateQueries({ queryKey: queryKeys.examsRoot() }),
     queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() }),
     queryClient.invalidateQueries({ queryKey: queryKeys.searchRoot() }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.tags() }),
   ];
 
   if (examId) {

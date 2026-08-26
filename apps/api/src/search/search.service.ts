@@ -2,6 +2,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { SearchResultsDto, DashboardSummaryDto, ExamDto } from '@japanese-learning/contracts';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { LearningService } from '../learning/learning.service.js';
+import { mapTagRelations } from '../common/tags.js';
 
 @Injectable()
 export class SearchService {
@@ -39,6 +40,9 @@ export class SearchService {
           _count: {
             select: { cards: { where: { deletedAt: null } } },
           },
+          tags: {
+            include: { tag: { select: { id: true, slug: true, name: true } } },
+          },
         },
       }),
 
@@ -73,6 +77,9 @@ export class SearchService {
         include: {
           _count: { select: { questions: true } },
           bestResults: { orderBy: { bestScore: 'desc' }, take: 1 },
+          tags: {
+            include: { tag: { select: { id: true, slug: true, name: true } } },
+          },
         },
       }),
 
@@ -96,6 +103,7 @@ export class SearchService {
       description: s.description,
       coverRef: s.coverRef,
       isFavorite: s.isFavorite ?? false,
+      tags: mapTagRelations(s.tags),
       cardCount: s._count.cards,
       createdAt: s.createdAt.toISOString(),
       updatedAt: s.updatedAt.toISOString(),
@@ -121,6 +129,7 @@ export class SearchService {
         description: e.description,
         coverRef: e.coverRef,
         isFavorite: e.isFavorite ?? false,
+        tags: mapTagRelations(e.tags),
         timeLimitSeconds: e.timeLimitSeconds,
         contentVersion: e.contentVersion,
         shuffleQuestions: e.shuffleQuestions,
@@ -172,6 +181,9 @@ export class SearchService {
         orderBy: { updatedAt: 'desc' },
         include: {
           _count: { select: { cards: { where: { deletedAt: null } } } },
+          tags: {
+            include: { tag: { select: { id: true, slug: true, name: true } } },
+          },
         },
       }),
 
@@ -183,6 +195,9 @@ export class SearchService {
         include: {
           _count: { select: { questions: true } },
           bestResults: { orderBy: { bestScore: 'desc' }, take: 1 },
+          tags: {
+            include: { tag: { select: { id: true, slug: true, name: true } } },
+          },
         },
       }),
 
@@ -209,6 +224,7 @@ export class SearchService {
         description: s.description,
         coverRef: s.coverRef,
         isFavorite: s.isFavorite ?? false,
+        tags: mapTagRelations(s.tags),
         cardCount: s._count.cards,
         createdAt: s.createdAt.toISOString(),
         updatedAt: s.updatedAt.toISOString(),
@@ -222,6 +238,7 @@ export class SearchService {
           description: e.description,
           coverRef: e.coverRef,
           isFavorite: e.isFavorite ?? false,
+          tags: mapTagRelations(e.tags),
           timeLimitSeconds: e.timeLimitSeconds,
           contentVersion: e.contentVersion,
           shuffleQuestions: e.shuffleQuestions,

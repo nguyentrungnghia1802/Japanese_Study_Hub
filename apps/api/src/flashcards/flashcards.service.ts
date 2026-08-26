@@ -7,6 +7,8 @@ import { UpdateSetBodyDto } from './dto/update-set.dto.js';
 import { CreateCardBodyDto } from './dto/create-card.dto.js';
 import { UpdateCardBodyDto } from './dto/update-card.dto.js';
 import { ReorderCardsBodyDto } from './dto/reorder-cards.dto.js';
+import { mapTagRelations } from '../common/tags.js';
+import { normalizeTagSlug } from '../common/tag.service.js';
 
 @Injectable()
 export class FlashcardsService {
@@ -29,6 +31,9 @@ export class FlashcardsService {
         _count: {
           select: { cards: { where: { deletedAt: null } } },
         },
+        tags: {
+          include: { tag: { select: { id: true, slug: true, name: true } } },
+        },
       },
     });
 
@@ -38,6 +43,7 @@ export class FlashcardsService {
       description: set.description,
       coverRef: set.coverRef,
       isFavorite: set.isFavorite,
+      tags: mapTagRelations(set.tags),
       cardCount: set._count.cards,
       createdAt: set.createdAt.toISOString(),
       updatedAt: set.updatedAt.toISOString(),
@@ -50,6 +56,7 @@ export class FlashcardsService {
     limit?: number;
     sort?: string;
     favorite?: boolean;
+    tag?: string;
   }): Promise<PaginatedResultDto<FlashcardSetListItemDto>> {
     const page = Math.max(1, options?.page || 1);
     const limit = Math.min(100, Math.max(1, options?.limit || 20));
@@ -66,6 +73,9 @@ export class FlashcardsService {
           }
         : {}),
       ...(options?.favorite !== undefined ? { isFavorite: options.favorite } : {}),
+      ...(options?.tag?.trim()
+        ? { tags: { some: { tag: { slug: normalizeTagSlug(options.tag) } } } }
+        : {}),
     };
 
     const orderBy =
@@ -86,6 +96,9 @@ export class FlashcardsService {
           _count: {
             select: { cards: { where: { deletedAt: null } } },
           },
+          tags: {
+            include: { tag: { select: { id: true, slug: true, name: true } } },
+          },
         },
       }),
     ]);
@@ -97,6 +110,7 @@ export class FlashcardsService {
         description: s.description,
         coverRef: s.coverRef,
         isFavorite: s.isFavorite,
+        tags: mapTagRelations(s.tags),
         cardCount: s._count.cards,
         createdAt: s.createdAt.toISOString(),
         updatedAt: s.updatedAt.toISOString(),
@@ -119,6 +133,9 @@ export class FlashcardsService {
         _count: {
           select: { cards: { where: { deletedAt: null } } },
         },
+        tags: {
+          include: { tag: { select: { id: true, slug: true, name: true } } },
+        },
       },
     });
 
@@ -132,6 +149,7 @@ export class FlashcardsService {
       description: set.description,
       coverRef: set.coverRef,
       isFavorite: set.isFavorite,
+      tags: mapTagRelations(set.tags),
       cardCount: set._count.cards,
       cards: set.cards.map((c) => ({
         id: c.id,
@@ -172,6 +190,9 @@ export class FlashcardsService {
         _count: {
           select: { cards: { where: { deletedAt: null } } },
         },
+        tags: {
+          include: { tag: { select: { id: true, slug: true, name: true } } },
+        },
       },
     });
 
@@ -181,6 +202,7 @@ export class FlashcardsService {
       description: updated.description,
       coverRef: updated.coverRef,
       isFavorite: updated.isFavorite,
+      tags: mapTagRelations(updated.tags),
       cardCount: updated._count.cards,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
@@ -358,6 +380,7 @@ export class FlashcardsService {
         description: newSet.description,
         coverRef: newSet.coverRef,
         isFavorite: newSet.isFavorite,
+        tags: [],
         cardCount: existing.cards.length,
         createdAt: newSet.createdAt.toISOString(),
         updatedAt: newSet.updatedAt.toISOString(),

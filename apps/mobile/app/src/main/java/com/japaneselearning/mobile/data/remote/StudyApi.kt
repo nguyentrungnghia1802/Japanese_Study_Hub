@@ -23,6 +23,7 @@ interface StudyApi {
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20,
         @Query("favorite") favorite: Boolean? = null,
+        @Query("tag") tag: String? = null,
     ): FlashcardSetsResponse
 
     @GET("flashcard-sets/{setId}")
@@ -34,6 +35,15 @@ interface StudyApi {
         @Body request: FavoriteRequest,
     ): FlashcardSetDto
 
+    @PUT("flashcard-sets/{setId}/tags")
+    suspend fun setFlashcardTags(
+        @Path("setId") setId: String,
+        @Body request: SetTagsRequest,
+    ): FlashcardSetDto
+
+    @GET("tags")
+    suspend fun listTags(@Query("limit") limit: Int = 100): List<TagDto>
+
     @GET("exam-folders")
     suspend fun listExamFolders(): List<ExamFolderDto>
 
@@ -44,6 +54,7 @@ interface StudyApi {
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20,
         @Query("favorite") favorite: Boolean? = null,
+        @Query("tag") tag: String? = null,
     ): ExamsResponse
 
     @GET("exams/{examId}")
@@ -53,6 +64,12 @@ interface StudyApi {
     suspend fun setExamFavorite(
         @Path("examId") examId: String,
         @Body request: FavoriteRequest,
+    ): ExamDto
+
+    @PUT("exams/{examId}/tags")
+    suspend fun setExamTags(
+        @Path("examId") examId: String,
+        @Body request: SetTagsRequest,
     ): ExamDto
 
     @POST("exams/{examId}/attempts")

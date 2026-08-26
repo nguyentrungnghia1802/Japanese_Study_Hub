@@ -45,6 +45,7 @@ model FlashcardSet {
   deletedAt   DateTime?   @map("deleted_at") @db.Timestamptz(6)
 
   cards Flashcard[]
+  tags  FlashcardSetTag[]
 
   @@index([deletedAt])
   @@map("flashcard_sets")
@@ -105,6 +106,7 @@ model Exam {
   attempts         ExamAttempt[]
   bestResults      ExamBestResult[]
   contexts         QuestionContext[]
+  tags             ExamTag[]
 
   @@index([folderId])
   @@index([deletedAt])
@@ -234,6 +236,46 @@ model ImportSession {
 
   @@index([expiresAt])
   @@map("import_sessions")
+}
+
+model Tag {
+  id        String   @id @default(uuid()) @db.Uuid
+  slug      String   @unique @db.VarChar(64)
+  name      String   @db.VarChar(64)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  flashcardSets FlashcardSetTag[]
+  exams         ExamTag[]
+
+  @@index([name])
+  @@map("tags")
+}
+
+model FlashcardSetTag {
+  setId     String   @map("set_id") @db.Uuid
+  tagId     String   @map("tag_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  set FlashcardSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  tag Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([setId, tagId])
+  @@index([tagId])
+  @@map("flashcard_set_tags")
+}
+
+model ExamTag {
+  examId    String   @map("exam_id") @db.Uuid
+  tagId     String   @map("tag_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  exam Exam @relation(fields: [examId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([examId, tagId])
+  @@index([tagId])
+  @@map("exam_tags")
 }
 
 model RecentLearning {

@@ -109,6 +109,10 @@ idempotent and rejects soft-deleted sets.
 
 `GET /api/v1/flashcard-sets` accepts optional `favorite=true|false` filtering.
 
+`GET /api/v1/flashcard-sets` also accepts `tag=<normalized-slug>`. The response
+contains a bounded `tags` summary and `PUT /api/v1/flashcard-sets/{setId}/tags`
+replaces all assignments atomically with `{ "tags": ["name", "..."] }`.
+
 ---
 
 ## 5. Flashcard endpoints
@@ -251,6 +255,34 @@ Sets the favorite state with `{ "favorite": true|false }`. The operation is
 idempotent and rejects soft-deleted exams.
 
 `GET /api/v1/exams` accepts optional `favorite=true|false` filtering.
+
+`GET /api/v1/exams` also accepts `tag=<normalized-slug>`. The response contains
+a bounded `tags` summary and `PUT /api/v1/exams/{examId}/tags` replaces all
+assignments atomically with the same body.
+
+## 8.1 Shared learning tags
+
+### `GET /api/v1/tags?limit=100`
+
+Returns at most 100 normalized flat tag summaries. The server clamps larger
+limits.
+
+### `POST /api/v1/tags`
+
+Creates or returns a tag after NFKC/whitespace normalization. Body:
+
+```json
+{ "name": "JLPT N3" }
+```
+
+Names are at most 32 Unicode code points and the shared vocabulary is capped at
+2,000 rows.
+
+### `PATCH /api/v1/tags/{slug}` and `DELETE /api/v1/tags/{slug}`
+
+Rename or delete a tag. Rename preserves existing assignments; delete cascades
+only the join rows. Assignments to deleted or soft-deleted learning resources
+are rejected, and normal lists continue to exclude soft-deleted resources.
 
 ---
 

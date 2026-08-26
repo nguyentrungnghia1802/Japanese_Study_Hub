@@ -68,13 +68,16 @@ private class FakeRepository(private val tokenStore: TokenStore) : StudyReposito
     }
     override suspend fun me() = User("admin")
     override suspend fun logout() = Unit
-    override suspend fun listFlashcardSets(search: String?, favoriteOnly: Boolean) = emptyList<FlashcardSet>()
+    override suspend fun listFlashcardSets(search: String?, favoriteOnly: Boolean, tag: String?) = emptyList<FlashcardSet>()
     override suspend fun getFlashcardSet(setId: String): FlashcardSet = error("unused")
     override suspend fun setFlashcardFavorite(setId: String, favorite: Boolean): FlashcardSet = error("unused")
+    override suspend fun setFlashcardTags(setId: String, tags: List<String>): FlashcardSet = error("unused")
+    override suspend fun listTags() = emptyList<com.japaneselearning.mobile.data.model.LearningTag>()
     override suspend fun listExamFolders() = emptyList<ExamFolder>()
-    override suspend fun listExams(folderId: String?, search: String?, favoriteOnly: Boolean) = emptyList<Exam>()
+    override suspend fun listExams(folderId: String?, search: String?, favoriteOnly: Boolean, tag: String?) = emptyList<Exam>()
     override suspend fun getExam(examId: String): Exam = error("unused")
     override suspend fun setExamFavorite(examId: String, favorite: Boolean): Exam = error("unused")
+    override suspend fun setExamTags(examId: String, tags: List<String>): Exam = error("unused")
     override suspend fun startAttempt(examId: String): LiveAttempt = error("unused")
     override suspend fun getAttempt(attemptId: String): LiveAttempt = error("unused")
     override suspend fun saveAnswer(attemptId: String, questionId: String, selectedOptionId: String?) = Unit

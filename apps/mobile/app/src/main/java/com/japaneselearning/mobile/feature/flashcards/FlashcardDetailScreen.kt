@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -63,6 +64,16 @@ fun FlashcardDetailScreen(
                     item {
                         Column {
                             Text(set.description.orEmpty(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (set.tags.isNotEmpty()) {
+                                Row(
+                                    modifier = Modifier.padding(top = 8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    set.tags.forEach { tag ->
+                                        AssistChip(onClick = {}, label = { Text(tag.name) })
+                                    }
+                                }
+                            }
                             Button(
                                 onClick = { onStudy(set.id) },
                                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),

@@ -10,12 +10,19 @@ data class Flashcard(
     val position: Int,
 )
 
+data class LearningTag(
+    val id: String,
+    val slug: String,
+    val name: String,
+)
+
 data class FlashcardSet(
     val id: String,
     val title: String,
     val description: String?,
     val cardCount: Int,
     val isFavorite: Boolean,
+    val tags: List<LearningTag> = emptyList(),
     val cards: List<Flashcard> = emptyList(),
 )
 
@@ -36,6 +43,7 @@ data class Exam(
     val questionCount: Int,
     val bestScore: Double?,
     val isFavorite: Boolean,
+    val tags: List<LearningTag> = emptyList(),
     val questions: List<ExamQuestion> = emptyList(),
 )
 

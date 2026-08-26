@@ -6,3 +6,4 @@ export * from './imports.dto.js';
 export * from './search.dto.js';
 export * from './recent.dto.js';
 export * from './favorite.dto.js';
+export * from './tags.dto.js';

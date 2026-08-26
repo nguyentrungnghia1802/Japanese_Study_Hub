@@ -133,6 +133,11 @@ filtering and management are available through the API and Web; Android displays
 and filters tags where practical. Tags are not hierarchical and cannot grow
 without bounds.
 
+TASK-242 implements this requirement with shared normalized tags, additive
+join-table migration, bounded CRUD/assignment/filter endpoints, Web editor and
+filters, and Android display/filter support. Detailed behavior is recorded in
+`docs/learning/tags.md`.
+
 ## 4. Spaced repetition requirements
 
 ### P2-FSRS-001 — Server-authoritative FSRS

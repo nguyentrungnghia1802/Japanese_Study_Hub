@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.japaneselearning.mobile.core.ui.ScreenState
 import com.japaneselearning.mobile.data.model.Exam
 import com.japaneselearning.mobile.data.model.ExamFolder
+import com.japaneselearning.mobile.data.model.LearningTag
 import com.japaneselearning.mobile.data.repository.StudyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -19,6 +20,8 @@ data class ExamsUiState(
     val query: String = "",
     val selectedFolderId: String? = null,
     val favoriteOnly: Boolean = false,
+    val selectedTag: String? = null,
+    val tags: ScreenState<List<LearningTag>> = ScreenState(),
     val folders: ScreenState<List<ExamFolder>> = ScreenState(),
     val exams: ScreenState<List<Exam>> = ScreenState(),
 )
@@ -30,7 +33,10 @@ class ExamsViewModel @Inject constructor(
     private val _state = MutableStateFlow(ExamsUiState())
     val state: StateFlow<ExamsUiState> = _state.asStateFlow()
 
-    init { load() }
+    init {
+        loadTags()
+        load()
+    }
 
     fun load() {
         viewModelScope.launch {
@@ -64,6 +70,11 @@ class ExamsViewModel @Inject constructor(
         loadExams()
     }
 
+    fun setTag(tag: String?) {
+        _state.update { it.copy(selectedTag = tag) }
+        loadExams()
+    }
+
     fun setFavorite(examId: String, favorite: Boolean) {
         viewModelScope.launch {
             try {
@@ -88,6 +99,7 @@ class ExamsViewModel @Inject constructor(
                     folderId = _state.value.selectedFolderId,
                     search = _state.value.query.trim().takeIf(String::isNotEmpty),
                     favoriteOnly = _state.value.favoriteOnly,
+                    tag = _state.value.selectedTag,
                 )
                 _state.update { it.copy(exams = ScreenState(isLoading = false, data = exams)) }
             } catch (cancellation: CancellationException) {
@@ -95,6 +107,22 @@ class ExamsViewModel @Inject constructor(
             } catch (error: Throwable) {
                 _state.update {
                     it.copy(exams = ScreenState(isLoading = false, data = current, error = error.message ?: "Không tải được đề thi."))
+                }
+            }
+        }
+    }
+
+    private fun loadTags() {
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(tags = ScreenState(isLoading = true, data = it.tags.data)) }
+                val tags = repository.listTags()
+                _state.update { it.copy(tags = ScreenState(isLoading = false, data = tags)) }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (error: Throwable) {
+                _state.update {
+                    it.copy(tags = ScreenState(isLoading = false, data = it.tags.data, error = error.message))
                 }
             }
         }

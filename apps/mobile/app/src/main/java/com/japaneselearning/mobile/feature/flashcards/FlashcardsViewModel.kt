@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.japaneselearning.mobile.core.ui.ScreenState
 import com.japaneselearning.mobile.data.model.FlashcardSet
+import com.japaneselearning.mobile.data.model.LearningTag
 import com.japaneselearning.mobile.data.repository.StudyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -17,6 +18,8 @@ import kotlinx.coroutines.launch
 data class FlashcardsUiState(
     val query: String = "",
     val favoriteOnly: Boolean = false,
+    val selectedTag: String? = null,
+    val tags: ScreenState<List<LearningTag>> = ScreenState(),
     val screen: ScreenState<List<FlashcardSet>> = ScreenState(),
 )
 
@@ -27,7 +30,10 @@ class FlashcardsViewModel @Inject constructor(
     private val _state = MutableStateFlow(FlashcardsUiState())
     val state: StateFlow<FlashcardsUiState> = _state.asStateFlow()
 
-    init { load() }
+    init {
+        loadTags()
+        load()
+    }
 
     fun setQuery(query: String) {
         _state.update { it.copy(query = query) }
@@ -36,6 +42,11 @@ class FlashcardsViewModel @Inject constructor(
 
     fun setFavoriteOnly(enabled: Boolean) {
         _state.update { it.copy(favoriteOnly = enabled) }
+        load()
+    }
+
+    fun setTag(tag: String?) {
+        _state.update { it.copy(selectedTag = tag) }
         load()
     }
 
@@ -62,6 +73,7 @@ class FlashcardsViewModel @Inject constructor(
                 val sets = repository.listFlashcardSets(
                     search = query.trim().takeIf { it.isNotEmpty() },
                     favoriteOnly = _state.value.favoriteOnly,
+                    tag = _state.value.selectedTag,
                 )
                 _state.update { it.copy(screen = ScreenState(isLoading = false, data = sets)) }
             } catch (cancellation: CancellationException) {
@@ -75,6 +87,22 @@ class FlashcardsViewModel @Inject constructor(
                             error = error.message ?: "Không tải được bộ thẻ.",
                         ),
                     )
+                }
+            }
+        }
+    }
+
+    private fun loadTags() {
+        viewModelScope.launch {
+            try {
+                _state.update { it.copy(tags = ScreenState(isLoading = true, data = it.tags.data)) }
+                val tags = repository.listTags()
+                _state.update { it.copy(tags = ScreenState(isLoading = false, data = tags)) }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (error: Throwable) {
+                _state.update {
+                    it.copy(tags = ScreenState(isLoading = false, data = it.tags.data, error = error.message))
                 }
             }
         }
