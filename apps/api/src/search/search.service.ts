@@ -4,6 +4,42 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { LearningService } from '../learning/learning.service.js';
 import { mapTagRelations } from '../common/tags.js';
 
+type SearchableRecord = {
+  id: string;
+  updatedAt: Date;
+};
+
+function relevanceScore(value: string | null | undefined, query: string, weight: number): number {
+  if (!value) return 0;
+  const normalizedValue = value.trim().toLocaleLowerCase();
+  const normalizedQuery = query.toLocaleLowerCase();
+  if (!normalizedValue || !normalizedQuery) return 0;
+  if (normalizedValue === normalizedQuery) return 1_000 * weight;
+  if (normalizedValue.startsWith(normalizedQuery)) return 700 * weight;
+  const matchIndex = normalizedValue.indexOf(normalizedQuery);
+  return matchIndex < 0 ? 0 : (500 - Math.min(matchIndex, 100)) * weight;
+}
+
+function rankSearchResults<T extends SearchableRecord>(
+  items: T[],
+  query: string,
+  fields: (item: T) => Array<{ value: string | null | undefined; weight: number }>,
+): T[] {
+  return [...items].sort((left, right) => {
+    const leftScore = fields(left).reduce(
+      (score, field) => score + relevanceScore(field.value, query, field.weight),
+      0,
+    );
+    const rightScore = fields(right).reduce(
+      (score, field) => score + relevanceScore(field.value, query, field.weight),
+      0,
+    );
+    if (leftScore !== rightScore) return rightScore - leftScore;
+    const updatedAtDifference = right.updatedAt.getTime() - left.updatedAt.getTime();
+    return updatedAtDifference || left.id.localeCompare(right.id);
+  });
+}
+
 @Injectable()
 export class SearchService {
   constructor(
@@ -97,7 +133,10 @@ export class SearchService {
       }),
     ]);
 
-    const formattedSets = sets.map((s) => ({
+    const formattedSets = rankSearchResults(sets, q, (set) => [
+      { value: set.title, weight: 4 },
+      { value: set.description, weight: 1 },
+    ]).map((s) => ({
       id: s.id,
       title: s.title,
       description: s.description,
@@ -109,7 +148,10 @@ export class SearchService {
       updatedAt: s.updatedAt.toISOString(),
     }));
 
-    const formattedCards = cards.map((c) => ({
+    const formattedCards = rankSearchResults(cards, q, (card) => [
+      { value: card.front, weight: 3 },
+      { value: card.back, weight: 2 },
+    ]).map((c) => ({
       id: c.id,
       setId: c.setId,
       setName: c.set.title,
@@ -120,7 +162,10 @@ export class SearchService {
       updatedAt: c.updatedAt.toISOString(),
     }));
 
-    const formattedExams: ExamDto[] = exams.map((e) => {
+    const formattedExams: ExamDto[] = rankSearchResults(exams, q, (exam) => [
+      { value: exam.title, weight: 4 },
+      { value: exam.description, weight: 1 },
+    ]).map((e) => {
       const best = e.bestResults[0];
       return {
         id: e.id,
@@ -141,7 +186,9 @@ export class SearchService {
       };
     });
 
-    const formattedFolders = folders.map((f) => ({
+    const formattedFolders = rankSearchResults(folders, q, (folder) => [
+      { value: folder.name, weight: 4 },
+    ]).map((f) => ({
       id: f.id,
       parentId: f.parentId,
       name: f.name,

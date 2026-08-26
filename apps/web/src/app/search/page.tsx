@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import {
   Search as SearchIcon,
@@ -14,17 +15,46 @@ import {
   Award,
 } from 'lucide-react';
 import { SearchResultsDto } from '@japanese-learning/contracts';
-import { apiClient, getApiErrorMessage } from '@/lib/api-client';
+import { getApiErrorMessage } from '@/lib/api-client';
+import { CACHE_POLICY } from '@/lib/cache-policy';
+import { queryKeys } from '@/lib/query-keys';
+import { studyApi } from '@/lib/study-api';
 import { getUiPreference, setUiPreference, UiLibraryTab } from '@/lib/ui-preferences';
 
 type SearchTab = 'ALL' | 'SETS' | 'CARDS' | 'EXAMS' | 'FOLDERS';
 
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  const needle = query.trim();
+  if (!needle) return <>{text}</>;
+
+  const lowerText = text.toLocaleLowerCase();
+  const lowerNeedle = needle.toLocaleLowerCase();
+  const parts: React.ReactNode[] = [];
+  let cursor = 0;
+  let matchIndex = lowerText.indexOf(lowerNeedle);
+  let matchNumber = 0;
+
+  while (matchIndex >= 0) {
+    if (matchIndex > cursor) parts.push(text.slice(cursor, matchIndex));
+    parts.push(
+      <mark key={`match-${matchNumber}`} style={{ background: 'rgba(250, 204, 21, 0.35)' }}>
+        {text.slice(matchIndex, matchIndex + needle.length)}
+      </mark>,
+    );
+    cursor = matchIndex + needle.length;
+    matchNumber += 1;
+    matchIndex = lowerText.indexOf(lowerNeedle, cursor);
+  }
+
+  if (cursor === 0) return <>{text}</>;
+  if (cursor < text.length) parts.push(text.slice(cursor));
+  return <>{parts}</>;
+}
+
 export default function SearchPage() {
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<SearchTab>('ALL');
-  const [results, setResults] = useState<SearchResultsDto | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
 
   useEffect(() => {
     const storedTab = getUiPreference('libraryTab');
@@ -44,34 +74,24 @@ export default function SearchPage() {
     setUiPreference('libraryTab', tab);
   };
 
-  const performSearch = useCallback(async (q: string) => {
-    if (!q.trim()) {
-      setResults(null);
-      setIsLoading(false);
-      setError(null);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await apiClient<SearchResultsDto>(
-        `/search?q=${encodeURIComponent(q.trim())}&limit=30`,
-      );
-      setResults(data);
-    } catch (err: unknown) {
-      setError(getApiErrorMessage(err, 'Unable to complete search.'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    const timer = setTimeout(() => {
-      performSearch(query);
-    }, 300);
+    const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 300);
     return () => clearTimeout(timer);
-  }, [query, performSearch]);
+  }, [query]);
+
+  const searchQuery = useQuery<SearchResultsDto>({
+    queryKey: queryKeys.search(debouncedQuery, 30),
+    queryFn: ({ signal }) => studyApi.search(debouncedQuery, 30, signal),
+    enabled: debouncedQuery.length > 0,
+    staleTime: CACHE_POLICY.search.staleTime,
+    gcTime: CACHE_POLICY.search.gcTime,
+  });
+  const results = debouncedQuery ? (searchQuery.data ?? null) : null;
+  const isLoading = Boolean(debouncedQuery) && searchQuery.isPending;
+  const isRefreshing = Boolean(debouncedQuery) && searchQuery.isFetching && !searchQuery.isPending;
+  const error = searchQuery.error
+    ? getApiErrorMessage(searchQuery.error, 'Unable to complete search.')
+    : null;
 
   const hasAnyResults =
     results &&
@@ -79,7 +99,6 @@ export default function SearchPage() {
       results.flashcards.length > 0 ||
       results.exams.length > 0 ||
       results.folders.length > 0);
-  const isRefreshing = isLoading && results !== null;
 
   return (
     <div
@@ -108,7 +127,7 @@ export default function SearchPage() {
           <span>{error}</span>
           <button
             type="button"
-            onClick={() => void performSearch(query)}
+            onClick={() => void searchQuery.refetch()}
             style={{ color: 'var(--brand-primary)', background: 'transparent', fontWeight: '600' }}
           >
             Retry
@@ -341,7 +360,7 @@ export default function SearchPage() {
                           color: 'var(--text-primary)',
                         }}
                       >
-                        {s.title}
+                        <HighlightedText text={s.title} query={debouncedQuery} />
                       </h3>
                       <span
                         style={{
@@ -365,7 +384,7 @@ export default function SearchPage() {
                           lineHeight: '1.4',
                         }}
                       >
-                        {s.description}
+                        <HighlightedText text={s.description} query={debouncedQuery} />
                       </p>
                     )}
                     <Link
@@ -426,7 +445,10 @@ export default function SearchPage() {
                         marginBottom: '0.4rem',
                       }}
                     >
-                      Set: <strong>{c.setName}</strong>
+                      Set:{' '}
+                      <strong>
+                        <HighlightedText text={c.setName} query={debouncedQuery} />
+                      </strong>
                     </div>
                     <div
                       style={{
@@ -436,10 +458,10 @@ export default function SearchPage() {
                         marginBottom: '0.5rem',
                       }}
                     >
-                      {c.front}
+                      <HighlightedText text={c.front} query={debouncedQuery} />
                     </div>
                     <div style={{ fontSize: '0.9375rem', color: 'var(--text-secondary)' }}>
-                      {c.back}
+                      <HighlightedText text={c.back} query={debouncedQuery} />
                     </div>
                   </div>
                 ))}
@@ -493,7 +515,7 @@ export default function SearchPage() {
                           color: 'var(--text-primary)',
                         }}
                       >
-                        {e.title}
+                        <HighlightedText text={e.title} query={debouncedQuery} />
                       </h3>
                       <span
                         style={{
@@ -599,7 +621,7 @@ export default function SearchPage() {
                           fontSize: '0.9375rem',
                         }}
                       >
-                        {f.name}
+                        <HighlightedText text={f.name} query={debouncedQuery} />
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         {f.examCount || 0} exams

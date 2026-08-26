@@ -388,6 +388,15 @@ Search service should expose bounded result sets and search domains:
 - Exams
 - Folders
 
+Results use deterministic personal-scale relevance: exact and prefix matches
+rank before substring matches, then updatedAt and id provide stable
+tie-breaking. Web search waits 300 ms after input, passes the query abort signal
+to the API, and keeps at most 30 memory-only recent query keys with a 20-second
+stale window and two-minute garbage-collection window. Android uses the same
+300 ms debounce/cancellation boundary and a five-entry, two-minute in-memory
+recent-query cache. Matched text is rendered through React/Compose text
+components; raw HTML is never injected.
+
 ---
 
 ## 17. Media architecture

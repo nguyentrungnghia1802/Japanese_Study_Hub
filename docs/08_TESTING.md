@@ -241,6 +241,9 @@ CI or local release process shall test:
 13. Open Review mistakes and confirm selected/unanswered prompts are sanitized
 14. Start Practice, submit, and verify official best remains unchanged
 
+Search-specific checks must also cover Japanese queries, exact-match ranking,
+debounce/cancellation, recent-query cache bounds, and safe match highlighting.
+
 ---
 
 ## 15. Mobile E2E/smoke path
@@ -255,6 +258,8 @@ At minimum verify on target emulator/device:
 - Timer display
 - Select answers
 - Submit and review result
+- Search with Japanese text, change the query rapidly, and verify the latest
+  result wins without a request storm
 
 ---
 

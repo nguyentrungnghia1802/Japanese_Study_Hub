@@ -204,6 +204,12 @@ Global search preserves Japanese Unicode behavior, uses safe relevance ordering
 and snippets, debounces/cancels Web and Android requests, and maintains a bounded
 short-lived recent-query cache.
 
+Implementation boundary: the API ranks each bounded result group by exact,
+prefix, and substring matches; Web uses a 300 ms query-key debounce with
+AbortSignal and a maximum of 30 memory-only search keys; Android uses the same
+debounce/cancellation interval with a maximum of five recent queries retained
+for two minutes. Both UIs highlight matches through escaped text rendering.
+
 ### P2-IMPORT-MULTI
 
 Web may preview multiple Markdown files with bounded concurrency, but each file

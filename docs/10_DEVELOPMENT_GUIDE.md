@@ -69,6 +69,10 @@
   successful server response.
 - Do not persist active attempts, answer keys, FSRS transitions, or pending
   mutations in the read cache.
+- Search input must retain Unicode text, debounce at 300 ms, cancel obsolete
+  requests, and use bounded memory-only recent-query caches. Prefer exact/prefix
+  result relevance before recency, and highlight matches as escaped UI text
+  rather than injecting HTML.
 
 From the repository root, mobile checks are run with:
 

@@ -761,18 +761,26 @@ Commit: `perf(android): improve startup and navigation`
 
 ## TASK-280 — Improve global search responsiveness
 
-- [ ] Preserve Japanese Unicode behavior.
-- [ ] Add relevance/ranking appropriate to personal scale.
-- [ ] Highlight matched snippets safely.
-- [ ] Debounce Web search.
-- [ ] Cancel obsolete requests.
-- [ ] Cache recent search queries briefly.
-- [ ] Bound search cache cardinality.
-- [ ] Add Android debounce/cancellation equivalently.
+- [x] Preserve Japanese Unicode behavior.
+- [x] Add relevance/ranking appropriate to personal scale.
+- [x] Highlight matched snippets safely.
+- [x] Debounce Web search.
+- [x] Cancel obsolete requests.
+- [x] Cache recent search queries briefly.
+- [x] Bound search cache cardinality.
+- [x] Add Android debounce/cancellation equivalently.
 
 Acceptance criteria:
 
-- Search feels responsive without request storms.
+- [x] Search feels responsive without request storms.
+
+Verification:
+
+- [x] API search tests cover Japanese text and exact-match relevance ordering.
+- [x] Web query tests cover AbortSignal-backed query execution and a maximum
+      of 30 in-memory search keys; Web typecheck/lint/unit tests pass.
+- [x] Android unit tests cover 300 ms debounce, cancellation, Japanese query
+      preservation, and bounded recent-query reuse.
 
 Commit: `perf(search): improve search responsiveness`
 

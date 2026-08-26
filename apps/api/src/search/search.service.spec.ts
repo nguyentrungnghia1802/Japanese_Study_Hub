@@ -141,6 +141,33 @@ describe('SearchService (TASK-090 / SEARCH-001..006)', () => {
         }),
       );
     });
+
+    it('ranks exact and prefix matches ahead of newer weak matches', async () => {
+      prismaMock.flashcardSet.findMany.mockResolvedValueOnce([
+        {
+          id: 'set-new',
+          title: '毎日食べる練習',
+          description: 'newer result',
+          coverRef: null,
+          createdAt: new Date('2026-08-26T00:00:00.000Z'),
+          updatedAt: new Date('2026-08-27T00:00:00.000Z'),
+          _count: { cards: 2 },
+        },
+        {
+          id: 'set-exact',
+          title: '食べる',
+          description: 'exact title',
+          coverRef: null,
+          createdAt: new Date('2026-08-20T00:00:00.000Z'),
+          updatedAt: new Date('2026-08-20T00:00:00.000Z'),
+          _count: { cards: 1 },
+        },
+      ]);
+
+      const results = await service.search('食べる');
+
+      expect(results.flashcardSets.map((set) => set.id)).toEqual(['set-exact', 'set-new']);
+    });
   });
 
   describe('getDashboardSummary', () => {

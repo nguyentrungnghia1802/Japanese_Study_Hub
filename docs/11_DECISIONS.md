@@ -260,3 +260,16 @@ state, or mutation queue is stored locally.
 
 **Reason:** A small read cache improves returning-user startup without creating
 an offline synchronization system or a second source of truth.
+
+## ADR-029 — Search uses bounded client cancellation and deterministic ranking
+
+**Decision:** Keep PostgreSQL text search for the personal-scale dataset, rank
+returned candidates by exact/prefix/substring match with stable recency/id
+tie-breakers, and bound each result group to 30 items. Web uses a 300 ms
+debounced TanStack Query keyed by normalized query, passes AbortSignal, and
+keeps at most 30 memory-only search keys. Android uses a 300 ms debounced
+ViewModel job with cancellation and a five-entry, two-minute in-memory cache.
+Both clients render matched snippets as normal text nodes.
+
+**Reason:** This removes typing request storms and stale-result races while
+preserving Japanese Unicode and avoiding unsafe HTML highlighting.

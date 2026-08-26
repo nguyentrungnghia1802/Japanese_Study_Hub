@@ -44,6 +44,16 @@ describe('Web query policy', () => {
     expect(getQueryCacheStats(queryClient).total).toBe(1);
   });
 
+  it('bounds short-lived search query cardinality', () => {
+    const queryClient = createStudyQueryClient();
+
+    for (let index = 0; index < 35; index += 1) {
+      queryClient.setQueryData(queryKeys.search(`query-${index}`), { total: index });
+    }
+
+    expect(getQueryCacheStats(queryClient).searchQueries).toBeLessThanOrEqual(30);
+  });
+
   it('invalidates the affected domain without clearing unrelated data', async () => {
     const queryClient = createStudyQueryClient();
     await queryClient.fetchQuery({ queryKey: queryKeys.flashcardSets(), queryFn: async () => [] });
