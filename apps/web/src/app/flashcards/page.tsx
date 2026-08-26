@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Plus,
   Search,
@@ -16,13 +17,15 @@ import {
   Upload,
 } from 'lucide-react';
 import { FlashcardSetDto } from '@japanese-learning/contracts';
-import { API_BASE_URL, apiClient } from '@/lib/api-client';
+import { API_BASE_URL, apiClient, getApiErrorMessage } from '@/lib/api-client';
 import { FlashcardImportModal } from '@/components/flashcards/flashcard-import-modal';
+import { invalidateFlashcardQueries } from '@/lib/query-invalidation';
+import { queryKeys } from '@/lib/query-keys';
+import { studyApi } from '@/lib/study-api';
 
 export default function FlashcardsPage() {
-  const [sets, setSets] = useState<FlashcardSetDto[]>([]);
   const [search, setSearch] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -30,26 +33,31 @@ export default function FlashcardsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const router = useRouter();
-
-  const fetchSets = useCallback(async (searchQuery = '') => {
-    setIsLoading(true);
-    try {
-      const url = `/flashcard-sets${searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : ''}`;
-      const data = await apiClient<{ items: FlashcardSetDto[] }>(url);
-      setSets(data.items || []);
-    } catch {
-      // ignore
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchSets(search);
-    }, 300);
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
     return () => clearTimeout(timer);
-  }, [search, fetchSets]);
+  }, [search]);
+
+  const setsQuery = useQuery({
+    queryKey: queryKeys.flashcardSets({
+      search: debouncedSearch || undefined,
+      page: 1,
+      pageSize: 20,
+      sort: 'createdAt_desc',
+    }),
+    queryFn: ({ signal }) =>
+      studyApi.flashcardSets(
+        { search: debouncedSearch || undefined, page: 1, pageSize: 20, sort: 'createdAt_desc' },
+        signal,
+      ),
+    placeholderData: (previousData) => previousData,
+  });
+
+  const sets = setsQuery.data?.items ?? [];
+  const isLoading = setsQuery.isLoading;
+  const isRefreshing = setsQuery.isFetching && !isLoading;
 
   const handleCreateSet = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,8 +80,7 @@ export default function FlashcardsPage() {
       setNewDescription('');
       router.push(`/flashcards/${created.id}`);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      setActionError(apiErr.message || 'Failed to create flashcard set');
+      setActionError(getApiErrorMessage(err, 'Failed to create flashcard set'));
     } finally {
       setIsCreating(false);
     }
@@ -84,10 +91,9 @@ export default function FlashcardsPage() {
       await apiClient<FlashcardSetDto>(`/flashcard-sets/${id}/duplicate`, {
         method: 'POST',
       });
-      fetchSets(search);
+      await invalidateFlashcardQueries(queryClient);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Failed to duplicate: ${apiErr.message}`);
+      alert(`Failed to duplicate: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -98,10 +104,9 @@ export default function FlashcardsPage() {
       await apiClient(`/flashcard-sets/${id}`, {
         method: 'DELETE',
       });
-      fetchSets(search);
+      await invalidateFlashcardQueries(queryClient, id);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Failed to delete: ${apiErr.message}`);
+      alert(`Failed to delete: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -124,13 +129,23 @@ export default function FlashcardsPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Export error: ${apiErr.message}`);
+      alert(`Export error: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div
+      aria-busy={isLoading}
+      style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}
+    >
+      {isRefreshing && (
+        <div
+          role="status"
+          style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.75rem' }}
+        >
+          Refreshing flashcard decks…
+        </div>
+      )}
       {/* Header Banner */}
       <div
         style={{
@@ -263,6 +278,27 @@ export default function FlashcardsPage() {
               style={{ height: '180px', animation: 'pulse 1.5s infinite' }}
             />
           ))}
+        </div>
+      ) : setsQuery.isError ? (
+        <div className="glass-panel" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+          <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
+            Unable to load flashcard sets
+          </h3>
+          <p style={{ color: 'var(--accent-rose)', marginBottom: '1rem' }}>
+            {getApiErrorMessage(setsQuery.error, 'Please try again.')}
+          </p>
+          <button
+            onClick={() => void setsQuery.refetch()}
+            style={{
+              padding: '0.625rem 1.25rem',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--gradient-brand)',
+              color: '#fff',
+              fontWeight: '600',
+            }}
+          >
+            Retry
+          </button>
         </div>
       ) : sets.length === 0 ? (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
@@ -659,7 +695,7 @@ export default function FlashcardsPage() {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onSuccess={(id) => {
-          fetchSets(search);
+          void invalidateFlashcardQueries(queryClient);
           router.push(`/flashcards/${id}`);
         }}
       />

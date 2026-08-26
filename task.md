@@ -160,14 +160,14 @@ Commit: `perf(web): cache dashboard queries`
 
 ## TASK-212 — Migrate Flashcard list/detail/study reads to bounded cache
 
-- [ ] Cache flashcard-set lists with pagination/search/sort-aware keys.
-- [ ] Cache flashcard-set detail by entity ID.
-- [ ] Reuse detail data when entering study mode.
-- [ ] Reuse set metadata when navigating back to list/detail.
-- [ ] Invalidate only affected set/list queries after card or set mutations.
-- [ ] Update cached entity data directly after simple successful metadata edits where safe.
-- [ ] Do not keep deleted resources indefinitely in cache.
-- [ ] Ensure shuffle remains per study session.
+- [x] Cache flashcard-set lists with pagination/search/sort-aware keys.
+- [x] Cache flashcard-set detail by entity ID.
+- [x] Reuse detail data when entering study mode.
+- [x] Reuse set metadata when navigating back to list/detail.
+- [x] Invalidate only affected set/list queries after card or set mutations.
+- [x] Update cached entity data directly after simple successful metadata edits where safe.
+- [x] Do not keep deleted resources indefinitely in cache.
+- [x] Ensure shuffle remains per study session.
 
 Acceptance criteria:
 

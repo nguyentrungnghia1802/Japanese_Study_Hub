@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import {
   ArrowLeft,
   ChevronLeft,
@@ -12,38 +13,40 @@ import {
   CheckCircle2,
   BookOpen,
 } from 'lucide-react';
-import { FlashcardSetDto, FlashcardDto } from '@japanese-learning/contracts';
-import { apiClient } from '@/lib/api-client';
+import { FlashcardDto } from '@japanese-learning/contracts';
+import { getApiErrorMessage } from '@/lib/api-client';
+import { queryKeys } from '@/lib/query-keys';
+import { studyApi } from '@/lib/study-api';
 
 export default function FlashcardStudyPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
-  const [set, setSet] = useState<FlashcardSetDto | null>(null);
+  const setQuery = useQuery({
+    queryKey: queryKeys.flashcardSet(id),
+    queryFn: ({ signal }) => studyApi.flashcardSet(id, signal),
+    enabled: Boolean(id),
+  });
+  const set = setQuery.data ?? null;
   const [cards, setCards] = useState<FlashcardDto[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isCompleted, setIsCompleted] = useState(false);
-
-  const fetchSet = useCallback(async () => {
-    if (!id) return;
-    setIsLoading(true);
-    try {
-      const data = await apiClient<FlashcardSetDto>(`/flashcard-sets/${id}`);
-      setSet(data);
-      setCards(data.cards || []);
-    } catch {
-      // ignore
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
+  const isLoading = setQuery.isLoading;
+  const initializedSetVersion = useRef<string | null>(null);
 
   useEffect(() => {
-    fetchSet();
-  }, [fetchSet]);
+    if (!set) return;
+    const version = `${set.id}:${set.updatedAt}`;
+    if (initializedSetVersion.current === version) return;
+    initializedSetVersion.current = version;
+    setCards(set.cards || []);
+    setCurrentIndex(0);
+    setIsFlipped(false);
+    setIsShuffled(false);
+    setIsCompleted(false);
+  }, [set]);
 
   const handleToggleFlip = useCallback(() => {
     setIsFlipped((prev) => !prev);
@@ -121,13 +124,15 @@ export default function FlashcardStudyPage() {
     );
   }
 
-  if (!set || cards.length === 0) {
+  if (setQuery.isError || !set || cards.length === 0) {
     return (
       <div
         style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 1.5rem', textAlign: 'center' }}
       >
         <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>
-          No cards available to study in this deck
+          {setQuery.isError
+            ? getApiErrorMessage(setQuery.error, 'Unable to load this deck')
+            : 'No cards available to study in this deck'}
         </h2>
         <button
           onClick={() => router.push(`/flashcards/${id}`)}

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   Play,
@@ -18,15 +19,14 @@ import {
   Download,
 } from 'lucide-react';
 import { FlashcardSetDto, FlashcardDto } from '@japanese-learning/contracts';
-import { API_BASE_URL, apiClient } from '@/lib/api-client';
+import { API_BASE_URL, apiClient, getApiErrorMessage } from '@/lib/api-client';
+import { invalidateFlashcardQueries } from '@/lib/query-invalidation';
+import { queryKeys } from '@/lib/query-keys';
+import { studyApi } from '@/lib/study-api';
 
 export default function FlashcardSetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-
-  const [set, setSet] = useState<FlashcardSetDto | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Set edit state
   const [isEditingSet, setIsEditingSet] = useState(false);
@@ -43,43 +43,44 @@ export default function FlashcardSetDetailPage() {
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [editFront, setEditFront] = useState('');
   const [editBack, setEditBack] = useState('');
+  const queryClient = useQueryClient();
 
-  const fetchSet = useCallback(async () => {
-    if (!id) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await apiClient<FlashcardSetDto>(`/flashcard-sets/${id}`);
-      setSet(data);
-      setEditTitle(data.title);
-      setEditDescription(data.description || '');
-    } catch (err: unknown) {
-      const apiErr = err as Error;
-      setError(apiErr.message || 'Failed to load flashcard set');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
+  const setQuery = useQuery({
+    queryKey: queryKeys.flashcardSet(id),
+    queryFn: ({ signal }) => studyApi.flashcardSet(id, signal),
+    enabled: Boolean(id),
+  });
+  const set = setQuery.data ?? null;
+  const isLoading = setQuery.isLoading;
+  const isRefreshing = setQuery.isFetching && !isLoading;
+  const error = setQuery.error
+    ? getApiErrorMessage(setQuery.error, 'Failed to load flashcard set')
+    : null;
 
   useEffect(() => {
-    fetchSet();
-  }, [fetchSet]);
+    if (set && !isEditingSet) {
+      setEditTitle(set.title);
+      setEditDescription(set.description || '');
+    }
+  }, [isEditingSet, set]);
 
   const handleUpdateSet = async () => {
     if (!editTitle.trim()) return;
     try {
-      await apiClient<FlashcardSetDto>(`/flashcard-sets/${id}`, {
+      const updated = await apiClient<FlashcardSetDto>(`/flashcard-sets/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({
           title: editTitle.trim(),
           description: editDescription.trim() || undefined,
         }),
       });
+      queryClient.setQueryData<FlashcardSetDto>(queryKeys.flashcardSet(id), (current) =>
+        current ? { ...current, ...updated, cards: current.cards } : updated,
+      );
       setIsEditingSet(false);
-      fetchSet();
+      await invalidateFlashcardQueries(queryClient, id);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Update failed: ${apiErr.message}`);
+      alert(`Update failed: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -99,10 +100,9 @@ export default function FlashcardSetDetailPage() {
       setNewFront('');
       setNewBack('');
       setIsAddingCard(false);
-      fetchSet();
+      await invalidateFlashcardQueries(queryClient, id);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Failed to add card: ${apiErr.message}`);
+      alert(`Failed to add card: ${getApiErrorMessage(err, 'Unknown error')}`);
     } finally {
       setIsSubmittingCard(false);
     }
@@ -119,10 +119,9 @@ export default function FlashcardSetDetailPage() {
         }),
       });
       setEditingCardId(null);
-      fetchSet();
+      await invalidateFlashcardQueries(queryClient, id);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Update card failed: ${apiErr.message}`);
+      alert(`Update card failed: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -132,10 +131,9 @@ export default function FlashcardSetDetailPage() {
       await apiClient(`/flashcard-sets/${id}/cards/${cardId}`, {
         method: 'DELETE',
       });
-      fetchSet();
+      await invalidateFlashcardQueries(queryClient, id);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Delete failed: ${apiErr.message}`);
+      alert(`Delete failed: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -144,10 +142,9 @@ export default function FlashcardSetDetailPage() {
       await apiClient(`/flashcard-sets/${id}/cards/${cardId}/duplicate`, {
         method: 'POST',
       });
-      fetchSet();
+      await invalidateFlashcardQueries(queryClient, id);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Duplicate failed: ${apiErr.message}`);
+      alert(`Duplicate failed: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -167,10 +164,9 @@ export default function FlashcardSetDetailPage() {
         method: 'PUT',
         body: JSON.stringify({ cardIds: newIds }),
       });
-      fetchSet();
+      await invalidateFlashcardQueries(queryClient, id);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Reorder failed: ${apiErr.message}`);
+      alert(`Reorder failed: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -194,8 +190,7 @@ export default function FlashcardSetDetailPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Export error: ${apiErr.message}`);
+      alert(`Export error: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -235,7 +230,18 @@ export default function FlashcardSetDetailPage() {
   const cards = set.cards || [];
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div
+      aria-busy={isLoading}
+      style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 1.5rem' }}
+    >
+      {isRefreshing && (
+        <div
+          role="status"
+          style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.75rem' }}
+        >
+          Refreshing deck…
+        </div>
+      )}
       {/* Top back navigation */}
       <div style={{ marginBottom: '1.5rem' }}>
         <Link
