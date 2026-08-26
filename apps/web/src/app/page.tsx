@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BookOpen,
   FileCheck,
@@ -14,37 +15,40 @@ import {
   Clock,
   Layers,
 } from 'lucide-react';
-import { DashboardSummaryDto } from '@japanese-learning/contracts';
-import { apiClient } from '@/lib/api-client';
 import { useAuth } from '@/context/auth-context';
 import { FlashcardImportModal } from '@/components/flashcards/flashcard-import-modal';
 import { ExamImportModal } from '@/components/exams/exam-import-modal';
+import { queryKeys } from '@/lib/query-keys';
+import { studyApi } from '@/lib/study-api';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [summary, setSummary] = useState<DashboardSummaryDto | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const dashboardQuery = useQuery({
+    queryKey: queryKeys.dashboard(),
+    queryFn: ({ signal }) => studyApi.dashboard(signal),
+  });
+  const summary = dashboardQuery.data;
+  const isLoading = dashboardQuery.isLoading;
+  const isRefreshing = dashboardQuery.isFetching && !isLoading;
 
   // Modals
   const [isFlashcardImportOpen, setIsFlashcardImportOpen] = useState(false);
   const [isExamImportOpen, setIsExamImportOpen] = useState(false);
 
-  useEffect(() => {
-    async function loadSummary() {
-      try {
-        const data = await apiClient<DashboardSummaryDto>('/dashboard/summary');
-        setSummary(data);
-      } catch {
-        // ignore
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadSummary();
-  }, []);
-
   return (
-    <div style={{ maxWidth: '1200px', margin: '2rem auto', padding: '0 1.5rem 5rem' }}>
+    <div
+      aria-busy={isLoading}
+      style={{ maxWidth: '1200px', margin: '2rem auto', padding: '0 1.5rem 5rem' }}
+    >
+      {isRefreshing && (
+        <div
+          role="status"
+          style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.75rem' }}
+        >
+          Refreshing your learning summary…
+        </div>
+      )}
       {/* Welcome Banner */}
       <div
         className="glass-panel"
@@ -602,10 +606,7 @@ export default function DashboardPage() {
         isOpen={isFlashcardImportOpen}
         onClose={() => setIsFlashcardImportOpen(false)}
         onSuccess={() => {
-          // reload summary
-          apiClient<DashboardSummaryDto>('/dashboard/summary')
-            .then((d) => setSummary(d))
-            .catch(() => {});
+          void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
         }}
       />
 
@@ -613,10 +614,7 @@ export default function DashboardPage() {
         isOpen={isExamImportOpen}
         onClose={() => setIsExamImportOpen(false)}
         onSuccess={() => {
-          // reload summary
-          apiClient<DashboardSummaryDto>('/dashboard/summary')
-            .then((d) => setSummary(d))
-            .catch(() => {});
+          void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() });
         }}
       />
     </div>

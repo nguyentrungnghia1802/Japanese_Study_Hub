@@ -141,13 +141,13 @@ Commit: `perf(web): establish cached data access layer`
 
 ## TASK-211 — Migrate Dashboard to stale-while-revalidate behavior
 
-- [ ] Move dashboard reads to the standardized query layer.
-- [ ] Reuse cached recent flashcard/exam data when returning to Dashboard.
-- [ ] Show cached data immediately while revalidating in the background.
-- [ ] Avoid duplicate list/detail calls for the same data.
-- [ ] Keep loading skeleton only for true cold load.
-- [ ] Keep prior useful content visible during background refresh.
-- [ ] Invalidate dashboard queries after relevant create/delete/import/submit mutations.
+- [x] Move dashboard reads to the standardized query layer.
+- [x] Reuse cached recent flashcard/exam data when returning to Dashboard.
+- [x] Show cached data immediately while revalidating in the background.
+- [x] Avoid duplicate list/detail calls for the same data.
+- [x] Keep loading skeleton only for true cold load.
+- [x] Keep prior useful content visible during background refresh.
+- [x] Invalidate dashboard queries after relevant create/delete/import/submit mutations.
 
 Acceptance criteria:
 
