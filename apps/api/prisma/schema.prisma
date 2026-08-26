@@ -81,6 +81,7 @@ model Flashcard {
   fsrsDifficulty     Float?                 @map("fsrs_difficulty")
   fsrsElapsedDays    Int                    @default(0) @map("fsrs_elapsed_days")
   fsrsScheduledDays  Int                    @default(0) @map("fsrs_scheduled_days")
+  fsrsLearningSteps  Int                    @default(0) @map("fsrs_learning_steps")
   fsrsReps           Int                    @default(0) @map("fsrs_reps")
   fsrsLapses         Int                    @default(0) @map("fsrs_lapses")
   fsrsLastReviewedAt DateTime?              @map("fsrs_last_reviewed_at") @db.Timestamptz(6)
@@ -104,7 +105,11 @@ model FlashcardReviewLog {
   reviewedAt      DateTime               @map("reviewed_at") @db.Timestamptz(6)
   dueAtBefore     DateTime               @map("due_at_before") @db.Timestamptz(6)
   dueAtAfter      DateTime               @map("due_at_after") @db.Timestamptz(6)
+  elapsedDays     Int                    @map("elapsed_days")
   scheduledDays   Int                    @map("scheduled_days")
+  learningSteps   Int                    @map("learning_steps")
+  reps            Int                    @map("reps")
+  lapses          Int                    @map("lapses")
   stability       Float?
   difficulty      Float?
   createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)

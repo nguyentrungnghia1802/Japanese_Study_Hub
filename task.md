@@ -560,16 +560,16 @@ Commit: `docs(flashcards): define fsrs scheduling`
 
 ## TASK-251 — Implement FSRS backend scheduling
 
-- [ ] Add card scheduling state.
-- [ ] Add review log.
-- [ ] Add Prisma migration.
-- [ ] Implement scheduler as a pure/testable domain module where possible.
-- [ ] Add endpoint for due/new cards.
-- [ ] Add endpoint to submit review rating.
-- [ ] Update schedule transactionally.
-- [ ] Prevent duplicate review submission from duplicating state transitions.
-- [ ] Use server time.
-- [ ] Add due-count summary for Dashboard.
+- [x] Add card scheduling state.
+- [x] Add review log.
+- [x] Add Prisma migration.
+- [x] Implement scheduler as a pure/testable domain module where possible.
+- [x] Add endpoint for due/new cards.
+- [x] Add endpoint to submit review rating.
+- [x] Update schedule transactionally.
+- [x] Prevent duplicate review submission from duplicating state transitions.
+- [x] Use server time.
+- [x] Add due-count summary for Dashboard.
 
 Acceptance criteria:
 
@@ -578,12 +578,12 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] New-card scheduling.
-- [ ] Again/Hard/Good/Easy transitions.
-- [ ] Interval progression.
-- [ ] Duplicate review submission.
-- [ ] Edited/deleted card behavior.
-- [ ] Timezone/day boundary.
+- [x] New-card scheduling.
+- [x] Again/Hard/Good/Easy transitions.
+- [x] Interval progression.
+- [x] Duplicate review submission.
+- [x] Edited/deleted card behavior.
+- [x] Timezone/day boundary.
 
 Commit: `feat(flashcards): add fsrs scheduler`
 

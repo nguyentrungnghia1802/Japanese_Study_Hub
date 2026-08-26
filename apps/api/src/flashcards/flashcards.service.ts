@@ -282,12 +282,33 @@ export class FlashcardsService {
       throw new NotFoundException(`Flashcard with ID '${cardId}' not found in set '${setId}'`);
     }
 
+    const normalizedFront = dto.front?.trim();
+    const normalizedBack = dto.back?.trim();
+    const contentChanged =
+      (normalizedFront !== undefined && normalizedFront !== card.front) ||
+      (normalizedBack !== undefined && normalizedBack !== card.back);
+    const now = new Date();
+
     const updated = await this.prisma.flashcard.update({
       where: { id: cardId },
       data: {
-        ...(dto.front !== undefined ? { front: dto.front.trim() } : {}),
-        ...(dto.back !== undefined ? { back: dto.back.trim() } : {}),
+        ...(normalizedFront !== undefined ? { front: normalizedFront } : {}),
+        ...(normalizedBack !== undefined ? { back: normalizedBack } : {}),
         ...(dto.position !== undefined ? { position: dto.position } : {}),
+        ...(contentChanged
+          ? {
+              fsrsState: 'NEW',
+              fsrsDueAt: now,
+              fsrsStability: null,
+              fsrsDifficulty: null,
+              fsrsElapsedDays: 0,
+              fsrsScheduledDays: 0,
+              fsrsLearningSteps: 0,
+              fsrsReps: 0,
+              fsrsLapses: 0,
+              fsrsLastReviewedAt: null,
+            }
+          : {}),
       },
     });
 

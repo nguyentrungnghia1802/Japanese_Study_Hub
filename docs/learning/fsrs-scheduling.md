@@ -8,7 +8,8 @@ mode remains available and does not mutate FSRS state.
 
 Each active card has one schedule state: `NEW`, `LEARNING`, `REVIEW`, or
 `RELEARNING`. The server stores the due time, stability, difficulty, elapsed
-days, scheduled days, repetitions, lapses, and last-reviewed time.
+days, scheduled days, short-term learning step, repetitions, lapses, and
+last-reviewed time.
 
 The scheduler is a pure domain operation. Given the card's current schedule,
 one rating, and the server review time, it produces the next state and schedule
@@ -49,6 +50,9 @@ Pruning is bounded and removes the oldest rows after a successful review.
 
 ## Migration
 
-Migration `20260826234000_phase2_fsrs_schema` is additive. Existing cards are
+Migrations `20260826234000_phase2_fsrs_schema` and
+`20260826235000_phase2_fsrs_review_snapshots` are additive. Existing cards are
 initialized as `NEW` with an immediate due time and zero counters, so the V1
-content remains usable while the first review establishes its schedule.
+content remains usable while the first review establishes its schedule. The
+second migration persists the short-term learning step and complete post-review
+counter snapshot needed for exact idempotent replay.

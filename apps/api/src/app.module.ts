@@ -13,6 +13,7 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware.j
 import { CacheControlMiddleware } from './common/middleware/cache-control.middleware.js';
 import { LearningModule } from './learning/learning.module.js';
 import { TagModule } from './common/tag.module.js';
+import { ReviewModule } from './review/review.module.js';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { TagModule } from './common/tag.module.js';
     HealthModule,
     LearningModule,
     TagModule,
+    ReviewModule,
   ],
 })
 export class AppModule implements NestModule {

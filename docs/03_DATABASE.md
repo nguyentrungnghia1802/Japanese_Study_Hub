@@ -110,8 +110,9 @@ Constraints/indexes:
 
 Phase 2 adds `fsrs_state` (`NEW`, `LEARNING`, `REVIEW`, or `RELEARNING`), UTC
 `fsrs_due_at`, nullable stability/difficulty, elapsed and scheduled days,
-repetition and lapse counters, and nullable `fsrs_last_reviewed_at`. Existing
-cards are initialized as new cards with an immediate due time.
+short-term learning step, repetition and lapse counters, and nullable
+`fsrs_last_reviewed_at`. Existing cards are initialized as new cards with an
+immediate due time.
 
 `flashcard_review_logs` stores the server transition audit, including the
 client request id, rating, before/after state and due time, reviewed time, and
@@ -119,6 +120,10 @@ resulting stability/difficulty. It has a unique key on
 `(flashcard_id, client_request_id)` and an index on `(flashcard_id,
 reviewed_at)`. Logs are bounded to 365 days and 500 rows per card by the review
 service.
+
+Migration `20260826235000_phase2_fsrs_review_snapshots` adds the persisted
+short-term learning step and post-review counters used when replaying an
+idempotent request.
 
 ---
 

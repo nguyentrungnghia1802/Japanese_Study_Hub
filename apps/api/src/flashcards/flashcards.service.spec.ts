@@ -194,6 +194,36 @@ describe('FlashcardsService (TASK-030 / FC-001..008)', () => {
       expect(prismaMock.flashcard.update).toHaveBeenCalled();
     });
 
+    it('resets FSRS state when front or back content changes', async () => {
+      await service.updateCard(sampleSet.id, sampleSet.cards[0].id, {
+        back: 'Updated meaning',
+      });
+
+      expect(prismaMock.flashcard.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            fsrsState: 'NEW',
+            fsrsStability: null,
+            fsrsDifficulty: null,
+            fsrsElapsedDays: 0,
+            fsrsScheduledDays: 0,
+            fsrsLearningSteps: 0,
+            fsrsReps: 0,
+            fsrsLapses: 0,
+            fsrsLastReviewedAt: null,
+            fsrsDueAt: expect.any(Date),
+          }),
+        }),
+      );
+    });
+
+    it('does not reset FSRS state for a position-only update', async () => {
+      await service.updateCard(sampleSet.id, sampleSet.cards[0].id, { position: 4 });
+
+      const updateCall = prismaMock.flashcard.update.mock.calls.at(-1)?.[0];
+      expect(updateCall.data).toEqual({ position: 4 });
+    });
+
     it('reorders cards in a set', async () => {
       const cardIds = [sampleSet.cards[1].id, sampleSet.cards[0].id];
       const reordered = await service.reorderCards(sampleSet.id, { cardIds });

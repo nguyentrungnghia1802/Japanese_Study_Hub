@@ -105,6 +105,10 @@ src/
 ├── imports/
 │   ├── flashcards/
 │   └── exams/
+├── review/
+│   ├── fsrs.ts
+│   ├── review.controller.ts
+│   └── review.service.ts
 ├── exports/
 ├── search/
 ├── media/
@@ -120,6 +124,8 @@ Rules:
 - Repositories/Prisma access stays out of UI clients.
 - Parsers are isolated from persistence.
 - Exam scoring is a pure/testable domain service.
+- FSRS transitions are a pure/testable domain operation; review persistence,
+  idempotency, and retention remain in the review application service.
 - Authentication logic is isolated.
 
 ---
