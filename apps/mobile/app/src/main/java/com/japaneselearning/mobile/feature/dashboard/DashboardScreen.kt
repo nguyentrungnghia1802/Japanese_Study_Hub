@@ -99,6 +99,30 @@ fun DashboardScreen(
                         }
                     }
                 }
+                item { SectionTitle("Tiếp tục học") }
+                if (data!!.recentLearning.isEmpty()) {
+                    item { Text("Chưa có hoạt động gần đây.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                } else {
+                    items(data.recentLearning) { recent ->
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(recent.title, fontWeight = FontWeight.SemiBold)
+                                    Text(
+                                        if (recent.kind == "FLASHCARD_SET") "${recent.cardCount ?: 0} thẻ" else "${recent.questionCount ?: 0} câu hỏi",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                Button(onClick = {
+                                    if (recent.kind == "FLASHCARD_SET") onOpenFlashcards() else onOpenExams()
+                                }) { Text("Mở") }
+                            }
+                        }
+                    }
+                }
                 item { SectionTitle("Bộ thẻ gần đây") }
                 if (data!!.recentFlashcardSets.isEmpty()) {
                     item { Text("Chưa có bộ flashcard nào.", color = MaterialTheme.colorScheme.onSurfaceVariant) }

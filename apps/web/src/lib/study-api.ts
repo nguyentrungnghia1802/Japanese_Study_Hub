@@ -9,6 +9,7 @@ import {
   PaginatedResultDto,
   SearchResultsDto,
   LiveExamAttemptDto,
+  RecentLearningResponseDto,
 } from '@japanese-learning/contracts';
 import { apiClient } from './api-client';
 import { ExamListQuery, FlashcardListQuery } from './query-keys';
@@ -52,6 +53,9 @@ export function assertLiveAttemptPayload(payload: LiveExamAttemptDto): LiveExamA
 export const studyApi = {
   dashboard: (signal?: AbortSignal) =>
     apiClient<DashboardSummaryDto>('/dashboard/summary', { signal }),
+
+  recentLearning: (limit = 10, signal?: AbortSignal) =>
+    apiClient<RecentLearningResponseDto>(`/recent-learning?limit=${limit}`, { signal }),
 
   flashcardSets: (query: FlashcardListQuery = {}, signal?: AbortSignal) =>
     apiClient<PaginatedResultDto<FlashcardSetListItemDto>>(

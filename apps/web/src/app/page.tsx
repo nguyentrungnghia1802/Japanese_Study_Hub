@@ -178,6 +178,76 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {summary?.recentLearning && summary.recentLearning.length > 0 && (
+        <section
+          aria-labelledby="continue-learning-heading"
+          className="glass-panel"
+          style={{ padding: '1.5rem', marginBottom: '2.5rem' }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1rem',
+            }}
+          >
+            <h2
+              id="continue-learning-heading"
+              style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text-primary)' }}
+            >
+              Continue learning
+            </h2>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Recent activity</span>
+          </div>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))',
+              gap: '0.75rem',
+            }}
+          >
+            {summary.recentLearning.map((item) => (
+              <Link
+                key={`${item.kind}-${item.entityId}`}
+                href={item.href}
+                className="card-interactive"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '0.75rem',
+                  padding: '0.9rem 1rem',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  color: 'var(--text-primary)',
+                  textDecoration: 'none',
+                }}
+              >
+                <span style={{ minWidth: 0 }}>
+                  <strong
+                    style={{
+                      display: 'block',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {item.title}
+                  </strong>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                    {item.kind === 'FLASHCARD_SET'
+                      ? `${item.cardCount ?? 0} cards`
+                      : `${item.questionCount ?? 0} questions`}
+                  </span>
+                </span>
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Metrics Row */}
       <div
         style={{

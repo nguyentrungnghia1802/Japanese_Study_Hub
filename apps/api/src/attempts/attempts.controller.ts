@@ -13,12 +13,16 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { AttemptsService } from './attempts.service.js';
 import { SaveAnswersBodyDto } from './dto/save-answers.dto.js';
 import { SubmitAttemptBodyDto } from './dto/submit-attempt.dto.js';
+import { LearningService } from '../learning/learning.service.js';
 
 @ApiTags('Exam Attempts')
 @ApiBearerAuth()
 @Controller()
 export class AttemptsController {
-  constructor(private readonly attemptsService: AttemptsService) {}
+  constructor(
+    private readonly attemptsService: AttemptsService,
+    private readonly learningService: LearningService,
+  ) {}
 
   @Post('exams/:id/attempts')
   @HttpCode(HttpStatus.CREATED)
@@ -26,7 +30,9 @@ export class AttemptsController {
   @ApiResponse({ status: 201, description: 'Live exam attempt with questions (NO answer leakage)' })
   @ApiResponse({ status: 404, description: 'Exam not found' })
   async startAttempt(@Param('id', ParseUUIDPipe) id: string) {
-    return this.attemptsService.startAttempt(id);
+    const attempt = await this.attemptsService.startAttempt(id);
+    await this.learningService.touchExam(id);
+    return attempt;
   }
 
   @Get('attempts/:attemptId')

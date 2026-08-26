@@ -4,3 +4,4 @@ export * from './flashcards.dto.js';
 export * from './exams.dto.js';
 export * from './imports.dto.js';
 export * from './search.dto.js';
+export * from './recent.dto.js';

@@ -114,6 +114,9 @@ exams/attempts. Deleted or invalid content is excluded, and Dashboard plus
 Android expose useful resume actions where the client supports them. No large
 event-log infrastructure is introduced.
 
+TASK-240 implements this requirement with the bounded projection and access
+signals documented in `docs/learning/recent-resume.md`.
+
 ### P2-LEARN-FAVORITES
 
 Flashcard sets and exams may be marked/unmarked as favorites. Reads can filter by

@@ -248,6 +248,16 @@ class StudyRepositoryImpl @Inject constructor(
         recentBestScores = dto.recentBestScores.map {
             com.japaneselearning.mobile.data.model.RecentBestScore(it.examId, it.examTitle, it.bestScore)
         },
+        recentLearning = dto.recentLearning.map {
+            com.japaneselearning.mobile.data.model.RecentLearning(
+                kind = it.kind,
+                entityId = it.entityId,
+                title = it.title,
+                subtitle = it.subtitle,
+                cardCount = it.cardCount,
+                questionCount = it.questionCount,
+            )
+        },
     )
 
     private fun mapSearch(dto: SearchResultsDto) = SearchResults(

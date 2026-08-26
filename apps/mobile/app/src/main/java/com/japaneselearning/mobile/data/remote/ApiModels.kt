@@ -241,6 +241,19 @@ data class DashboardDto(
     val totalCards: Int = 0,
     val totalExams: Int = 0,
     val recentBestScores: List<RecentBestScoreDto> = emptyList(),
+    val recentLearning: List<RecentLearningDto> = emptyList(),
+)
+
+@Serializable
+data class RecentLearningDto(
+    val kind: String,
+    val entityId: String,
+    val title: String,
+    val subtitle: String? = null,
+    val cardCount: Int? = null,
+    val questionCount: Int? = null,
+    val lastAccessedAt: String,
+    val href: String,
 )
 
 @Serializable

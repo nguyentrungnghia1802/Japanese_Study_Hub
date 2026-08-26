@@ -1,10 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { SearchResultsDto, DashboardSummaryDto, ExamDto } from '@japanese-learning/contracts';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { LearningService } from '../learning/learning.service.js';
 
 @Injectable()
 export class SearchService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly learningService?: LearningService,
+  ) {}
 
   async search(query: string, limit = 20): Promise<SearchResultsDto> {
     const q = query ? query.trim() : '';
@@ -150,43 +154,51 @@ export class SearchService {
   }
 
   async getDashboardSummary(): Promise<DashboardSummaryDto> {
-    const [recentSets, recentExams, totalSets, totalCards, totalExams, recentBests] =
-      await Promise.all([
-        // 1. Recent Flashcard Sets
-        this.prisma.flashcardSet.findMany({
-          where: { deletedAt: null },
-          take: 4,
-          orderBy: { updatedAt: 'desc' },
-          include: {
-            _count: { select: { cards: { where: { deletedAt: null } } } },
-          },
-        }),
+    const [
+      recentSets,
+      recentExams,
+      totalSets,
+      totalCards,
+      totalExams,
+      recentBests,
+      recentLearning,
+    ] = await Promise.all([
+      // 1. Recent Flashcard Sets
+      this.prisma.flashcardSet.findMany({
+        where: { deletedAt: null },
+        take: 4,
+        orderBy: { updatedAt: 'desc' },
+        include: {
+          _count: { select: { cards: { where: { deletedAt: null } } } },
+        },
+      }),
 
-        // 2. Recent Exams
-        this.prisma.exam.findMany({
-          where: { deletedAt: null },
-          take: 4,
-          orderBy: { updatedAt: 'desc' },
-          include: {
-            _count: { select: { questions: true } },
-            bestResults: { orderBy: { bestScore: 'desc' }, take: 1 },
-          },
-        }),
+      // 2. Recent Exams
+      this.prisma.exam.findMany({
+        where: { deletedAt: null },
+        take: 4,
+        orderBy: { updatedAt: 'desc' },
+        include: {
+          _count: { select: { questions: true } },
+          bestResults: { orderBy: { bestScore: 'desc' }, take: 1 },
+        },
+      }),
 
-        // 3. Counts
-        this.prisma.flashcardSet.count({ where: { deletedAt: null } }),
-        this.prisma.flashcard.count({ where: { deletedAt: null, set: { deletedAt: null } } }),
-        this.prisma.exam.count({ where: { deletedAt: null } }),
+      // 3. Counts
+      this.prisma.flashcardSet.count({ where: { deletedAt: null } }),
+      this.prisma.flashcard.count({ where: { deletedAt: null, set: { deletedAt: null } } }),
+      this.prisma.exam.count({ where: { deletedAt: null } }),
 
-        // 4. Recent Best Scores
-        this.prisma.examBestResult.findMany({
-          take: 5,
-          orderBy: { lastAttemptAt: 'desc' },
-          include: {
-            exam: { select: { title: true } },
-          },
-        }),
-      ]);
+      // 4. Recent Best Scores
+      this.prisma.examBestResult.findMany({
+        take: 5,
+        orderBy: { lastAttemptAt: 'desc' },
+        include: {
+          exam: { select: { title: true } },
+        },
+      }),
+      this.learningService?.listRecent() ?? Promise.resolve({ items: [] }),
+    ]);
 
     return {
       recentFlashcardSets: recentSets.map((s) => ({
@@ -225,6 +237,7 @@ export class SearchService {
         bestScore: Number(b.bestScore),
         achievedAt: b.achievedAt.toISOString(),
       })),
+      recentLearning: recentLearning.items,
     };
   }
 }

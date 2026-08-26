@@ -101,9 +101,19 @@ data class DashboardSummary(
     val totalCards: Int,
     val totalExams: Int,
     val recentBestScores: List<RecentBestScore>,
+    val recentLearning: List<RecentLearning>,
 )
 
 data class RecentBestScore(val examId: String, val examTitle: String, val bestScore: Double)
+
+data class RecentLearning(
+    val kind: String,
+    val entityId: String,
+    val title: String,
+    val subtitle: String?,
+    val cardCount: Int?,
+    val questionCount: Int?,
+)
 
 data class SearchResults(
     val flashcardSets: List<FlashcardSet>,

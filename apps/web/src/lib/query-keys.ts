@@ -22,6 +22,7 @@ const root = ['study-hub'] as const;
 export const queryKeys = {
   root,
   dashboard: () => [...root, 'dashboard'] as const,
+  recentLearning: (limit = 10) => [...root, 'recent-learning', { limit }] as const,
   flashcardSetsRoot: () => [...root, 'flashcard-sets'] as const,
   flashcardSets: (query: FlashcardListQuery = {}) => [...root, 'flashcard-sets', query] as const,
   flashcardSet: (setId: string) => [...root, 'flashcard-set', setId] as const,

@@ -19,12 +19,16 @@ import { ExamsService } from './exams.service.js';
 import { CreateExamBodyDto } from './dto/create-exam.dto.js';
 import { UpdateExamMetadataBodyDto } from './dto/update-exam-metadata.dto.js';
 import { UpdateExamContentBodyDto } from './dto/update-exam-content.dto.js';
+import { LearningService } from '../learning/learning.service.js';
 
 @ApiTags('Exams')
 @ApiBearerAuth()
 @Controller('exams')
 export class ExamsController {
-  constructor(private readonly examsService: ExamsService) {}
+  constructor(
+    private readonly examsService: ExamsService,
+    private readonly learningService: LearningService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -68,7 +72,9 @@ export class ExamsController {
   @ApiResponse({ status: 200, description: 'Exam details' })
   @ApiResponse({ status: 404, description: 'Exam not found' })
   async getExam(@Param('id', ParseUUIDPipe) id: string) {
-    return this.examsService.getExam(id);
+    const exam = await this.examsService.getExam(id);
+    await this.learningService.touchExam(id);
+    return exam;
   }
 
   @Get(':id/export')

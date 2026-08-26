@@ -11,6 +11,7 @@ import { ImportsModule } from './imports/imports.module.js';
 import { validateEnvironment } from './common/config/env.validation.js';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware.js';
 import { CacheControlMiddleware } from './common/middleware/cache-control.middleware.js';
+import { LearningModule } from './learning/learning.module.js';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CacheControlMiddleware } from './common/middleware/cache-control.middle
     SearchModule,
     ImportsModule,
     HealthModule,
+    LearningModule,
   ],
 })
 export class AppModule implements NestModule {

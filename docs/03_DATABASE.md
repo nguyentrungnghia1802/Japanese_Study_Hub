@@ -35,7 +35,18 @@ ExamAttempt 1 ──── N ExamAttemptAnswer
 Exam 1 ─────────── N ExamBestResult
 
 QuestionContext 1 ─ N ExamQuestion   (reserved/future-friendly)
+
+RecentLearning N ─── 1 FlashcardSet or Exam (polymorphic, validated by API)
 ```
+
+### 3.1 `recent_learning`
+
+Phase 2 adds a bounded resume projection for the V1 logical user. It stores
+`user_key`, `kind`, `entity_id`, and `last_accessed_at`, with a unique key on
+`(user_key, kind, entity_id)` and an index on `(user_key, last_accessed_at)`.
+The API retains at most 20 rows and returns at most 10. `entity_id` is
+intentionally polymorphic because the single-user V1 model has no shared content
+parent; reads validate the target against the active, non-deleted set or exam.
 
 ---
 

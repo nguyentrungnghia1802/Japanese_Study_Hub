@@ -480,13 +480,13 @@ Commit: `perf(web): optimize large list rendering`
 
 ## TASK-240 — Add recent/resume learning
 
-- [ ] Track recent flashcard set access.
-- [ ] Track recent exam access/attempt.
-- [ ] Add “Continue learning” on Dashboard.
-- [ ] Keep history bounded.
-- [ ] Do not create large event-log infrastructure.
-- [ ] Ensure deleted content disappears.
-- [ ] Surface equivalent behavior on Android where useful.
+- [x] Track recent flashcard set access.
+- [x] Track recent exam access/attempt.
+- [x] Add “Continue learning” on Dashboard.
+- [x] Keep history bounded.
+- [x] Do not create large event-log infrastructure.
+- [x] Ensure deleted content disappears.
+- [x] Surface equivalent behavior on Android where useful.
 
 Acceptance criteria:
 

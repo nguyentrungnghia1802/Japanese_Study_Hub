@@ -1,5 +1,6 @@
 import { FlashcardSetDto, FlashcardDto } from './flashcards.dto.js';
 import { ExamDto, ExamFolderDto } from './exams.dto.js';
+import { RecentLearningItemDto } from './recent.dto.js';
 
 export interface PaginatedResultDto<T> {
   items: T[];
@@ -29,6 +30,7 @@ export interface DashboardSummaryDto {
     bestScore: number;
     achievedAt: string;
   }[];
+  recentLearning: RecentLearningItemDto[];
 }
 
 export interface ApiErrorResponseDto {

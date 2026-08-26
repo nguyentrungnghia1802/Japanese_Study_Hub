@@ -21,12 +21,16 @@ import { UpdateSetBodyDto } from './dto/update-set.dto.js';
 import { CreateCardBodyDto } from './dto/create-card.dto.js';
 import { UpdateCardBodyDto } from './dto/update-card.dto.js';
 import { ReorderCardsBodyDto } from './dto/reorder-cards.dto.js';
+import { LearningService } from '../learning/learning.service.js';
 
 @ApiTags('Flashcards')
 @ApiBearerAuth()
 @Controller('flashcard-sets')
 export class FlashcardsController {
-  constructor(private readonly flashcardsService: FlashcardsService) {}
+  constructor(
+    private readonly flashcardsService: FlashcardsService,
+    private readonly learningService: LearningService,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -66,7 +70,9 @@ export class FlashcardsController {
   @ApiResponse({ status: 200, description: 'Flashcard set details with cards' })
   @ApiResponse({ status: 404, description: 'Set not found' })
   async getSet(@Param('id', ParseUUIDPipe) id: string) {
-    return this.flashcardsService.getSet(id);
+    const set = await this.flashcardsService.getSet(id);
+    await this.learningService.touchFlashcardSet(id);
+    return set;
   }
 
   @Get(':id/export')

@@ -349,7 +349,18 @@ If none exists, return `null` result with 200 or consistent 404 policy.
 
 ---
 
-## 12. Search endpoint
+## 12. Recent learning
+
+### `GET /api/v1/recent-learning?limit=10`
+
+Returns at most 10 recently accessed, non-deleted flashcard sets and exams for
+the current V1 logical user. Repeated access updates the existing row. The
+server retains at most 20 rows, omits invalid/deleted targets, and emits a
+client-safe resume route for each item.
+
+---
+
+## 13. Search endpoint
 
 Optional consolidated endpoint:
 
@@ -366,7 +377,7 @@ Alternatively domain list endpoints may handle search independently. Avoid dupli
 
 ---
 
-## 13. Health endpoint
+## 14. Health endpoint
 
 ### `GET /health`
 
@@ -376,7 +387,7 @@ Do not expose secrets or unnecessary internals.
 
 ---
 
-## 14. Pagination
+## 15. Pagination
 
 Recommended standard:
 
@@ -394,7 +405,7 @@ Set maximum `pageSize`.
 
 ---
 
-## 15. Validation and status codes
+## 16. Validation and status codes
 
 Use:
 
@@ -413,7 +424,7 @@ Use:
 
 ---
 
-## 16. Idempotency
+## 17. Idempotency
 
 Mandatory for:
 
@@ -432,7 +443,7 @@ Mechanisms may include:
 
 ---
 
-## 17. API security invariants
+## 18. API security invariants
 
 - Never expose `is_correct` in live-attempt payloads.
 - Management endpoints containing correct answers must not be called by live exam screens.
