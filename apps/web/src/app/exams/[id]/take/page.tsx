@@ -22,6 +22,8 @@ import {
   ExamAttemptResultDto,
 } from '@japanese-learning/contracts';
 import { apiClient } from '@/lib/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { invalidateExamQueries } from '@/lib/query-invalidation';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -29,6 +31,7 @@ export default function ExamTakePage() {
   const params = useParams();
   const router = useRouter();
   const examId = params?.id as string;
+  const queryClient = useQueryClient();
 
   const [attempt, setAttempt] = useState<LiveExamAttemptDto | null>(null);
   const [result, setResult] = useState<ExamAttemptResultDto | null>(null);
@@ -90,6 +93,7 @@ export default function ExamTakePage() {
       });
 
       setResult(res);
+      await invalidateExamQueries(queryClient, examId);
       if (timerRef.current) clearInterval(timerRef.current);
     } catch (err: unknown) {
       const apiErr = err as Error;
@@ -97,7 +101,7 @@ export default function ExamTakePage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [attempt, answers, isSubmitting]);
+  }, [attempt, answers, examId, isSubmitting, queryClient]);
 
   // Server-based countdown timer
   useEffect(() => {

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import {
   Clock,
   Award,
@@ -14,32 +15,25 @@ import {
   AlertCircle,
   HelpCircle,
 } from 'lucide-react';
-import { ExamDto } from '@japanese-learning/contracts';
-import { API_BASE_URL, apiClient } from '@/lib/api-client';
+import { API_BASE_URL, getApiErrorMessage } from '@/lib/api-client';
+import { queryKeys } from '@/lib/query-keys';
+import { studyApi } from '@/lib/study-api';
 
 export default function ExamDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
 
-  const [exam, setExam] = useState<ExamDto | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function loadExam() {
-      try {
-        const data = await apiClient<ExamDto>(`/exams/${id}`);
-        setExam(data);
-      } catch (err: unknown) {
-        const apiErr = err as Error;
-        setError(apiErr.message || 'Failed to load exam details.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    if (id) loadExam();
-  }, [id]);
+  const examQuery = useQuery({
+    queryKey: queryKeys.exam(id),
+    queryFn: ({ signal }) => studyApi.exam(id, signal),
+    enabled: Boolean(id),
+  });
+  const exam = examQuery.data ?? null;
+  const isLoading = examQuery.isLoading;
+  const error = examQuery.error
+    ? getApiErrorMessage(examQuery.error, 'Failed to load exam details.')
+    : null;
 
   const handleExport = async () => {
     if (!exam) return;
@@ -61,8 +55,7 @@ export default function ExamDetailPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Export error: ${apiErr.message}`);
+      alert(`Export error: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -117,7 +110,10 @@ export default function ExamDetailPage() {
   const timeMinutes = exam.timeLimitSeconds ? Math.round(exam.timeLimitSeconds / 60) : null;
 
   return (
-    <div style={{ maxWidth: '800px', margin: '2rem auto', padding: '0 1.5rem' }}>
+    <div
+      aria-busy={isLoading}
+      style={{ maxWidth: '800px', margin: '2rem auto', padding: '0 1.5rem' }}
+    >
       {/* Back button */}
       <Link
         href="/exams"

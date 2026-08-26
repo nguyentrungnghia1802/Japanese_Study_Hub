@@ -181,13 +181,13 @@ Commit: `perf(web): cache flashcard library data`
 
 ## TASK-213 — Migrate Exam library/detail reads to bounded cache
 
-- [ ] Cache exam folder tree with explicit invalidation after hierarchy mutations.
-- [ ] Cache exam lists with folder/search/sort-aware keys.
-- [ ] Cache exam management/detail separately from live attempt data.
-- [ ] Cache best-result summaries only as normal read data and invalidate immediately after submit.
-- [ ] Ensure exam content edits invalidate exam detail and relevant list views.
-- [ ] Ensure content-version changes never leave old best result displayed as current.
-- [ ] Preserve strict separation between management DTOs and live-attempt DTOs.
+- [x] Cache exam folder tree with explicit invalidation after hierarchy mutations.
+- [x] Cache exam lists with folder/search/sort-aware keys.
+- [x] Cache exam management/detail separately from live attempt data.
+- [x] Cache best-result summaries only as normal read data and invalidate immediately after submit.
+- [x] Ensure exam content edits invalidate exam detail and relevant list views.
+- [x] Ensure content-version changes never leave old best result displayed as current.
+- [x] Preserve strict separation between management DTOs and live-attempt DTOs.
 
 Acceptance criteria:
 

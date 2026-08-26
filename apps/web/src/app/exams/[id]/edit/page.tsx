@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Save,
   Plus,
@@ -22,7 +23,8 @@ import {
   QuestionType,
   CreateExamQuestionDto,
 } from '@japanese-learning/contracts';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, getApiErrorMessage } from '@/lib/api-client';
+import { invalidateExamQueries } from '@/lib/query-invalidation';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -30,6 +32,7 @@ export default function ExamEditPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
+  const queryClient = useQueryClient();
 
   const [exam, setExam] = useState<ExamDto | null>(null);
   const [folders, setFolders] = useState<ExamFolderDto[]>([]);
@@ -83,8 +86,7 @@ export default function ExamEditPage() {
 
         setFolders(foldersData || []);
       } catch (err: unknown) {
-        const apiErr = err as Error;
-        setErrorMsg(apiErr.message || 'Failed to load exam.');
+        setErrorMsg(getApiErrorMessage(err, 'Failed to load exam.'));
       } finally {
         setIsLoading(false);
       }
@@ -234,11 +236,12 @@ export default function ExamEditPage() {
         setExam(updated);
       }
 
+      await invalidateExamQueries(queryClient, id);
+
       setSuccessMsg('Exam changes saved successfully!');
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      setErrorMsg(apiErr.message || 'Failed to save changes.');
+      setErrorMsg(getApiErrorMessage(err, 'Failed to save changes.'));
     } finally {
       setIsSaving(false);
     }

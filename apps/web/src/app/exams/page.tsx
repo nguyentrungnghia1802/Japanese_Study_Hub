@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Folder,
   FolderPlus,
@@ -21,17 +22,18 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { ExamDto, ExamFolderDto } from '@japanese-learning/contracts';
-import { API_BASE_URL, apiClient } from '@/lib/api-client';
+import { API_BASE_URL, apiClient, getApiErrorMessage } from '@/lib/api-client';
 import { ExamImportModal } from '@/components/exams/exam-import-modal';
+import { invalidateExamQueries } from '@/lib/query-invalidation';
+import { queryKeys } from '@/lib/query-keys';
+import { studyApi } from '@/lib/study-api';
 
 export default function ExamsPage() {
   const router = useRouter();
 
-  const [folders, setFolders] = useState<ExamFolderDto[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-  const [exams, setExams] = useState<ExamDto[]>([]);
   const [search, setSearch] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   // Folder modal
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
@@ -47,42 +49,43 @@ export default function ExamsPage() {
   const [newDescription, setNewDescription] = useState('');
   const [newTimeLimit, setNewTimeLimit] = useState('30');
   const [isCreating, setIsCreating] = useState(false);
-
-  const fetchFolders = useCallback(async () => {
-    try {
-      const data = await apiClient<ExamFolderDto[]>('/exam-folders');
-      setFolders(data || []);
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  const fetchExams = useCallback(async (folderId: string | null, searchQuery: string) => {
-    setIsLoading(true);
-    try {
-      let url = '/exams?limit=50';
-      if (folderId) url += `&folderId=${encodeURIComponent(folderId)}`;
-      if (searchQuery) url += `&search=${encodeURIComponent(searchQuery)}`;
-
-      const data = await apiClient<{ items: ExamDto[] }>(url);
-      setExams(data.items || []);
-    } catch {
-      // ignore
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    fetchFolders();
-  }, [fetchFolders]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchExams(selectedFolderId, search);
-    }, 300);
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
     return () => clearTimeout(timer);
-  }, [selectedFolderId, search, fetchExams]);
+  }, [search]);
+
+  const foldersQuery = useQuery({
+    queryKey: queryKeys.examFolders(),
+    queryFn: ({ signal }) => studyApi.examFolders(signal),
+  });
+  const examsQuery = useQuery({
+    queryKey: queryKeys.exams({
+      folderId: selectedFolderId,
+      search: debouncedSearch || undefined,
+      page: 1,
+      pageSize: 50,
+      sort: 'createdAt_desc',
+    }),
+    queryFn: ({ signal }) =>
+      studyApi.exams(
+        {
+          folderId: selectedFolderId,
+          search: debouncedSearch || undefined,
+          page: 1,
+          pageSize: 50,
+          sort: 'createdAt_desc',
+        },
+        signal,
+      ),
+    placeholderData: (previousData) => previousData,
+  });
+
+  const folders = foldersQuery.data ?? [];
+  const exams = examsQuery.data?.items ?? [];
+  const isLoading = examsQuery.isLoading;
+  const isRefreshing = examsQuery.isFetching && !isLoading;
 
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,10 +103,9 @@ export default function ExamsPage() {
       setIsFolderModalOpen(false);
       setFolderName('');
       setFolderParentId(null);
-      fetchFolders();
+      await invalidateExamQueries(queryClient, undefined, true);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Failed to create folder: ${apiErr.message}`);
+      alert(`Failed to create folder: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -113,11 +115,9 @@ export default function ExamsPage() {
     try {
       await apiClient(`/exam-folders/${id}`, { method: 'DELETE' });
       if (selectedFolderId === id) setSelectedFolderId(null);
-      fetchFolders();
-      fetchExams(null, search);
+      await invalidateExamQueries(queryClient, undefined, true);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Delete failed: ${apiErr.message}`);
+      alert(`Delete failed: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -143,10 +143,10 @@ export default function ExamsPage() {
       setIsCreateModalOpen(false);
       setNewTitle('');
       setNewDescription('');
+      await invalidateExamQueries(queryClient, created.id);
       router.push(`/exams/${created.id}/edit`);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Failed to create exam: ${apiErr.message}`);
+      alert(`Failed to create exam: ${getApiErrorMessage(err, 'Unknown error')}`);
     } finally {
       setIsCreating(false);
     }
@@ -155,10 +155,9 @@ export default function ExamsPage() {
   const handleDuplicateExam = async (id: string) => {
     try {
       await apiClient<ExamDto>(`/exams/${id}/duplicate`, { method: 'POST' });
-      fetchExams(selectedFolderId, search);
+      await invalidateExamQueries(queryClient);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Failed to duplicate exam: ${apiErr.message}`);
+      alert(`Failed to duplicate exam: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -167,10 +166,9 @@ export default function ExamsPage() {
 
     try {
       await apiClient(`/exams/${id}`, { method: 'DELETE' });
-      fetchExams(selectedFolderId, search);
+      await invalidateExamQueries(queryClient, id);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Failed to delete exam: ${apiErr.message}`);
+      alert(`Failed to delete exam: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
@@ -193,13 +191,23 @@ export default function ExamsPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Export error: ${apiErr.message}`);
+      alert(`Export error: ${getApiErrorMessage(err, 'Unknown error')}`);
     }
   };
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div
+      aria-busy={isLoading}
+      style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}
+    >
+      {isRefreshing && (
+        <div
+          role="status"
+          style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.75rem' }}
+        >
+          Refreshing exams…
+        </div>
+      )}
       {/* Top Banner */}
       <div
         style={{
@@ -338,6 +346,23 @@ export default function ExamsPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            {foldersQuery.isError && (
+              <div
+                style={{ color: 'var(--accent-rose)', fontSize: '0.8rem', marginBottom: '0.5rem' }}
+              >
+                {getApiErrorMessage(foldersQuery.error, 'Unable to load folders')}
+                <button
+                  onClick={() => void foldersQuery.refetch()}
+                  style={{
+                    marginLeft: '0.5rem',
+                    color: 'var(--brand-primary)',
+                    background: 'transparent',
+                  }}
+                >
+                  Retry
+                </button>
+              </div>
+            )}
             <button
               onClick={() => setSelectedFolderId(null)}
               style={{
@@ -561,6 +586,27 @@ export default function ExamsPage() {
                   style={{ height: '220px', animation: 'pulse 1.5s infinite' }}
                 />
               ))}
+            </div>
+          ) : examsQuery.isError ? (
+            <div className="glass-panel" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+              <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
+                Unable to load exams
+              </h3>
+              <p style={{ color: 'var(--accent-rose)', marginBottom: '1rem' }}>
+                {getApiErrorMessage(examsQuery.error, 'Please try again.')}
+              </p>
+              <button
+                onClick={() => void examsQuery.refetch()}
+                style={{
+                  padding: '0.625rem 1.25rem',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--gradient-brand)',
+                  color: '#fff',
+                  fontWeight: '600',
+                }}
+              >
+                Retry
+              </button>
             </div>
           ) : exams.length === 0 ? (
             <div className="glass-panel" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
@@ -1136,7 +1182,7 @@ export default function ExamsPage() {
         onClose={() => setIsImportModalOpen(false)}
         defaultFolderId={selectedFolderId}
         onSuccess={(id) => {
-          fetchExams(selectedFolderId, search);
+          void invalidateExamQueries(queryClient);
           router.push(`/exams/${id}`);
         }}
       />
