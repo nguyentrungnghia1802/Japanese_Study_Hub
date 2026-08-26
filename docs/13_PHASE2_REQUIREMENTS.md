@@ -74,6 +74,10 @@ Authenticated, non-live GET responses may use private conditional revalidation
 (`ETag`/`Last-Modified`) where it reduces transfer cost. Responses must not be
 public/shared-cacheable, and live attempt responses must not be served stale.
 
+TASK-230 implements this boundary in the API middleware: normal reads use
+`private, no-cache` with Express ETag revalidation, while auth, health, export,
+attempt/live routes, and all non-read methods use `no-store`.
+
 ### P2-PERF-HTTP
 
 Production text responses may use gzip/Brotli and keep-alive/HTTP2 capabilities

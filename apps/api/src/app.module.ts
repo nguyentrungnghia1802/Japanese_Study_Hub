@@ -10,6 +10,7 @@ import { SearchModule } from './search/search.module.js';
 import { ImportsModule } from './imports/imports.module.js';
 import { validateEnvironment } from './common/config/env.validation.js';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware.js';
+import { CacheControlMiddleware } from './common/middleware/cache-control.middleware.js';
 
 @Module({
   imports: [
@@ -29,6 +30,6 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware.j
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestIdMiddleware).forRoutes('*');
+    consumer.apply(RequestIdMiddleware, CacheControlMiddleware).forRoutes('*');
   }
 }

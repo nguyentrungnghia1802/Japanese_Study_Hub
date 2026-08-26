@@ -367,13 +367,13 @@ Commit: `feat(web): persist minimal ui preferences`
 
 ## TASK-230 — Add safe conditional HTTP caching for selected GET endpoints
 
-- [ ] Audit authenticated GET endpoints safe for private revalidation caching.
-- [ ] Add `ETag` and/or `Last-Modified` where practical.
-- [ ] Use `Cache-Control: private`.
-- [ ] Prefer revalidation where stale data would be confusing.
-- [ ] Do not add public/shared caching for authenticated learning data.
-- [ ] Do not HTTP-cache live exam attempt state in a stale-prone way.
-- [ ] Verify 304 behavior.
+- [x] Audit authenticated GET endpoints safe for private revalidation caching.
+- [x] Add `ETag` and/or `Last-Modified` where practical (Express ETag is retained).
+- [x] Use `Cache-Control: private`.
+- [x] Prefer revalidation where stale data would be confusing.
+- [x] Do not add public/shared caching for authenticated learning data.
+- [x] Do not HTTP-cache live exam attempt state in a stale-prone way.
+- [x] Verify 304 behavior (authenticated dashboard GET returned 200 with ETag, then 304 with `If-None-Match`; auth returned `no-store`).
 
 Acceptance criteria:
 
