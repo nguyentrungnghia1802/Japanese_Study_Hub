@@ -271,9 +271,12 @@ infrastructure. Any future addition requires a new approved requirement.
 
 ## 10. Phase 2 delivery record
 
-The implementation work through TASK-304 is committed. This record identifies the
+The implementation work through TASK-312 is committed. This record identifies the
 delivered capability and its evidence while TASK-320 remains the final release
-gate; it does not replace the task checklist.
+gate; it does not replace the task checklist. The 2026-08-27 release-gate audit
+also refreshed the dependency tree to patched Nest/Next, bcrypt, Multer, and
+transitive package lines, removed committed authentication fallbacks, and added
+an authenticated conditional-cache smoke check.
 
 | Requirement group                                              | Delivered implementation                                                                                                                                       | Verification/evidence                                                                                                                                                                                                |
 | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

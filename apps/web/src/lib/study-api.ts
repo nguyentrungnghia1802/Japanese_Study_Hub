@@ -97,10 +97,9 @@ export const studyApi = {
     }),
 
   mistakes: (limit = 20, examId?: string, signal?: AbortSignal) =>
-    apiClient<WrongAnswerReviewQueueDto>(
-      `/exam-review/mistakes${buildQuery({ limit, examId })}`,
-      { signal },
-    ),
+    apiClient<WrongAnswerReviewQueueDto>(`/exam-review/mistakes${buildQuery({ limit, examId })}`, {
+      signal,
+    }),
 
   dismissMistake: (mistakeId: string, signal?: AbortSignal) =>
     apiClient<{ success: boolean }>(`/exam-review/mistakes/${mistakeId}`, {

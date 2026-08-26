@@ -21,7 +21,7 @@ Scope: TASK-304
 - Cached library startup: passed. Dashboard, flashcard library, and exam
   library opened with data previously written to the Room read cache.
 - Background refresh: passed. Warm library screens showed `Đang làm mới từ
-  máy chủ…` while the remote request was in flight.
+máy chủ…` while the remote request was in flight.
 - Flashcard study: passed. Opened the temporary two-card set, flipped both
   cards, and advanced through the study session.
 - FSRS review: passed. Revealed and rated both new cards `Good`; the queue
@@ -33,9 +33,9 @@ Scope: TASK-304
 - Result review: passed. The result showed `0 / 100`, `Đúng 0/1 câu`, and
   highlighted the selected and correct options only after submission.
 - Mistake review: passed. The submitted question appeared in `Review
-  mistakes` with sanitized prompt/options and a `Practice` action.
+mistakes` with sanitized prompt/options and a `Practice` action.
 - Practice isolation: passed. The correct practice answer produced `100 /
-  100` and `Không ảnh hưởng Best score`.
+100` and `Không ảnh hưởng Best score`.
 - No-answer-leakage: passed. Live exam and Practice UI dumps contained only
   question/options text; correctness fields were absent until the graded
   result screen.

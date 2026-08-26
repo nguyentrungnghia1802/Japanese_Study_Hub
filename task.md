@@ -957,8 +957,8 @@ Commit: `test(web): cover cache and navigation behavior`
 Verification:
 
 - [x] The Web production build passed the bounded manifest guard with
-      1,067,171 static JavaScript bytes, 172,834-byte largest chunk, and
-      400,628-byte largest route.
+      1,124,617 static JavaScript bytes, 173,630-byte largest chunk, and
+      428,631-byte largest route after the security framework updates.
 - [x] CI runs the bundle guard after the production build; Node syntax checks
       pass for both guard scripts.
 - [x] The API response smoke passed /health and /health/ready at 89 and
@@ -1087,35 +1087,35 @@ Commit: `docs: update phase 2 traceability`
 
 Run from clean checkout/environment where practical.
 
-- [ ] `pnpm install --frozen-lockfile` succeeds.
-- [ ] Root lint passes.
-- [ ] Root typecheck passes.
-- [ ] Unit tests pass.
-- [ ] Backend integration tests pass.
-- [ ] Web E2E passes.
-- [ ] Web production build passes.
-- [ ] API production build passes.
-- [ ] Android unit tests pass.
-- [ ] Android lint passes.
-- [ ] Android debug APK builds.
-- [ ] Android production APK builds.
-- [ ] Fresh database can apply all migrations.
-- [ ] Upgrade database from V1 schema to Phase 2 succeeds.
+- [x] `pnpm install --frozen-lockfile` succeeds.
+- [x] Root lint passes.
+- [x] Root typecheck passes.
+- [x] Unit tests pass.
+- [x] Backend integration tests pass.
+- [x] Web E2E passes.
+- [x] Web production build passes.
+- [x] API production build passes.
+- [x] Android unit tests pass.
+- [x] Android lint passes.
+- [x] Android debug APK builds.
+- [x] Android production APK builds.
+- [x] Fresh database can apply all migrations.
+- [x] Upgrade database from V1 schema to Phase 2 succeeds.
 - [ ] Production backup restore with Phase 2 schema succeeds.
 - [ ] Production API health passes.
-- [ ] Production Web loads.
+- [x] Production Web loads.
 - [ ] Production Android connects.
-- [ ] Repeated warm Web navigation no longer behaves like a full reload.
-- [ ] Query cache obeys bounded stale/GC policy.
-- [ ] No learning-content cache grows unbounded.
-- [ ] Cookies remain minimal and contain no learning content/secrets.
-- [ ] Live exam payload still contains no correct-answer information.
-- [ ] Server timer remains authoritative.
-- [ ] Duplicate exam submit remains idempotent.
-- [ ] FSRS review submit is retry/idempotency safe if implemented.
+- [x] Repeated warm Web navigation no longer behaves like a full reload.
+- [x] Query cache obeys bounded stale/GC policy.
+- [x] No learning-content cache grows unbounded.
+- [x] Cookies remain minimal and contain no learning content/secrets.
+- [x] Live exam payload still contains no correct-answer information.
+- [x] Server timer remains authoritative.
+- [x] Duplicate exam submit remains idempotent.
+- [x] FSRS review submit is retry/idempotency safe if implemented.
 - [ ] Security checklist passes for actual production topology.
-- [ ] No critical/high bug remains.
-- [ ] Docs match implementation.
+- [x] No critical/high bug remains.
+- [x] Docs match implementation.
 - [ ] No mandatory Phase 2 task remains unchecked.
 
 If any item fails:
@@ -1130,6 +1130,28 @@ If any item fails:
 Acceptance criteria:
 
 - Every mandatory item above is green.
+
+Verification (2026-08-27):
+
+- [x] Local release gates passed: frozen install, lint, typecheck, 110 API unit
+      tests, 29 Web tests, 22 shared tests, API integration (2 tests), Web/API
+      production builds, bundle guard, and both high-severity dependency audits.
+- [x] The API response smoke passed `/health`, `/health/ready`, authenticated
+      Phase 2 collection paths, private ETag revalidation (304), and `auth/me`
+      `no-store` without logging the authorized test token.
+- [x] Fresh and V1-upgrade migration verification passed all seven migrations;
+      Android unit tests, lint, debug/production APK builds, API URL guard, and
+      one connected emulator smoke test passed.
+- [x] Read-only production Web check returned HTTP 200.
+- [ ] Production API readiness returned HTTP 404 on the deployed image, so the
+      guarded update and production health gate remain open until the owner
+      deploys the current image.
+- [ ] Production backup scheduler/off-volume artifact and physical Android /
+      release-signing evidence remain owner-controlled and are not substituted
+      by local restore/emulator evidence.
+- [x] The conditional-cache diagnosis was fixed with a raw HTTP regression
+      smoke; Node `fetch`'s implicit `no-cache` request header is documented as
+      the reason a direct fetch probe is not a valid 304 assertion.
 
 Commit: `chore: prepare phase 2 release`
 

@@ -11,8 +11,8 @@ App Router build manifest and uses uncompressed static JavaScript bytes:
 - one JavaScript chunk: at most 220 KiB;
 - one route manifest JavaScript total: at most 450 KiB.
 
-The current build passed with 1,067,171 total static bytes, a 172,834-byte
-largest chunk, and a 400,628-byte largest route. These thresholds provide
+The current build passed with 1,124,617 total static bytes, a 173,630-byte
+largest chunk, and a 428,631-byte largest route. These thresholds provide
 bounded headroom over the measured baseline without pretending that a local
 micro-benchmark is a production SLO. A threshold change requires a new
 measured explanation in bundle-audit.md.
@@ -26,6 +26,15 @@ setting API_SMOKE_TOKEN and API_SMOKE_ENDPOINTS.
 
 The smoke reads response bytes after client decompression and checks status
 codes. It is intentionally a response-size bound, not a latency benchmark.
+
+## API conditional cache
+
+With the API running and an authenticated token in `API_SMOKE_TOKEN`, run
+`pnpm perf:api-cache`. The guard uses a raw HTTP client so Node's `fetch`
+convenience behavior cannot add a request `Cache-Control: no-cache` header that
+would intentionally suppress Express's 304 response. It verifies a private
+ETag-backed 304 for a normal read and `no-store` for `/auth/me` without logging
+the token or response body.
 
 ## Query/N+1 guard
 

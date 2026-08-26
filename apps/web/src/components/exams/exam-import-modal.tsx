@@ -74,9 +74,9 @@ export function ExamImportModal({
   const [error, setError] = useState<string | null>(null);
   const [copiedSample, setCopiedSample] = useState(false);
   const [batchFiles, setBatchFiles] = useState<File[]>([]);
-  const [batchItems, setBatchItems] = useState<
-    MultiFileImportItem<ExamImportPreviewResponseDto>[]
-  >([]);
+  const [batchItems, setBatchItems] = useState<MultiFileImportItem<ExamImportPreviewResponseDto>[]>(
+    [],
+  );
   const [isBatchPreviewing, setIsBatchPreviewing] = useState(false);
   const confirmingBatchIndexes = useRef(new Set<number>());
 
@@ -440,7 +440,13 @@ export function ExamImportModal({
                     <strong style={{ color: 'var(--text-primary)' }}>
                       Batch preview ({batchFiles.length} files)
                     </strong>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', marginTop: '0.25rem' }}>
+                    <p
+                      style={{
+                        color: 'var(--text-muted)',
+                        fontSize: '0.8125rem',
+                        marginTop: '0.25rem',
+                      }}
+                    >
                       Files are previewed sequentially. Confirm each file independently.
                     </p>
                   </div>
@@ -484,7 +490,10 @@ export function ExamImportModal({
                                   : item.status === 'IMPORTED'
                                     ? 'Imported'
                                     : item.status === 'ERROR'
-                                      ? item.error || (hasErrors ? 'Preview has blocking errors.' : 'Import failed.')
+                                      ? item.error ||
+                                        (hasErrors
+                                          ? 'Preview has blocking errors.'
+                                          : 'Import failed.')
                                       : 'Waiting'}
                           </div>
                         </div>
@@ -506,7 +515,9 @@ export function ExamImportModal({
                             opacity: canConfirm ? 1 : 0.6,
                           }}
                         >
-                          {item.status === 'ERROR' && item.preview && !hasErrors ? 'Retry' : 'Confirm'}
+                          {item.status === 'ERROR' && item.preview && !hasErrors
+                            ? 'Retry'
+                            : 'Confirm'}
                         </button>
                       </div>
                     );
@@ -803,13 +814,15 @@ export function ExamImportModal({
               >
                 <FileSpreadsheet size={16} />
                 <span>
-                  {isBatchPreviewing
-                    ? 'Previewing selected files...'
-                    : batchFiles.length > 0
-                      ? <>Preview selected {batchFiles.length} files</>
-                      : isLoadingPreview
-                        ? 'Analyzing Exam...'
-                        : 'Preview Exam'}
+                  {isBatchPreviewing ? (
+                    'Previewing selected files...'
+                  ) : batchFiles.length > 0 ? (
+                    <>Preview selected {batchFiles.length} files</>
+                  ) : isLoadingPreview ? (
+                    'Analyzing Exam...'
+                  ) : (
+                    'Preview Exam'
+                  )}
                 </span>
               </button>
             </>

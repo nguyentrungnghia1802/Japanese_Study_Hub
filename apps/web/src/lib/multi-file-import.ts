@@ -1,12 +1,7 @@
 export const MAX_MULTI_FILE_IMPORTS = 20;
 
 export type MultiFileImportStatus =
-  | 'PENDING'
-  | 'PREVIEWING'
-  | 'PREVIEWED'
-  | 'CONFIRMING'
-  | 'IMPORTED'
-  | 'ERROR';
+  'PENDING' | 'PREVIEWING' | 'PREVIEWED' | 'CONFIRMING' | 'IMPORTED' | 'ERROR';
 
 export interface MultiFileImportItem<T> {
   index: number;

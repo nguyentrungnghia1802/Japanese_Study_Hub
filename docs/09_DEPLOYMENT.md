@@ -82,8 +82,11 @@ destructive rollback. Named database volumes are never removed.
 Current production differs from this recommended topology: the owner endpoint
 is IP-only HTTP on ports 3000/4000, with no checked-in TLS reverse-proxy
 configuration. The read-only 2026-08-27 audit found HTTP health/Web success and
-HTTPS handshake failure. Treat this as an explicit accepted-risk exception until
-the owner supplies a domain/certificate; see
+HTTPS handshake failure; a same-day readiness recheck returned 404 for
+`/health/ready` on the deployed image. Treat the missing readiness route and
+transport posture as an explicit production update gate until the owner runs the
+guarded workflow with the current API image and supplies a domain/certificate;
+see
 docs/security/production-transport-audit.md.
 
 ---

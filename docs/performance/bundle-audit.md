@@ -6,23 +6,23 @@ Status: implemented for TASK-234, 2026-08-26
 
 The Phase 2 browser baseline recorded the V1 route sizes before the query/cache
 work. A production Next build after the cache/navigation changes reported these
-current first-load values:
+current first-load values after the 2026-08-27 security dependency updates:
 
 | Route                    | Route JS | First load JS |
 | ------------------------ | -------: | ------------: |
-| `/`                      |  3.50 kB |        118 kB |
-| `/flashcards`            |  7.52 kB |        116 kB |
-| `/flashcards/[id]`       |  6.02 kB |        112 kB |
-| `/flashcards/[id]/study` |  4.72 kB |        111 kB |
-| `/exams`                 |  6.50 kB |        118 kB |
-| `/exams/[id]`            |  4.45 kB |        110 kB |
-| `/exams/[id]/edit`       |  6.18 kB |        103 kB |
-| `/exams/[id]/take`       |  8.24 kB |        117 kB |
-| `/search`                |  4.44 kB |        102 kB |
+| `/`                      |  7.28 kB |        121 kB |
+| `/flashcards`            |  8.67 kB |        123 kB |
+| `/flashcards/[id]`       |  4.77 kB |        122 kB |
+| `/flashcards/[id]/study` |  5.27 kB |        119 kB |
+| `/exams`                 |  10.4 kB |        124 kB |
+| `/exams/[id]`            |  3.22 kB |        121 kB |
+| `/exams/[id]/edit`       |  6.11 kB |        112 kB |
+| `/exams/[id]/take`       |  8.74 kB |        126 kB |
+| `/search`                |  5.84 kB |        120 kB |
 
-The shared first-load baseline is 87.3 kB. The increase from the original V1
-figures is attributable to the required TanStack Query/cache and loading-state
-layer; it is documented rather than hidden.
+The current shared first-load total is 102 kB. The increase from the original
+V1 figures is attributable to the required TanStack Query/cache and loading-state
+layer plus the patched Next runtime; it is documented rather than hidden.
 
 ## Splitting decisions
 

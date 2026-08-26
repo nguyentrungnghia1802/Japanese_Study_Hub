@@ -225,6 +225,21 @@ Unexpected error details go to server logs.
 - Keep core framework/runtime dependencies reasonably current.
 - Remove unused dependencies.
 
+The 2026-08-27 Phase 2 audit is clean for both production and full dependency
+scopes (`pnpm audit --prod --audit-level=high` and
+`pnpm audit --audit-level=high`). Nest 11 and Next 15.5.24 are used for the
+patched framework lines; bcrypt 6 removes the vulnerable native-build chain;
+Multer 2.2.0, PostCSS 8.5.26, and the pinned transitive overrides in
+`pnpm-workspace.yaml` keep the resolved production tree on patched releases.
+CI generates ephemeral test credentials instead of committing a password hash
+or token secret.
+
+The source-level credential scan and the environment-validation/authentication
+tests passed on 2026-08-27. The production checklist below remains intentionally
+deployment-scoped: current production transport, database exposure, backup
+artifacts, and physical-device/signing evidence cannot be replaced by local
+tests or an emulator.
+
 ---
 
 ## 17. Authorization future-proofing

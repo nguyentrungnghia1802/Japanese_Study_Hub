@@ -74,8 +74,12 @@ export default function ExamMistakesPage() {
 
   if (mistakesQuery.isError) {
     return (
-      <div style={{ maxWidth: '760px', margin: '0 auto', padding: '4rem 1.5rem', textAlign: 'center' }}>
-        <h1 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Unable to load mistakes</h1>
+      <div
+        style={{ maxWidth: '760px', margin: '0 auto', padding: '4rem 1.5rem', textAlign: 'center' }}
+      >
+        <h1 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
+          Unable to load mistakes
+        </h1>
         <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
           {getApiErrorMessage(mistakesQuery.error, 'Please try again.')}
         </p>
@@ -99,11 +103,25 @@ export default function ExamMistakesPage() {
 
   return (
     <main style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 1.5rem 4rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'flex-start' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          alignItems: 'flex-start',
+        }}
+      >
         <div>
           <Link
             href="/exams"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', textDecoration: 'none', marginBottom: '1rem' }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              color: 'var(--text-muted)',
+              textDecoration: 'none',
+              marginBottom: '1rem',
+            }}
           >
             <ArrowLeft size={16} />
             Exams
@@ -113,7 +131,8 @@ export default function ExamMistakesPage() {
             <h1 style={{ color: 'var(--text-primary)', margin: 0 }}>Review mistakes</h1>
           </div>
           <p style={{ color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-            Revisit incorrect or unanswered questions from submitted exams. This queue never changes official scores.
+            Revisit incorrect or unanswered questions from submitted exams. This queue never changes
+            official scores.
           </p>
         </div>
         {mistakes.length > 0 && (
@@ -121,7 +140,17 @@ export default function ExamMistakesPage() {
             type="button"
             onClick={() => void clearAll()}
             disabled={busyId !== null}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.625rem 0.9rem', border: '1px solid rgba(244, 63, 94, 0.35)', borderRadius: 'var(--radius-md)', background: 'rgba(244, 63, 94, 0.08)', color: 'var(--accent-rose)', fontWeight: 600 }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.625rem 0.9rem',
+              border: '1px solid rgba(244, 63, 94, 0.35)',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(244, 63, 94, 0.08)',
+              color: 'var(--accent-rose)',
+              fontWeight: 600,
+            }}
           >
             <Trash2 size={15} />
             Clear all
@@ -136,9 +165,14 @@ export default function ExamMistakesPage() {
       )}
 
       {mistakes.length === 0 ? (
-        <section className="glass-panel" style={{ marginTop: '2rem', padding: '3rem 2rem', textAlign: 'center' }}>
+        <section
+          className="glass-panel"
+          style={{ marginTop: '2rem', padding: '3rem 2rem', textAlign: 'center' }}
+        >
           <Check size={34} style={{ color: 'var(--accent-emerald)', marginBottom: '1rem' }} />
-          <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>No mistakes queued</h2>
+          <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+            No mistakes queued
+          </h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
             Submit an exam with an incorrect or unanswered question to see it here.
           </p>
@@ -153,10 +187,21 @@ export default function ExamMistakesPage() {
           </p>
           {mistakes.map((mistake) => (
             <article key={mistake.id} className="glass-panel" style={{ padding: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'flex-start' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  gap: '1rem',
+                  alignItems: 'flex-start',
+                }}
+              >
                 <div>
-                  <div style={{ color: 'var(--accent-cyan)', fontWeight: 700 }}>{mistake.examTitle}</div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.25rem' }}>
+                  <div style={{ color: 'var(--accent-cyan)', fontWeight: 700 }}>
+                    {mistake.examTitle}
+                  </div>
+                  <div
+                    style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.25rem' }}
+                  >
                     Content version {mistake.examVersion}
                   </div>
                 </div>
@@ -165,30 +210,69 @@ export default function ExamMistakesPage() {
                   onClick={() => void dismiss(mistake.id)}
                   disabled={busyId !== null}
                   aria-label={`Dismiss mistake from ${mistake.examTitle}`}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 0.65rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', background: 'transparent', color: 'var(--text-muted)' }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '0.45rem 0.65rem',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    background: 'transparent',
+                    color: 'var(--text-muted)',
+                  }}
                 >
                   <Trash2 size={14} />
                   Dismiss
-                  </button>
+                </button>
                 <Link
                   href={`/exams/practice?examId=${encodeURIComponent(mistake.examId)}&mistakeIds=${encodeURIComponent(mistake.id)}`}
-                  style={{ color: 'var(--accent-cyan)', fontWeight: 600, fontSize: '0.85rem', alignSelf: 'center' }}
+                  style={{
+                    color: 'var(--accent-cyan)',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    alignSelf: 'center',
+                  }}
                 >
                   Practice
                 </Link>
               </div>
-              <h2 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', lineHeight: 1.5, margin: '1rem 0' }}>
+              <h2
+                style={{
+                  color: 'var(--text-primary)',
+                  fontSize: '1.1rem',
+                  lineHeight: 1.5,
+                  margin: '1rem 0',
+                }}
+              >
                 {mistake.questionContent}
               </h2>
               <div style={{ display: 'grid', gap: '0.5rem' }}>
                 {mistake.options.map((option) => (
                   <div
                     key={option.id}
-                    style={{ padding: '0.7rem 0.8rem', borderRadius: 'var(--radius-md)', border: option.id === mistake.selectedOptionId ? '1px solid rgba(251, 191, 36, 0.55)' : '1px solid var(--border-subtle)', background: option.id === mistake.selectedOptionId ? 'rgba(251, 191, 36, 0.1)' : 'rgba(15, 23, 42, 0.28)', color: 'var(--text-secondary)' }}
+                    style={{
+                      padding: '0.7rem 0.8rem',
+                      borderRadius: 'var(--radius-md)',
+                      border:
+                        option.id === mistake.selectedOptionId
+                          ? '1px solid rgba(251, 191, 36, 0.55)'
+                          : '1px solid var(--border-subtle)',
+                      background:
+                        option.id === mistake.selectedOptionId
+                          ? 'rgba(251, 191, 36, 0.1)'
+                          : 'rgba(15, 23, 42, 0.28)',
+                      color: 'var(--text-secondary)',
+                    }}
                   >
                     {option.content}
                     {option.id === mistake.selectedOptionId && (
-                      <span style={{ color: 'var(--accent-amber)', fontSize: '0.8rem', marginLeft: '0.5rem' }}>
+                      <span
+                        style={{
+                          color: 'var(--accent-amber)',
+                          fontSize: '0.8rem',
+                          marginLeft: '0.5rem',
+                        }}
+                      >
                         Your answer
                       </span>
                     )}
@@ -196,7 +280,13 @@ export default function ExamMistakesPage() {
                 ))}
               </div>
               {mistake.selectedOptionId === null && (
-                <p style={{ color: 'var(--accent-amber)', fontSize: '0.8rem', margin: '0.75rem 0 0' }}>
+                <p
+                  style={{
+                    color: 'var(--accent-amber)',
+                    fontSize: '0.8rem',
+                    margin: '0.75rem 0 0',
+                  }}
+                >
                   Unanswered in the submitted attempt.
                 </p>
               )}

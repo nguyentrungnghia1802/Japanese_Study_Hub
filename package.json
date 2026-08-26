@@ -12,6 +12,7 @@
     "clean": "turbo run clean",
     "perf:bundle": "node scripts/check-web-bundle.mjs",
     "perf:api-smoke": "node scripts/check-api-response-size.mjs",
+    "perf:api-cache": "node scripts/check-api-conditional-cache.mjs",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
   },

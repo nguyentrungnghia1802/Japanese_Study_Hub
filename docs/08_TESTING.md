@@ -299,6 +299,9 @@ pnpm test
 pnpm build
 pnpm perf:bundle
 pnpm perf:api-smoke
+pnpm perf:api-cache
+pnpm audit --prod --audit-level=high
+pnpm audit --audit-level=high
 RUN_API_INTEGRATION=1 pnpm --filter @japanese-learning/api test:integration
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-phase2-migrations.ps1
 ```
