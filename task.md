@@ -973,14 +973,23 @@ Commit: `test(perf): add regression guardrails`
 
 ## TASK-302 — Extend integration tests for Phase 2 features
 
-- [ ] Favorites tests.
-- [ ] Tags tests if implemented.
-- [ ] Recent/resume tests.
-- [ ] FSRS scheduling/idempotency tests.
-- [ ] Wrong-answer review tests.
-- [ ] Practice-mode isolation tests.
-- [ ] V1 → Phase 2 migration test.
-- [ ] Fresh DB migration through all migrations.
+- [x] Favorites tests.
+- [x] Tags tests if implemented.
+- [x] Recent/resume tests.
+- [x] FSRS scheduling/idempotency tests.
+- [x] Wrong-answer review tests.
+- [x] Practice-mode isolation tests.
+- [x] V1 → Phase 2 migration test.
+- [x] Fresh DB migration through all migrations.
+
+Verification:
+
+- [x] apps/api/test/phase2.integration.spec.ts passed with 2 PostgreSQL-backed
+      tests covering the Phase 2 API service flows and cleanup.
+- [x] scripts/verify-phase2-migrations.ps1 passed on 2026-08-27 for both a
+      fresh seven-migration database and a V1-to-Phase-2 upgrade database.
+- [x] Results and the local-only boundary are recorded in
+      docs/testing/phase2-integration-2026-08-27.md.
 
 Commit: `test: complete phase 2 integration coverage`
 

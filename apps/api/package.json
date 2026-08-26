@@ -9,6 +9,7 @@
     "start:prod": "node dist/main",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:integration": "vitest run test/phase2.integration.spec.ts",
     "lint": "eslint src",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

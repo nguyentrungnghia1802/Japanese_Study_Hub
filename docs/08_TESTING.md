@@ -225,6 +225,17 @@ CI or local release process shall test:
 3. Run seed if applicable.
 4. Execute integration smoke tests.
 
+For Phase 2, the repeatable local command
+powershell -NoProfile -ExecutionPolicy Bypass -File
+scripts/verify-phase2-migrations.ps1 also applies only
+20260826000000_init to a disposable database, then deploys the remaining
+migrations to verify the V1 -> Phase 2 upgrade path. The harness checks the
+applied migration count and Phase 2 tables/columns and removes its temporary
+databases in finally. API feature integration coverage is opt-in:
+RUN_API_INTEGRATION=1 pnpm --filter @japanese-learning/api test:integration.
+The dated result is recorded in
+docs/testing/phase2-integration-2026-08-27.md.
+
 ---
 
 ## 14. Web E2E critical path
