@@ -925,13 +925,21 @@ Commit: `ops: add lightweight performance observability`
 
 ## TASK-300 — Add Web cache/navigation tests
 
-- [ ] Repeated list/detail navigation reuses warm query state.
-- [ ] Relevant mutation invalidates correct queries.
-- [ ] Unrelated mutation does not clear the entire cache.
-- [ ] Stale data revalidates.
-- [ ] Recoverable error can retry.
-- [ ] Live attempt freshness rules hold.
-- [ ] No correct-answer leakage through cached data.
+- [x] Repeated list/detail navigation reuses warm query state.
+- [x] Relevant mutation invalidates correct queries.
+- [x] Unrelated mutation does not clear the entire cache.
+- [x] Stale data revalidates.
+- [x] Recoverable error can retry.
+- [x] Live attempt freshness rules hold.
+- [x] No correct-answer leakage through cached data.
+
+Verification:
+
+- [x] Web query-client tests cover warm list/detail reuse, stale revalidation,
+      retry of a transient read failure, targeted invalidation, and preservation
+      of unrelated cache entries.
+- [x] Live-attempt tests cover server-expiry freshness, zero-stale policy, and
+      rejection before correctness metadata can enter the cache.
 
 Commit: `test(web): cover cache and navigation behavior`
 

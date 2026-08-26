@@ -44,6 +44,85 @@ describe('Web query policy', () => {
     expect(getQueryCacheStats(queryClient).total).toBe(1);
   });
 
+  it('reuses warm list and detail data across a list-to-detail-to-list navigation', async () => {
+    const queryClient = createStudyQueryClient();
+    let listCalls = 0;
+    let detailCalls = 0;
+    const listKey = queryKeys.flashcardSets({ page: 1 });
+    const detailKey = queryKeys.flashcardSet('set-1');
+
+    await queryClient.fetchQuery({
+      queryKey: listKey,
+      queryFn: async () => {
+        listCalls += 1;
+        return [{ id: 'set-1' }];
+      },
+    });
+    await queryClient.fetchQuery({
+      queryKey: detailKey,
+      queryFn: async () => {
+        detailCalls += 1;
+        return { id: 'set-1', title: 'N5' };
+      },
+    });
+    await queryClient.fetchQuery({
+      queryKey: listKey,
+      queryFn: async () => {
+        listCalls += 1;
+        return [{ id: 'set-1' }];
+      },
+    });
+    await queryClient.fetchQuery({
+      queryKey: detailKey,
+      queryFn: async () => {
+        detailCalls += 1;
+        return { id: 'set-1', title: 'N5' };
+      },
+    });
+
+    expect(listCalls).toBe(1);
+    expect(detailCalls).toBe(1);
+  });
+
+  it('revalidates stale data and retries one recoverable read failure', async () => {
+    const queryClient = createStudyQueryClient();
+    let staleCalls = 0;
+    const staleKey = queryKeys.dashboard();
+
+    await queryClient.fetchQuery({
+      queryKey: staleKey,
+      queryFn: async () => {
+        staleCalls += 1;
+        return { version: staleCalls };
+      },
+      staleTime: 0,
+    });
+    await queryClient.fetchQuery({
+      queryKey: staleKey,
+      queryFn: async () => {
+        staleCalls += 1;
+        return { version: staleCalls };
+      },
+      staleTime: 0,
+    });
+    expect(staleCalls).toBe(2);
+
+    let retryCalls = 0;
+    const retryResult = await queryClient.fetchQuery({
+      queryKey: queryKeys.search('recoverable'),
+      queryFn: async () => {
+        retryCalls += 1;
+        if (retryCalls === 1) throw new Error('temporary network failure');
+        return { total: 1 };
+      },
+      retry: 1,
+      retryDelay: 0,
+    });
+
+    expect(retryCalls).toBe(2);
+    expect(retryResult).toEqual({ total: 1 });
+  });
+
   it('bounds short-lived search query cardinality', () => {
     const queryClient = createStudyQueryClient();
 
