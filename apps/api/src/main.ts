@@ -15,7 +15,7 @@ async function bootstrap() {
   app.use(compression({ threshold: 1024 }));
 
   app.setGlobalPrefix('api/v1', {
-    exclude: ['health'],
+    exclude: ['health', 'health/ready'],
   });
 
   app.useGlobalFilters(new GlobalHttpExceptionFilter());

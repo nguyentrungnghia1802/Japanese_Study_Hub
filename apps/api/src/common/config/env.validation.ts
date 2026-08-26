@@ -56,6 +56,11 @@ export class EnvironmentVariables {
   @IsString()
   @IsOptional()
   LOG_LEVEL = 'debug';
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  SLOW_REQUEST_MS = 1000;
 }
 
 export function validateEnvironment(config: Record<string, unknown>) {

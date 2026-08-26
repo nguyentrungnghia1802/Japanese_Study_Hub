@@ -17,6 +17,7 @@ export function getResponseCachePolicy(method: string, path: string): CachePolic
   const normalizedPath = path.split('?')[0].replace(/\/+$/, '') || '/';
   const noStorePath =
     normalizedPath === '/health' ||
+    normalizedPath === '/health/ready' ||
     normalizedPath.includes('/auth') ||
     normalizedPath.includes('/attempts') ||
     normalizedPath.includes('/live-attempts') ||

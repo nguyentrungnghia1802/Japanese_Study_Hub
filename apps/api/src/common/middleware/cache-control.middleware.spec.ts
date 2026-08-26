@@ -21,6 +21,7 @@ describe('response cache policy', () => {
       '/api/v1/attempts/00000000-0000-4000-8000-000000000000',
       '/api/v1/exams/00000000-0000-4000-8000-000000000000/export',
       '/health',
+      '/health/ready',
     ]) {
       expect(getResponseCachePolicy('GET', path)).toBe('no-store');
     }

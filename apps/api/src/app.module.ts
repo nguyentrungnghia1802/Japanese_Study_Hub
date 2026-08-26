@@ -1,5 +1,6 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { HealthModule } from './health/health.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
@@ -15,6 +16,7 @@ import { LearningModule } from './learning/learning.module.js';
 import { TagModule } from './common/tag.module.js';
 import { ReviewModule } from './review/review.module.js';
 import { ExamReviewModule } from './exam-review/exam-review.module.js';
+import { RequestObservabilityInterceptor } from './common/observability/request-observability.interceptor.js';
 
 @Module({
   imports: [
@@ -34,6 +36,12 @@ import { ExamReviewModule } from './exam-review/exam-review.module.js';
     TagModule,
     ReviewModule,
     ExamReviewModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: RequestObservabilityInterceptor,
+    },
   ],
 })
 export class AppModule implements NestModule {
