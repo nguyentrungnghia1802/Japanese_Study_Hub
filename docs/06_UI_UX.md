@@ -186,8 +186,10 @@ Android review mode:
   completion state.
 - Again, Hard, Good, and Easy remain disabled until the meaning is revealed.
 - A failed rating keeps the revealed card and its client request id so retrying
-  cannot submit a second transition. The active ViewModel queue is capped at 20;
-  V1 remains online-first and does not add offline FSRS synchronization.
+  cannot submit a second transition. The active ViewModel queue is capped at 20.
+  Phase 2 remains online-first and does not add offline FSRS synchronization;
+  Android Room is limited to the separate bounded read projection documented in
+  the architecture and cache policy.
 
 ---
 

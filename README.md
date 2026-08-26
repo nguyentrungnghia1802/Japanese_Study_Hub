@@ -10,12 +10,16 @@ This repository contains the source-of-truth documentation for a personal Japane
 - PostgreSQL database
 - Markdown-based content import/export
 
-The first release focuses on two learning domains:
+The V1 release focused on two learning domains:
 
 1. Flashcards
 2. Exams / quizzes
 
-The system is intentionally simple in V1 while preserving clean extension points for reading, listening, media, spaced repetition, multiple users, and richer analytics later.
+The system remains intentionally simple while preserving clean extension points for
+reading, listening, media, multiple users, and richer analytics. Phase 2 is the
+approved follow-up release and adds bounded responsiveness, learning productivity,
+server-authoritative FSRS review, exam remediation, and native Android read caching
+without changing the V1 integrity boundary.
 
 ## 2. Documentation order
 
@@ -64,7 +68,27 @@ If an implementation conflicts with an approved requirement, fix the implementat
 - Containerization: Docker / Docker Compose
 - Testing: unit + integration + E2E
 
-## 5. V1 principles
+## 5. Current Phase 2 baseline
+
+Phase 2 keeps PostgreSQL and the API authoritative. The delivered scope includes:
+
+- One bounded, memory-only TanStack Query cache for Web reads, with explicit
+  invalidation and freshness-first live attempts.
+- Minimal browser storage: bearer authentication remains the current Web strategy
+  until an approved HTTPS/CSRF design enables a secure cookie migration.
+- Bounded recent learning, favorites, normalized flat tags, responsive search, and
+  independent multi-file Markdown preview/confirmation.
+- Server-authoritative, UTC-based, idempotent FSRS review with the four approved
+  ratings, plus isolated wrong-answer practice that cannot alter official results.
+- A bounded Android Room read projection for summaries and resume data. Active
+  attempts, answer keys, FSRS state, and pending mutations are never cached there.
+- Guarded production update, backup/restore, transport-audit, and safe request
+  observability procedures documented under `docs/`.
+
+The complete Phase 2 requirements and its deferred boundary are in
+`docs/13_PHASE2_REQUIREMENTS.md`.
+
+## 6. V1 regression baseline
 
 - Server is the source of truth.
 - No full offline synchronization in V1.
@@ -79,7 +103,7 @@ If an implementation conflicts with an approved requirement, fix the implementat
 - Lower exam scores do not overwrite the highest score.
 - Content-changing exam edits invalidate previous best scores through exam versioning.
 
-## 6. Local development commands
+## 7. Local development commands
 
 The Web/API/Database remain Node, pnpm, Docker, and PostgreSQL services. The mobile
 client is an independent Gradle project and does not require Node or pnpm to build.
@@ -112,7 +136,7 @@ deployment can override the centralized build-time value with the same `apiBaseU
 Gradle property. The `production` variant uses the local debug keystore only for
 owner/device validation; no signing key or release secret is stored in the repository.
 
-## 7. Definition of project completion
+## 8. Definition of project completion
 
 V1 was completed and released before the current Phase 2 task plan. Phase 2 is
 now the active development scope and must preserve the V1 behavior baseline. The

@@ -4,7 +4,8 @@ Status: complete for TASK-220, verified 2026-08-26
 
 ## Current strategy
 
-The Web uses the V1 bearer-token strategy. A successful `POST /auth/login`
+The Web uses the V1-compatible bearer-token strategy for the current Phase 2
+deployment. A successful `POST /auth/login`
 returns a JWT and username; `AuthContext` stores them as `auth_token` and
 `auth_user` in `localStorage`. `apiClient` reads `auth_token` for each request
 and sends it as an `Authorization: Bearer` header. The token is never placed in
@@ -24,7 +25,7 @@ exam payload, or answer key is stored there. Query cache state is memory-only an
 has no persister, so closing/restarting the browser does not restore a token or
 learning response through the query layer.
 
-The current V1 provider does not subscribe to the `storage` event. Therefore a
+The current provider does not subscribe to the `storage` event. Therefore a
 logout in one tab immediately affects that tab, while another already-open tab
 may keep its in-memory auth state until its next protected request or reload.
 This is documented behavior and is not treated as server-side session revocation.

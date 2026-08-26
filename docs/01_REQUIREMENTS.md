@@ -5,7 +5,14 @@
 - Product: Japanese Learning System
 - Release: V1
 - Audience: Product owner, developers, AI agents, testers, maintainers
-- Purpose: Define complete V1 requirements and extension boundaries
+- Purpose: Define the frozen V1 requirements and extension boundaries
+
+This document is the immutable V1 regression baseline. The approved Phase 2
+additions are specified in `docs/13_PHASE2_REQUIREMENTS.md` and recorded in the
+Phase 2 ADRs in `docs/11_DECISIONS.md`. A V1 statement that describes a feature
+as absent remains historical scope unless the Phase 2 requirements explicitly
+add that capability; V1 security, exam-integrity, server-authority, import, and
+data-integrity constraints continue to apply.
 
 ---
 

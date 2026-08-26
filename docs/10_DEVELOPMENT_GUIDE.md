@@ -55,7 +55,8 @@
 - Do not reuse web DOM-specific UI code
 - Store auth material encrypted with Android Keystore and persist it through DataStore.
 - Treat network failures as normal mobile conditions
-- Do not implement hidden offline synchronization in V1
+- Do not implement hidden offline synchronization. The Phase 2 Android Room
+  projection is read-only, bounded, and non-authoritative; it is not a sync queue.
 - Keep the active FSRS review queue in the ViewModel and cap it at 20 cards.
 - Reuse the same client request id when a rating is retried after a network
   failure; the server remains authoritative for the next due time.

@@ -13,15 +13,15 @@ cache on Android. Neither cache is a sync queue or an offline write database.
 
 ## 2. Data classification
 
-| Class                        | Examples                             | Web policy                                                  | Android policy                                       |
-| ---------------------------- | ------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------- |
-| Stable reference/list data   | folder tree, set/exam summaries      | memory query cache; 45s stale, 5m GC                        | Room read cache; bounded rows and age                |
-| Normal entity detail         | set cards, exam management detail    | memory query cache; 45s stale, 5m GC                        | optional small detail cache                          |
-| Search data                  | grouped set/card/exam/folder results | memory only; 20s stale, 2m GC, bounded query keys           | short-lived in-memory state; cancel/debounce         |
-| Rapidly changing state       | mutation status, refresh indicators  | React/ViewModel state only                                  | ViewModel state only                                 |
-| Live attempt state           | questions, selections, `expiresAt`   | query is session-scoped and freshness-first; no persistence | active attempt ID only in DataStore; refetch payload |
-| Authentication/session state | bearer token and username            | current V1 localStorage token strategy; never query cached  | Keystore-encrypted token through DataStore           |
-| UI-only preferences          | sort/filter/tab                      | versioned allow-list in localStorage, tiny values only      | DataStore if needed                                  |
+| Class                        | Examples                             | Web policy                                                            | Android policy                                       |
+| ---------------------------- | ------------------------------------ | --------------------------------------------------------------------- | ---------------------------------------------------- |
+| Stable reference/list data   | folder tree, set/exam summaries      | memory query cache; 45s stale, 5m GC                                  | Room read cache; bounded rows and age                |
+| Normal entity detail         | set cards, exam management detail    | memory query cache; 45s stale, 5m GC                                  | optional small detail cache                          |
+| Search data                  | grouped set/card/exam/folder results | memory only; 20s stale, 2m GC, bounded query keys                     | short-lived in-memory state; cancel/debounce         |
+| Rapidly changing state       | mutation status, refresh indicators  | React/ViewModel state only                                            | ViewModel state only                                 |
+| Live attempt state           | questions, selections, `expiresAt`   | query is session-scoped and freshness-first; no persistence           | active attempt ID only in DataStore; refetch payload |
+| Authentication/session state | bearer token and username            | current V1-compatible localStorage token strategy; never query cached | Keystore-encrypted token through DataStore           |
+| UI-only preferences          | sort/filter/tab                      | versioned allow-list in localStorage, tiny values only                | DataStore if needed                                  |
 
 Correct-answer metadata is management/result data only. It must never enter a live
 attempt cache before grading, regardless of cache layer.
@@ -64,7 +64,7 @@ optimistically overwrite authoritative data.
 ## 5. Browser storage and cookie rules
 
 Until secure cookie prerequisites exist for the current IP-only HTTP deployment,
-Web keeps its V1 bearer-token strategy. The token is not placed in the QueryClient
+Web keeps its V1-compatible bearer-token strategy. The token is not placed in the QueryClient
 or cookies; logout removes it and the username entry. No password, hash, signing
 secret, raw Authorization header, API response body, Markdown, exam payload, or
 correctness metadata is stored in browser storage.

@@ -1041,14 +1041,14 @@ Commit: `test(android): complete phase 2 smoke journeys`
 
 ## TASK-310 — Update Requirements and Decisions
 
-- [ ] Document all delivered Phase 2 features.
-- [ ] Document deferred optional tasks.
-- [ ] Record cache/storage policy.
-- [ ] Record Web session/cookie decision.
-- [ ] Record FSRS decision.
-- [ ] Record Android read-cache boundary.
-- [ ] Record HTTPS/runtime decision.
-- [ ] Remove stale V1-only statements that are no longer true.
+- [x] Document all delivered Phase 2 features.
+- [x] Document deferred optional tasks.
+- [x] Record cache/storage policy.
+- [x] Record Web session/cookie decision.
+- [x] Record FSRS decision.
+- [x] Record Android read-cache boundary.
+- [x] Record HTTPS/runtime decision.
+- [x] Remove stale V1-only statements that are no longer true.
 
 Commit: `docs: synchronize phase 2 requirements and decisions`
 

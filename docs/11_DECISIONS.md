@@ -1,6 +1,8 @@
 # 11 — Architecture / Product Decisions
 
-This file records approved V1 decisions so agents do not repeatedly revisit settled choices.
+This file records the approved V1 decisions and the later Phase 2 amendments so
+agents do not repeatedly revisit settled choices. V1 entries are retained as the
+regression baseline; Phase 2 entries supersede only the explicitly amended scope.
 
 ## ADR-001 — TypeScript for Web/API, Kotlin for Android
 
@@ -104,7 +106,9 @@ than sharing web UI code.
 
 ## ADR-012 — Online-first mobile V1
 
-**Decision:** No full offline synchronization in V1.
+**Historical V1 decision:** No full offline synchronization in V1. Phase 2 keeps
+that boundary and adds only the bounded, non-authoritative Android Room read
+projection described in ADR-028.
 
 **Reason:** Sync conflict resolution would materially increase complexity.
 
@@ -112,9 +116,12 @@ than sharing web UI code.
 
 ## ADR-013 — No spaced repetition in V1
 
-**Decision:** Basic flashcard study only.
+**Historical V1 decision:** Basic flashcard study only. This V1 scope decision is
+superseded for the approved Phase 2 release by ADR-023 and ADR-026.
 
-**Future:** FSRS may be added as V1.1/Phase 2.
+**Phase 2 status:** Server-authoritative FSRS is implemented with bounded,
+idempotent review transitions; the V1 statement remains true only as historical
+release scope.
 
 ---
 
