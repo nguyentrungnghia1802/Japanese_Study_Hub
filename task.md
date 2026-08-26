@@ -78,23 +78,23 @@ Requirements: P2-CACHE-001..P2-CACHE-012
 
 Create and document one project-wide cache/storage policy.
 
-- [ ] Classify data into stable reference/list data, normal entity detail data, rapidly changing state, live exam attempt state, authentication/session state, and UI-only preferences.
-- [ ] Default Web content cache to memory only.
-- [ ] Do not persist general API response caches across browser restarts unless a later task explicitly requires it.
-- [ ] Define default stale times:
+- [x] Classify data into stable reference/list data, normal entity detail data, rapidly changing state, live exam attempt state, authentication/session state, and UI-only preferences.
+- [x] Default Web content cache to memory only.
+- [x] Do not persist general API response caches across browser restarts unless a later task explicitly requires it.
+- [x] Define default stale times:
   - dashboard/list data: 30–60 seconds;
   - entity detail: 30–60 seconds;
   - search result: 15–30 seconds;
   - live attempt/answer/timer state: always or almost always revalidated;
   - best-score data after submit: immediately invalidated/refetched.
-- [ ] Define garbage-collection time, starting around 5 minutes for normal cached queries.
-- [ ] Use shorter GC for high-cardinality search queries.
-- [ ] Never cache passwords, password hashes, signing secrets, raw Authorization headers, or correct-answer metadata before grading.
-- [ ] Do not persist live exam attempt correctness-sensitive payloads in a long-lived browser cache.
-- [ ] Define explicit mutation invalidation rules instead of global cache clearing.
-- [ ] Keep cookies metadata-only and small; never store learning-content blobs in cookies.
-- [ ] Prevent unbounded localStorage/sessionStorage growth.
-- [ ] Document when browser HTTP cache, application query cache, and server cache may each be used.
+- [x] Define garbage-collection time, starting around 5 minutes for normal cached queries.
+- [x] Use shorter GC for high-cardinality search queries.
+- [x] Never cache passwords, password hashes, signing secrets, raw Authorization headers, or correct-answer metadata before grading.
+- [x] Do not persist live exam attempt correctness-sensitive payloads in a long-lived browser cache.
+- [x] Define explicit mutation invalidation rules instead of global cache clearing.
+- [x] Keep cookies metadata-only and small; never store learning-content blobs in cookies.
+- [x] Prevent unbounded localStorage/sessionStorage growth.
+- [x] Document when browser HTTP cache, application query cache, and server cache may each be used.
 
 Acceptance criteria:
 

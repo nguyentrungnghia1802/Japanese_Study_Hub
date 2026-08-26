@@ -38,6 +38,9 @@ The cache is memory-only across browser restarts. It must deduplicate concurrent
 reads, avoid unbounded search cardinality, and never contain passwords, secrets,
 raw authorization headers, or pre-grading correctness metadata.
 
+The complete data classification, key, invalidation, HTTP, and storage rules are
+defined in `docs/performance/cache-storage-policy.md`.
+
 ### P2-CACHE-002 — Explicit invalidation
 
 Set/card mutations invalidate only affected set, list, dashboard, and search keys.
