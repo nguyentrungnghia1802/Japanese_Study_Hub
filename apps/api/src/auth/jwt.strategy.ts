@@ -13,9 +13,10 @@ export interface JwtPayload {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
-    const secret =
-      configService.get<string>('AUTH_TOKEN_SECRET') ||
-      'development_super_secret_jwt_key_at_least_32_chars_long';
+    const secret = configService.get<string>('AUTH_TOKEN_SECRET');
+    if (!secret) {
+      throw new Error('AUTH_TOKEN_SECRET is required to validate JWTs.');
+    }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,

@@ -46,6 +46,6 @@ import { RequestObservabilityInterceptor } from './common/observability/request-
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestIdMiddleware, CacheControlMiddleware).forRoutes('*');
+    consumer.apply(RequestIdMiddleware, CacheControlMiddleware).forRoutes('{*path}');
   }
 }

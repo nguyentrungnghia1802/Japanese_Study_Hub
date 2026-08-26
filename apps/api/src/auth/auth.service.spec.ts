@@ -10,21 +10,22 @@ describe('AuthService (TASK-020 / AUTH-001..009)', () => {
   let configService: ConfigService;
   let jwtService: JwtService;
 
-  // bcrypt hash for "admin123"
-  const passwordHash = bcrypt.hashSync('admin123', 10);
+  const testPassword = 'test-only-password';
+  const passwordHash = bcrypt.hashSync(testPassword, 4);
+  const testTokenSecret = 't'.repeat(32);
 
   beforeEach(() => {
     configService = {
       get: (key: string) => {
         if (key === 'AUTH_USERNAME') return 'admin';
         if (key === 'AUTH_PASSWORD_HASH') return passwordHash;
-        if (key === 'AUTH_TOKEN_SECRET') return 'test_jwt_secret_key_at_least_32_chars';
+        if (key === 'AUTH_TOKEN_SECRET') return testTokenSecret;
         return null;
       },
     } as unknown as ConfigService;
 
     jwtService = new JwtService({
-      secret: 'test_jwt_secret_key_at_least_32_chars',
+      secret: testTokenSecret,
     });
 
     authService = new AuthService(configService, jwtService);
@@ -33,7 +34,7 @@ describe('AuthService (TASK-020 / AUTH-001..009)', () => {
   it('authenticates correct credentials and returns access token', async () => {
     const result = await authService.login({
       username: 'admin',
-      password: 'admin123',
+      password: testPassword,
     });
 
     expect(result).toBeDefined();
@@ -49,7 +50,7 @@ describe('AuthService (TASK-020 / AUTH-001..009)', () => {
     await expect(
       authService.login({
         username: 'wrong_user',
-        password: 'admin123',
+        password: testPassword,
       }),
     ).rejects.toThrow(UnauthorizedException);
   });

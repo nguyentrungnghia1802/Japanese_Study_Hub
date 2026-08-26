@@ -36,13 +36,11 @@ export class EnvironmentVariables {
 
   @IsString()
   @MinLength(1)
-  @IsOptional()
-  AUTH_PASSWORD_HASH = '$2b$10$ep5q32mC4m1f2.c9NnO1kO.2c8b8D6L4rK/U8b/7u.9/2b8xQ/r6G';
+  AUTH_PASSWORD_HASH = '';
 
   @IsString()
-  @MinLength(16)
-  @IsOptional()
-  AUTH_TOKEN_SECRET = 'development_super_secret_jwt_key_at_least_32_chars_long';
+  @MinLength(32)
+  AUTH_TOKEN_SECRET = '';
 
   @IsString()
   @IsOptional()

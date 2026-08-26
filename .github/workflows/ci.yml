@@ -30,8 +30,6 @@ jobs:
       PORT: 4000
       DATABASE_URL: postgresql://postgres:postgres_password@localhost:5432/japanese_learning_test?schema=public
       AUTH_USERNAME: admin
-      AUTH_PASSWORD_HASH: '$2b$10$7iWNjEdErD12hmTUfcOkk.UNs0g9fjQla/BZbvgnnC56cBAu2.2Aa'
-      AUTH_TOKEN_SECRET: development_super_secret_jwt_key_at_least_32_chars_long
       CORS_ORIGINS: http://localhost:3000
       UPLOAD_MAX_BYTES: 10485760
       LOG_LEVEL: debug
@@ -55,6 +53,12 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate ephemeral test credentials
+        run: |
+          password_hash=$(pnpm --filter @japanese-learning/api exec node -e "const bcrypt=require('bcrypt'); process.stdout.write(bcrypt.hashSync('ci-only-password', 4));")
+          echo "AUTH_PASSWORD_HASH=$password_hash" >> "$GITHUB_ENV"
+          echo "AUTH_TOKEN_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
 
       - name: Generate Prisma Client
         run: pnpm --filter @japanese-learning/api prisma:generate

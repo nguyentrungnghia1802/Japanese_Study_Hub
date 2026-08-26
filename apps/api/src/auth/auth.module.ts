@@ -14,12 +14,16 @@ import { JwtAuthGuard } from './jwt-auth.guard.js';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret:
-          config.get<string>('AUTH_TOKEN_SECRET') ||
-          'development_super_secret_jwt_key_at_least_32_chars_long',
-        signOptions: { expiresIn: '7d' },
-      }),
+      useFactory: (config: ConfigService) => {
+        const secret = config.get<string>('AUTH_TOKEN_SECRET');
+        if (!secret) {
+          throw new Error('AUTH_TOKEN_SECRET is required to configure JWT signing.');
+        }
+        return {
+          secret,
+          signOptions: { expiresIn: '7d' },
+        };
+      },
     }),
     ThrottlerModule.forRoot([
       {
