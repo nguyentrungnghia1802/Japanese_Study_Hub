@@ -51,16 +51,16 @@ Commit: `docs: establish phase 2 development baseline`
 
 Requirements: P2-PERF-BASELINE
 
-- [ ] Measure current initial page load for login, dashboard, flashcard list, flashcard detail, exam list, exam detail, search.
-- [ ] Measure repeated navigation to the same pages.
-- [ ] Record API request counts per navigation.
-- [ ] Record duplicate requests caused by remounts or independent components.
-- [ ] Record largest API payloads.
-- [ ] Measure current Core Web Vitals where practical: LCP, INP, CLS.
-- [ ] Measure route-transition latency on a normal desktop browser.
-- [ ] Record current server-side response timings for high-traffic GET endpoints.
-- [ ] Identify pages that visibly blank/reload instead of preserving useful prior state.
-- [ ] Add a short baseline report to Phase 2 docs.
+- [x] Measure current initial page load for login, dashboard, flashcard list, flashcard detail, exam list, exam detail, search.
+- [x] Measure repeated navigation to the same pages.
+- [x] Record API request counts per navigation.
+- [x] Record duplicate requests caused by remounts or independent components.
+- [x] Record largest API payloads.
+- [x] Measure current Core Web Vitals where practical: LCP, INP, CLS.
+- [x] Measure route-transition latency on a normal desktop browser.
+- [x] Record current server-side response timings for high-traffic GET endpoints.
+- [x] Identify pages that visibly blank/reload instead of preserving useful prior state.
+- [x] Add a short baseline report to Phase 2 docs.
 
 Acceptance criteria:
 

@@ -26,13 +26,13 @@ Web content reads use one application-level in-memory query cache with centraliz
 keys, retry/error classification, cancellation, and explicit mutation invalidation.
 The default policy is:
 
-| Data | Stale time | Garbage collection |
-| --- | ---: | ---: |
-| Dashboard and library lists | 45 seconds | 5 minutes |
-| Entity detail | 45 seconds | 5 minutes |
-| Search | 20 seconds | 2 minutes |
-| Best result after submit | immediate invalidation/refetch | normal |
-| Live attempt | freshness-first; no long stale window | session-scoped |
+| Data                        |                            Stale time | Garbage collection |
+| --------------------------- | ------------------------------------: | -----------------: |
+| Dashboard and library lists |                            45 seconds |          5 minutes |
+| Entity detail               |                            45 seconds |          5 minutes |
+| Search                      |                            20 seconds |          2 minutes |
+| Best result after submit    |        immediate invalidation/refetch |             normal |
+| Live attempt                | freshness-first; no long stale window |     session-scoped |
 
 The cache is memory-only across browser restarts. It must deduplicate concurrent
 reads, avoid unbounded search cardinality, and never contain passwords, secrets,

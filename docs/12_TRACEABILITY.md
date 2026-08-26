@@ -97,33 +97,33 @@ Any uncovered requirement or mismatch reopens the relevant task; do not waive it
 
 ## 6. Phase 2 traceability
 
-| Phase 2 requirement group | Primary implementation tasks | Primary verification tasks |
-| --- | --- | --- |
-| P2-PERF-BASELINE | TASK-201 | TASK-301, TASK-320 |
-| P2-CACHE-* | TASK-202, TASK-210..217, TASK-222, TASK-230..235 | TASK-300, TASK-301, TASK-320 |
-| P2-SESSION | TASK-220..222 | TASK-300, TASK-320 |
-| P2-LEARN-RECENT | TASK-240 | TASK-302, TASK-303, TASK-304 |
-| P2-LEARN-FAVORITES | TASK-241 | TASK-302, TASK-303, TASK-304 |
-| P2-LEARN-TAGS | TASK-242 | TASK-302, TASK-303, TASK-304 |
-| P2-FSRS-* | TASK-250..253 | TASK-302, TASK-303, TASK-304, TASK-320 |
-| P2-EXAM-REVIEW-* | TASK-260..261 | TASK-302, TASK-303, TASK-304 |
-| P2-ANDROID-CACHE | TASK-270..271 | TASK-302, TASK-304, TASK-320 |
-| P2-SEARCH-RESPONSIVE | TASK-280 | TASK-300, TASK-303, TASK-304 |
-| P2-IMPORT-MULTI | TASK-281 | TASK-302, TASK-303 |
-| P2-OPS-* | TASK-290..293 | TASK-292, TASK-301, TASK-320 |
+| Phase 2 requirement group | Primary implementation tasks                     | Primary verification tasks             |
+| ------------------------- | ------------------------------------------------ | -------------------------------------- |
+| P2-PERF-BASELINE          | TASK-201                                         | TASK-301, TASK-320                     |
+| P2-CACHE-*                | TASK-202, TASK-210..217, TASK-222, TASK-230..235 | TASK-300, TASK-301, TASK-320           |
+| P2-SESSION                | TASK-220..222                                    | TASK-300, TASK-320                     |
+| P2-LEARN-RECENT           | TASK-240                                         | TASK-302, TASK-303, TASK-304           |
+| P2-LEARN-FAVORITES        | TASK-241                                         | TASK-302, TASK-303, TASK-304           |
+| P2-LEARN-TAGS             | TASK-242                                         | TASK-302, TASK-303, TASK-304           |
+| P2-FSRS-*                 | TASK-250..253                                    | TASK-302, TASK-303, TASK-304, TASK-320 |
+| P2-EXAM-REVIEW-*          | TASK-260..261                                    | TASK-302, TASK-303, TASK-304           |
+| P2-ANDROID-CACHE          | TASK-270..271                                    | TASK-302, TASK-304, TASK-320           |
+| P2-SEARCH-RESPONSIVE      | TASK-280                                         | TASK-300, TASK-303, TASK-304           |
+| P2-IMPORT-MULTI           | TASK-281                                         | TASK-302, TASK-303                     |
+| P2-OPS-*                  | TASK-290..293                                    | TASK-292, TASK-301, TASK-320           |
 
 ### Phase 2 invariants
 
-| Invariant | Implementation | Verification |
-| --- | --- | --- |
-| Web cache is memory-only and bounded | TASK-202, TASK-210 | TASK-300, TASK-301 |
-| Mutations invalidate only affected query families | TASK-210..217 | TASK-300 |
-| Live attempts are freshness-first and never cached with answers | TASK-214 | TASK-300, TASK-320 |
-| Bearer auth remains compatible while cookie migration is deferred | TASK-220..221 | TASK-300, TASK-320 |
-| FSRS review transition is deterministic and idempotent | TASK-250..251 | TASK-302, TASK-320 |
-| Practice review cannot update official best result | TASK-260..261 | TASK-302, TASK-303 |
-| Android read cache has row/age limits and no answer keys | TASK-270 | TASK-304, TASK-320 |
-| Phase 2 schema/data restores from backup | TASK-292 | TASK-320 |
+| Invariant                                                         | Implementation     | Verification       |
+| ----------------------------------------------------------------- | ------------------ | ------------------ |
+| Web cache is memory-only and bounded                              | TASK-202, TASK-210 | TASK-300, TASK-301 |
+| Mutations invalidate only affected query families                 | TASK-210..217      | TASK-300           |
+| Live attempts are freshness-first and never cached with answers   | TASK-214           | TASK-300, TASK-320 |
+| Bearer auth remains compatible while cookie migration is deferred | TASK-220..221      | TASK-300, TASK-320 |
+| FSRS review transition is deterministic and idempotent            | TASK-250..251      | TASK-302, TASK-320 |
+| Practice review cannot update official best result                | TASK-260..261      | TASK-302, TASK-303 |
+| Android read cache has row/age limits and no answer keys          | TASK-270           | TASK-304, TASK-320 |
+| Phase 2 schema/data restores from backup                          | TASK-292           | TASK-320           |
 
 ### Phase 2 release audit
 
