@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Upload,
   Sparkles,
+  Star,
 } from 'lucide-react';
 import { ExamDto, ExamFolderDto } from '@japanese-learning/contracts';
 import { API_BASE_URL, apiClient, getApiErrorMessage } from '@/lib/api-client';
@@ -42,6 +43,7 @@ export default function ExamsPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sort, setSort] = useState<UiSortValue>('createdAt_desc');
+  const [favoriteOnly, setFavoriteOnly] = useState(false);
 
   // Folder modal
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
@@ -120,6 +122,7 @@ export default function ExamsPage() {
       page: 1,
       pageSize: 50,
       sort,
+      favorite: favoriteOnly ? true : undefined,
     }),
     queryFn: ({ signal }) =>
       studyApi.exams(
@@ -129,6 +132,7 @@ export default function ExamsPage() {
           page: 1,
           pageSize: 50,
           sort,
+          favorite: favoriteOnly ? true : undefined,
         },
         signal,
       ),
@@ -139,6 +143,15 @@ export default function ExamsPage() {
   const exams = examsQuery.data?.items ?? [];
   const isLoading = examsQuery.isLoading;
   const isRefreshing = examsQuery.isFetching && !isLoading;
+
+  const handleFavoriteToggle = async (id: string, favorite: boolean) => {
+    try {
+      await studyApi.setExamFavorite(id, favorite);
+      await invalidateExamQueries(queryClient, id);
+    } catch (err: unknown) {
+      alert(`Failed to update favorite: ${getApiErrorMessage(err, 'Unknown error')}`);
+    }
+  };
 
   const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -642,6 +655,26 @@ export default function ExamsPage() {
               <option value="updatedAt_desc">Recently updated</option>
               <option value="title_asc">Title A–Z</option>
             </select>
+            <select
+              value={favoriteOnly ? 'favorites' : 'all'}
+              onChange={(event) => setFavoriteOnly(event.target.value === 'favorites')}
+              aria-label="Filter exams by favorite"
+              style={{
+                position: 'absolute',
+                right: '8.5rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                padding: '0.35rem 0.5rem',
+                borderRadius: 'var(--radius-sm)',
+                background: '#1e293b',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.8rem',
+              }}
+            >
+              <option value="all">All exams</option>
+              <option value="favorites">Favorites</option>
+            </select>
           </div>
 
           {/* Exam Grid */}
@@ -798,6 +831,20 @@ export default function ExamsPage() {
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                        <button
+                          onClick={() => void handleFavoriteToggle(exam.id, !exam.isFavorite)}
+                          title={exam.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                          aria-label={
+                            exam.isFavorite ? 'Remove from favorites' : 'Add to favorites'
+                          }
+                          style={{
+                            background: 'transparent',
+                            padding: '0.35rem',
+                            color: exam.isFavorite ? 'var(--accent-amber)' : 'var(--text-muted)',
+                          }}
+                        >
+                          <Star size={14} fill={exam.isFavorite ? 'currentColor' : 'none'} />
+                        </button>
                         <button
                           onClick={() => handleExportExam(exam.id, exam.title)}
                           title="Export as Markdown"

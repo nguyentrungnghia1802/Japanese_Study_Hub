@@ -53,6 +53,7 @@ describe('ExamsService (TASK-051 / EXAM-001..007, QUESTION-001..009)', () => {
           description: 'Description',
           folderId: null,
           coverRef: null,
+          isFavorite: false,
           timeLimitSeconds: 1800,
           contentVersion: 1,
           shuffleQuestions: false,
@@ -199,6 +200,63 @@ describe('ExamsService (TASK-051 / EXAM-001..007, QUESTION-001..009)', () => {
           data: expect.objectContaining({ contentVersion: expect.anything() }),
         }),
       );
+    });
+  });
+
+  describe('favorites', () => {
+    it('filters exams by favorite state', async () => {
+      await service.listExams({ favorite: true });
+
+      expect(prismaMock.exam.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ isFavorite: true }) }),
+      );
+      expect(prismaMock.exam.count).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ isFavorite: true }) }),
+      );
+    });
+
+    it('sets favorite idempotently after verifying the exam is active', async () => {
+      prismaMock.exam.findFirst
+        .mockResolvedValueOnce({
+          id: 'exam-1',
+          title: 'JLPT N3 Grammar Mock',
+          description: 'Description',
+          folderId: null,
+          coverRef: null,
+          isFavorite: false,
+          timeLimitSeconds: 1800,
+          contentVersion: 1,
+          shuffleQuestions: false,
+          shuffleOptions: false,
+          createdAt: sampleDate,
+          updatedAt: sampleDate,
+          questions: [],
+          bestResults: [],
+        })
+        .mockResolvedValueOnce({
+          id: 'exam-1',
+          title: 'JLPT N3 Grammar Mock',
+          description: 'Description',
+          folderId: null,
+          coverRef: null,
+          isFavorite: true,
+          timeLimitSeconds: 1800,
+          contentVersion: 1,
+          shuffleQuestions: false,
+          shuffleOptions: false,
+          createdAt: sampleDate,
+          updatedAt: sampleDate,
+          questions: [],
+          bestResults: [],
+        });
+
+      const result = await service.setFavorite('exam-1', true);
+
+      expect(result.isFavorite).toBe(true);
+      expect(prismaMock.exam.update).toHaveBeenCalledWith({
+        where: { id: 'exam-1' },
+        data: { isFavorite: true },
+      });
     });
   });
 

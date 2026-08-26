@@ -123,6 +123,9 @@ Flashcard sets and exams may be marked/unmarked as favorites. Reads can filter b
 favorite, mutations are idempotent, soft-deleted content is excluded, and no
 multi-user/social permission model is introduced.
 
+TASK-241 implements this requirement as a bounded aggregate flag; client and API
+behavior are recorded in `docs/learning/favorites.md`.
+
 ### P2-LEARN-TAGS
 
 Sets and exams may have a bounded collection of flat, normalized tags. Tag

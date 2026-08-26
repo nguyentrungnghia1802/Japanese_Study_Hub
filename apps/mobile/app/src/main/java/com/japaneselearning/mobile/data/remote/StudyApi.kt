@@ -22,10 +22,17 @@ interface StudyApi {
         @Query("search") search: String? = null,
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20,
+        @Query("favorite") favorite: Boolean? = null,
     ): FlashcardSetsResponse
 
     @GET("flashcard-sets/{setId}")
     suspend fun getFlashcardSet(@Path("setId") setId: String): FlashcardSetDto
+
+    @PUT("flashcard-sets/{setId}/favorite")
+    suspend fun setFlashcardFavorite(
+        @Path("setId") setId: String,
+        @Body request: FavoriteRequest,
+    ): FlashcardSetDto
 
     @GET("exam-folders")
     suspend fun listExamFolders(): List<ExamFolderDto>
@@ -36,10 +43,17 @@ interface StudyApi {
         @Query("search") search: String? = null,
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20,
+        @Query("favorite") favorite: Boolean? = null,
     ): ExamsResponse
 
     @GET("exams/{examId}")
     suspend fun getExam(@Path("examId") examId: String): ExamDto
+
+    @PUT("exams/{examId}/favorite")
+    suspend fun setExamFavorite(
+        @Path("examId") examId: String,
+        @Body request: FavoriteRequest,
+    ): ExamDto
 
     @POST("exams/{examId}/attempts")
     suspend fun startAttempt(@Path("examId") examId: String): LiveAttemptDto

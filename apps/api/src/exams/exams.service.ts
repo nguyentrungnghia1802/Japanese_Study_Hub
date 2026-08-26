@@ -122,6 +122,7 @@ export class ExamsService {
     page?: number;
     limit?: number;
     sort?: string;
+    favorite?: boolean;
   }): Promise<PaginatedResultDto<ExamListItemDto>> {
     const page = Math.max(1, params?.page || 1);
     const limit = Math.min(100, Math.max(1, params?.limit || 20));
@@ -136,6 +137,7 @@ export class ExamsService {
       }>;
     } = {
       deletedAt: null,
+      ...(params?.favorite !== undefined ? { isFavorite: params.favorite } : {}),
     };
 
     if (params?.folderId !== undefined) {
@@ -184,6 +186,7 @@ export class ExamsService {
           title: e.title,
           description: e.description,
           coverRef: e.coverRef,
+          isFavorite: e.isFavorite,
           timeLimitSeconds: e.timeLimitSeconds,
           contentVersion: e.contentVersion,
           questionCount: e._count.questions,
@@ -230,6 +233,7 @@ export class ExamsService {
       title: exam.title,
       description: exam.description,
       coverRef: exam.coverRef,
+      isFavorite: exam.isFavorite,
       timeLimitSeconds: exam.timeLimitSeconds,
       contentVersion: exam.contentVersion,
       shuffleQuestions: exam.shuffleQuestions,
@@ -346,6 +350,15 @@ export class ExamsService {
     });
 
     return { success: true };
+  }
+
+  async setFavorite(id: string, favorite: boolean): Promise<ExamDto> {
+    await this.getExam(id);
+    await this.prisma.exam.update({
+      where: { id },
+      data: { isFavorite: favorite },
+    });
+    return this.getExam(id);
   }
 
   async duplicateExam(id: string): Promise<ExamDto> {

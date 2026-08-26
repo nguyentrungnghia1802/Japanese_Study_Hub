@@ -9,6 +9,9 @@ data class LoginRequest(
 )
 
 @Serializable
+data class FavoriteRequest(val favorite: Boolean)
+
+@Serializable
 data class UserDto(val username: String)
 
 @Serializable
@@ -44,6 +47,7 @@ data class FlashcardSetDto(
     val title: String,
     val description: String? = null,
     val coverRef: String? = null,
+    val isFavorite: Boolean = false,
     val cardCount: Int,
     val createdAt: String,
     val updatedAt: String,
@@ -111,6 +115,7 @@ data class ExamDto(
     val title: String,
     val description: String? = null,
     val coverRef: String? = null,
+    val isFavorite: Boolean = false,
     val timeLimitSeconds: Int? = null,
     val contentVersion: Int,
     val shuffleQuestions: Boolean = false,

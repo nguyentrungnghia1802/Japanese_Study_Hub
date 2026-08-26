@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Clock,
   Award,
@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   AlertCircle,
   HelpCircle,
+  Star,
 } from 'lucide-react';
 import { API_BASE_URL, getApiErrorMessage } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
@@ -29,11 +30,28 @@ export default function ExamDetailPage() {
     queryFn: ({ signal }) => studyApi.exam(id, signal),
     enabled: Boolean(id),
   });
+  const queryClient = useQueryClient();
   const exam = examQuery.data ?? null;
   const isLoading = examQuery.isLoading;
   const error = examQuery.error
     ? getApiErrorMessage(examQuery.error, 'Failed to load exam details.')
     : null;
+
+  const handleFavoriteToggle = async () => {
+    if (!exam) return;
+    try {
+      const updated = await studyApi.setExamFavorite(id, !exam.isFavorite);
+      queryClient.setQueryData(queryKeys.exam(id), updated);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.examsRoot() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.searchRoot() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.exam(id) }),
+      ]);
+    } catch (err: unknown) {
+      alert(`Failed to update favorite: ${getApiErrorMessage(err, 'Unknown error')}`);
+    }
+  };
 
   const handleExport = async () => {
     if (!exam) return;
@@ -356,6 +374,30 @@ export default function ExamDetailPage() {
           >
             <Play size={18} />
             <span>{exam.questionCount > 0 ? 'Start Examination' : 'No Questions Added'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => void handleFavoriteToggle()}
+            title={exam.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            aria-label={exam.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.4rem',
+              padding: '0.875rem 1.25rem',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--border-subtle)',
+              color: exam.isFavorite ? 'var(--accent-amber)' : 'var(--text-secondary)',
+              fontWeight: '600',
+              fontSize: '0.9375rem',
+            }}
+          >
+            <Star size={16} fill={exam.isFavorite ? 'currentColor' : 'none'} />
+            <span>{exam.isFavorite ? 'Favorited' : 'Favorite'}</span>
           </button>
 
           <Link

@@ -13,6 +13,7 @@ export interface FlashcardSetDto {
   title: string;
   description: string | null;
   coverRef: string | null;
+  isFavorite: boolean;
   cardCount: number;
   createdAt: string;
   updatedAt: string;

@@ -499,13 +499,13 @@ Commit: `feat: add recent learning resume`
 
 ## TASK-241 — Add Favorites
 
-- [ ] Add favorite state for Flashcard Sets and Exams.
-- [ ] Add API mutations/read filtering.
-- [ ] Add favorite action to Web.
-- [ ] Add favorite action to Android.
-- [ ] Add optional Favorites filter.
-- [ ] Ensure favorites respect soft deletion.
-- [ ] Add migration and tests.
+- [x] Add favorite state for Flashcard Sets and Exams.
+- [x] Add API mutations/read filtering.
+- [x] Add favorite action to Web.
+- [x] Add favorite action to Android.
+- [x] Add optional Favorites filter.
+- [x] Ensure favorites respect soft deletion.
+- [x] Add migration and tests.
 
 Acceptance criteria:
 

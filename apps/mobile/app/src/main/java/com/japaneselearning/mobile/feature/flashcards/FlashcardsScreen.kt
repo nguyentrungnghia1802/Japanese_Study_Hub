@@ -13,9 +13,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -50,6 +54,18 @@ fun FlashcardsScreen(
             singleLine = true,
         )
         Spacer(Modifier.height(12.dp))
+        FilterChip(
+            selected = state.favoriteOnly,
+            onClick = { viewModel.setFavoriteOnly(!state.favoriteOnly) },
+            label = { Text("Yêu thích") },
+            leadingIcon = {
+                Icon(
+                    if (state.favoriteOnly) Icons.Default.Star else Icons.Default.StarBorder,
+                    contentDescription = null,
+                )
+            },
+        )
+        Spacer(Modifier.height(12.dp))
 
         when {
             state.screen.isLoading && state.screen.data == null -> LoadingState()
@@ -80,6 +96,15 @@ fun FlashcardsScreen(
                                         maxLines = 2,
                                     )
                                 }
+                            }
+                            IconButton(
+                                onClick = { viewModel.setFavorite(set.id, !set.isFavorite) },
+                            ) {
+                                Icon(
+                                    if (set.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
+                                    contentDescription = if (set.isFavorite) "Bỏ yêu thích" else "Thêm yêu thích",
+                                    tint = if (set.isFavorite) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                             Text("${set.cardCount} thẻ", color = MaterialTheme.colorScheme.primary)
                         }

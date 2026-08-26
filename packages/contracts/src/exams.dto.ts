@@ -46,6 +46,7 @@ export interface ExamDto {
   title: string;
   description: string | null;
   coverRef: string | null;
+  isFavorite: boolean;
   timeLimitSeconds: number | null;
   contentVersion: number;
   shuffleQuestions: boolean;

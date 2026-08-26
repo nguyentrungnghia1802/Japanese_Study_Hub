@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 
 data class FlashcardsUiState(
     val query: String = "",
+    val favoriteOnly: Boolean = false,
     val screen: ScreenState<List<FlashcardSet>> = ScreenState(),
 )
 
@@ -33,12 +34,35 @@ class FlashcardsViewModel @Inject constructor(
         load(query)
     }
 
+    fun setFavoriteOnly(enabled: Boolean) {
+        _state.update { it.copy(favoriteOnly = enabled) }
+        load()
+    }
+
+    fun setFavorite(setId: String, favorite: Boolean) {
+        viewModelScope.launch {
+            try {
+                repository.setFlashcardFavorite(setId, favorite)
+                load()
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (error: Throwable) {
+                _state.update {
+                    it.copy(screen = it.screen.copy(error = error.message ?: "Không cập nhật được yêu thích."))
+                }
+            }
+        }
+    }
+
     fun load(query: String = _state.value.query) {
         viewModelScope.launch {
             val current = _state.value.screen.data
             _state.update { it.copy(screen = ScreenState(isLoading = true, data = current)) }
             try {
-                val sets = repository.listFlashcardSets(query.trim().takeIf { it.isNotEmpty() })
+                val sets = repository.listFlashcardSets(
+                    search = query.trim().takeIf { it.isNotEmpty() },
+                    favoriteOnly = _state.value.favoriteOnly,
+                )
                 _state.update { it.copy(screen = ScreenState(isLoading = false, data = sets)) }
             } catch (cancellation: CancellationException) {
                 throw cancellation

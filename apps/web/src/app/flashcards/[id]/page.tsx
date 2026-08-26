@@ -17,6 +17,7 @@ import {
   X,
   BookOpen,
   Download,
+  Star,
 } from 'lucide-react';
 import { FlashcardSetDto, FlashcardDto } from '@japanese-learning/contracts';
 import { API_BASE_URL, apiClient, getApiErrorMessage } from '@/lib/api-client';
@@ -57,6 +58,19 @@ export default function FlashcardSetDetailPage() {
   const error = setQuery.error
     ? getApiErrorMessage(setQuery.error, 'Failed to load flashcard set')
     : null;
+
+  const handleFavoriteToggle = async () => {
+    if (!set) return;
+    try {
+      const updated = await studyApi.setFlashcardFavorite(id, !set.isFavorite);
+      queryClient.setQueryData<FlashcardSetDto>(queryKeys.flashcardSet(id), (current) =>
+        current ? { ...current, ...updated, cards: current.cards } : updated,
+      );
+      await invalidateFlashcardQueries(queryClient, id);
+    } catch (err: unknown) {
+      alert(`Failed to update favorite: ${getApiErrorMessage(err, 'Unknown error')}`);
+    }
+  };
 
   useEffect(() => {
     if (set && !isEditingSet) {
@@ -376,6 +390,26 @@ export default function FlashcardSetDetailPage() {
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={() => void handleFavoriteToggle()}
+                  title={set.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  aria-label={set.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.55rem 0.875rem',
+                    borderRadius: 'var(--radius-md)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid var(--border-subtle)',
+                    color: set.isFavorite ? 'var(--accent-amber)' : 'var(--text-secondary)',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  <Star size={15} fill={set.isFavorite ? 'currentColor' : 'none'} />
+                  <span>{set.isFavorite ? 'Favorited' : 'Favorite'}</span>
+                </button>
                 <button
                   onClick={handleExportSet}
                   style={{

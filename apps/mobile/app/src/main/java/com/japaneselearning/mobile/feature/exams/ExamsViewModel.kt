@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 data class ExamsUiState(
     val query: String = "",
     val selectedFolderId: String? = null,
+    val favoriteOnly: Boolean = false,
     val folders: ScreenState<List<ExamFolder>> = ScreenState(),
     val exams: ScreenState<List<Exam>> = ScreenState(),
 )
@@ -58,6 +59,26 @@ class ExamsViewModel @Inject constructor(
         loadExams()
     }
 
+    fun setFavoriteOnly(enabled: Boolean) {
+        _state.update { it.copy(favoriteOnly = enabled) }
+        loadExams()
+    }
+
+    fun setFavorite(examId: String, favorite: Boolean) {
+        viewModelScope.launch {
+            try {
+                repository.setExamFavorite(examId, favorite)
+                loadExams()
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (error: Throwable) {
+                _state.update {
+                    it.copy(exams = it.exams.copy(error = error.message ?: "Không cập nhật được yêu thích."))
+                }
+            }
+        }
+    }
+
     private fun loadExams() {
         viewModelScope.launch {
             val current = _state.value.exams.data
@@ -66,6 +87,7 @@ class ExamsViewModel @Inject constructor(
                 val exams = repository.listExams(
                     folderId = _state.value.selectedFolderId,
                     search = _state.value.query.trim().takeIf(String::isNotEmpty),
+                    favoriteOnly = _state.value.favoriteOnly,
                 )
                 _state.update { it.copy(exams = ScreenState(isLoading = false, data = exams)) }
             } catch (cancellation: CancellationException) {

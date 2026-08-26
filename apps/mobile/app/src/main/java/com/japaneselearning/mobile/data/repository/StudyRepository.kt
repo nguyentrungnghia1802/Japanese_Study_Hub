@@ -16,6 +16,7 @@ import com.japaneselearning.mobile.data.remote.ExamDto
 import com.japaneselearning.mobile.data.remote.ExamFolderDto
 import com.japaneselearning.mobile.data.remote.ExamResultDto
 import com.japaneselearning.mobile.data.remote.ExamQuestionDto
+import com.japaneselearning.mobile.data.remote.FavoriteRequest
 import com.japaneselearning.mobile.data.remote.FlashcardDto
 import com.japaneselearning.mobile.data.remote.FlashcardSetDto
 import com.japaneselearning.mobile.data.remote.LiveAttemptDto
@@ -35,15 +36,23 @@ interface StudyRepository {
 
     suspend fun logout()
 
-    suspend fun listFlashcardSets(search: String? = null): List<FlashcardSet>
+    suspend fun listFlashcardSets(search: String? = null, favoriteOnly: Boolean = false): List<FlashcardSet>
 
     suspend fun getFlashcardSet(setId: String): FlashcardSet
 
+    suspend fun setFlashcardFavorite(setId: String, favorite: Boolean): FlashcardSet
+
     suspend fun listExamFolders(): List<ExamFolder>
 
-    suspend fun listExams(folderId: String? = null, search: String? = null): List<Exam>
+    suspend fun listExams(
+        folderId: String? = null,
+        search: String? = null,
+        favoriteOnly: Boolean = false,
+    ): List<Exam>
 
     suspend fun getExam(examId: String): Exam
+
+    suspend fun setExamFavorite(examId: String, favorite: Boolean): Exam
 
     suspend fun startAttempt(examId: String): LiveAttempt
 
@@ -83,20 +92,38 @@ class StudyRepositoryImpl @Inject constructor(
         tokenStore.clear()
     }
 
-    override suspend fun listFlashcardSets(search: String?): List<FlashcardSet> =
-        request { api.listFlashcardSets(search = search) }.items.map(::mapSet)
+    override suspend fun listFlashcardSets(search: String?, favoriteOnly: Boolean): List<FlashcardSet> =
+        request { api.listFlashcardSets(search = search, favorite = favoriteOnly.takeIf { it }) }
+            .items
+            .map(::mapSet)
 
     override suspend fun getFlashcardSet(setId: String): FlashcardSet =
         mapSet(request { api.getFlashcardSet(setId) })
 
+    override suspend fun setFlashcardFavorite(setId: String, favorite: Boolean): FlashcardSet =
+        mapSet(request { api.setFlashcardFavorite(setId, FavoriteRequest(favorite)) })
+
     override suspend fun listExamFolders(): List<ExamFolder> =
         request { api.listExamFolders() }.map(::mapFolder)
 
-    override suspend fun listExams(folderId: String?, search: String?): List<Exam> =
-        request { api.listExams(folderId = folderId, search = search) }.items.map(::mapExam)
+    override suspend fun listExams(
+        folderId: String?,
+        search: String?,
+        favoriteOnly: Boolean,
+    ): List<Exam> =
+        request {
+            api.listExams(
+                folderId = folderId,
+                search = search,
+                favorite = favoriteOnly.takeIf { it },
+            )
+        }.items.map(::mapExam)
 
     override suspend fun getExam(examId: String): Exam =
         mapExam(request { api.getExam(examId) })
+
+    override suspend fun setExamFavorite(examId: String, favorite: Boolean): Exam =
+        mapExam(request { api.setExamFavorite(examId, FavoriteRequest(favorite)) })
 
     override suspend fun startAttempt(examId: String): LiveAttempt =
         mapAttempt(request { api.startAttempt(examId) })
@@ -152,6 +179,7 @@ class StudyRepositoryImpl @Inject constructor(
         title = dto.title,
         description = dto.description,
         cardCount = dto.cardCount,
+        isFavorite = dto.isFavorite,
         cards = dto.cards.orEmpty().map(::mapCard),
     )
 
@@ -179,6 +207,7 @@ class StudyRepositoryImpl @Inject constructor(
         timeLimitSeconds = dto.timeLimitSeconds,
         questionCount = dto.questionCount,
         bestScore = dto.bestScore ?: dto.bestResult?.bestScore,
+        isFavorite = dto.isFavorite,
         questions = dto.questions.orEmpty().map(::mapQuestion),
     )
 

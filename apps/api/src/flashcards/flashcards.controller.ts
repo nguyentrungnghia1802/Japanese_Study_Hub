@@ -22,6 +22,7 @@ import { CreateCardBodyDto } from './dto/create-card.dto.js';
 import { UpdateCardBodyDto } from './dto/update-card.dto.js';
 import { ReorderCardsBodyDto } from './dto/reorder-cards.dto.js';
 import { LearningService } from '../learning/learning.service.js';
+import { SetFavoriteBodyDto } from '../common/dto/set-favorite.dto.js';
 
 @ApiTags('Flashcards')
 @ApiBearerAuth()
@@ -45,6 +46,7 @@ export class FlashcardsController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number, maximum: 100 })
+  @ApiQuery({ name: 'favorite', required: false, type: Boolean })
   @ApiQuery({
     name: 'sort',
     required: false,
@@ -56,12 +58,14 @@ export class FlashcardsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sort') sort?: string,
+    @Query('favorite') favorite?: string,
   ) {
     return this.flashcardsService.listSets({
       search,
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
       sort,
+      favorite: favorite === 'true' ? true : favorite === 'false' ? false : undefined,
     });
   }
 
@@ -73,6 +77,14 @@ export class FlashcardsController {
     const set = await this.flashcardsService.getSet(id);
     await this.learningService.touchFlashcardSet(id);
     return set;
+  }
+
+  @Put(':id/favorite')
+  @ApiOperation({ summary: 'Set or clear the favorite state of a flashcard set' })
+  @ApiResponse({ status: 200, description: 'Flashcard set favorite state updated' })
+  @ApiResponse({ status: 404, description: 'Set not found' })
+  async setFavorite(@Param('id', ParseUUIDPipe) id: string, @Body() dto: SetFavoriteBodyDto) {
+    return this.flashcardsService.setFavorite(id, dto.favorite);
   }
 
   @Get(':id/export')

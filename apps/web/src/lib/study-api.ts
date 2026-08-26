@@ -73,6 +73,13 @@ export const studyApi = {
   flashcardSet: (setId: string, signal?: AbortSignal) =>
     apiClient<FlashcardSetDto>(`/flashcard-sets/${setId}`, { signal }),
 
+  setFlashcardFavorite: (setId: string, favorite: boolean, signal?: AbortSignal) =>
+    apiClient<FlashcardSetDto>(`/flashcard-sets/${setId}/favorite`, {
+      method: 'PUT',
+      body: JSON.stringify({ favorite }),
+      signal,
+    }),
+
   examFolders: (signal?: AbortSignal) => apiClient<ExamFolderDto[]>('/exam-folders', { signal }),
 
   exams: (query: ExamListQuery = {}, signal?: AbortSignal) =>
@@ -91,6 +98,13 @@ export const studyApi = {
 
   exam: (examId: string, signal?: AbortSignal) =>
     apiClient<ExamDto>(`/exams/${examId}`, { signal }),
+
+  setExamFavorite: (examId: string, favorite: boolean, signal?: AbortSignal) =>
+    apiClient<ExamDto>(`/exams/${examId}/favorite`, {
+      method: 'PUT',
+      body: JSON.stringify({ favorite }),
+      signal,
+    }),
 
   search: (query: string, limit = 30, signal?: AbortSignal) =>
     apiClient<SearchResultsDto>(`/search${buildQuery({ q: query.trim(), limit })}`, { signal }),

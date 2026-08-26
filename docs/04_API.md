@@ -102,6 +102,13 @@ Optional if Trash is surfaced.
 
 Creates a copy with duplicated cards.
 
+### `PUT /api/v1/flashcard-sets/{setId}/favorite`
+
+Sets the favorite state with `{ "favorite": true|false }`. The operation is
+idempotent and rejects soft-deleted sets.
+
+`GET /api/v1/flashcard-sets` accepts optional `favorite=true|false` filtering.
+
 ---
 
 ## 5. Flashcard endpoints
@@ -237,6 +244,13 @@ Content mutation determines whether version increments.
 Soft delete.
 
 ### `POST /api/v1/exams/{examId}/duplicate`
+
+### `PUT /api/v1/exams/{examId}/favorite`
+
+Sets the favorite state with `{ "favorite": true|false }`. The operation is
+idempotent and rejects soft-deleted exams.
+
+`GET /api/v1/exams` accepts optional `favorite=true|false` filtering.
 
 ---
 

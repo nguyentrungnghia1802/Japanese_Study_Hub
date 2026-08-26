@@ -15,6 +15,7 @@ data class FlashcardSet(
     val title: String,
     val description: String?,
     val cardCount: Int,
+    val isFavorite: Boolean,
     val cards: List<Flashcard> = emptyList(),
 )
 
@@ -34,6 +35,7 @@ data class Exam(
     val timeLimitSeconds: Int?,
     val questionCount: Int,
     val bestScore: Double?,
+    val isFavorite: Boolean,
     val questions: List<ExamQuestion> = emptyList(),
 )
 

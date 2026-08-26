@@ -37,6 +37,7 @@ export class FlashcardsService {
       title: set.title,
       description: set.description,
       coverRef: set.coverRef,
+      isFavorite: set.isFavorite,
       cardCount: set._count.cards,
       createdAt: set.createdAt.toISOString(),
       updatedAt: set.updatedAt.toISOString(),
@@ -48,6 +49,7 @@ export class FlashcardsService {
     page?: number;
     limit?: number;
     sort?: string;
+    favorite?: boolean;
   }): Promise<PaginatedResultDto<FlashcardSetListItemDto>> {
     const page = Math.max(1, options?.page || 1);
     const limit = Math.min(100, Math.max(1, options?.limit || 20));
@@ -63,6 +65,7 @@ export class FlashcardsService {
             ],
           }
         : {}),
+      ...(options?.favorite !== undefined ? { isFavorite: options.favorite } : {}),
     };
 
     const orderBy =
@@ -93,6 +96,7 @@ export class FlashcardsService {
         title: s.title,
         description: s.description,
         coverRef: s.coverRef,
+        isFavorite: s.isFavorite,
         cardCount: s._count.cards,
         createdAt: s.createdAt.toISOString(),
         updatedAt: s.updatedAt.toISOString(),
@@ -127,6 +131,7 @@ export class FlashcardsService {
       title: set.title,
       description: set.description,
       coverRef: set.coverRef,
+      isFavorite: set.isFavorite,
       cardCount: set._count.cards,
       cards: set.cards.map((c) => ({
         id: c.id,
@@ -175,6 +180,7 @@ export class FlashcardsService {
       title: updated.title,
       description: updated.description,
       coverRef: updated.coverRef,
+      isFavorite: updated.isFavorite,
       cardCount: updated._count.cards,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
@@ -197,6 +203,15 @@ export class FlashcardsService {
     ]);
 
     return { success: true, id };
+  }
+
+  async setFavorite(id: string, favorite: boolean) {
+    await this.getSet(id);
+    await this.prisma.flashcardSet.update({
+      where: { id },
+      data: { isFavorite: favorite },
+    });
+    return this.getSet(id);
   }
 
   // ----------------------------------------------------
@@ -342,6 +357,7 @@ export class FlashcardsService {
         title: newSet.title,
         description: newSet.description,
         coverRef: newSet.coverRef,
+        isFavorite: newSet.isFavorite,
         cardCount: existing.cards.length,
         createdAt: newSet.createdAt.toISOString(),
         updatedAt: newSet.updatedAt.toISOString(),

@@ -60,6 +60,7 @@ Recommended columns:
 | title       | varchar/text |   no | bounded                  |
 | description | text         |  yes | Markdown/plain text      |
 | cover_ref   | text         |  yes | optional media reference |
+| is_favorite | boolean      |   no | default false            |
 | created_at  | timestamptz  |   no |                          |
 | updated_at  | timestamptz  |   no |                          |
 | deleted_at  | timestamptz  |  yes | soft delete              |
@@ -126,6 +127,7 @@ Indexes:
 | title              | text        |   no |                 |
 | description        | text        |  yes |                 |
 | cover_ref          | text        |  yes |                 |
+| is_favorite        | boolean     |   no | default false   |
 | time_limit_seconds | integer     |  yes | null = untimed  |
 | content_version    | integer     |   no | default 1       |
 | shuffle_questions  | boolean     |   no | default false   |

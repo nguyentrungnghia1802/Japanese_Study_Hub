@@ -20,6 +20,7 @@ import { CreateExamBodyDto } from './dto/create-exam.dto.js';
 import { UpdateExamMetadataBodyDto } from './dto/update-exam-metadata.dto.js';
 import { UpdateExamContentBodyDto } from './dto/update-exam-content.dto.js';
 import { LearningService } from '../learning/learning.service.js';
+import { SetFavoriteBodyDto } from '../common/dto/set-favorite.dto.js';
 
 @ApiTags('Exams')
 @ApiBearerAuth()
@@ -45,6 +46,7 @@ export class ExamsController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number, maximum: 100 })
+  @ApiQuery({ name: 'favorite', required: false, type: Boolean })
   @ApiQuery({
     name: 'sort',
     required: false,
@@ -57,6 +59,7 @@ export class ExamsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sort') sort?: string,
+    @Query('favorite') favorite?: string,
   ) {
     return this.examsService.listExams({
       folderId,
@@ -64,6 +67,7 @@ export class ExamsController {
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
       sort,
+      favorite: favorite === 'true' ? true : favorite === 'false' ? false : undefined,
     });
   }
 
@@ -75,6 +79,14 @@ export class ExamsController {
     const exam = await this.examsService.getExam(id);
     await this.learningService.touchExam(id);
     return exam;
+  }
+
+  @Put(':id/favorite')
+  @ApiOperation({ summary: 'Set or clear the favorite state of an exam' })
+  @ApiResponse({ status: 200, description: 'Exam favorite state updated' })
+  @ApiResponse({ status: 404, description: 'Exam not found' })
+  async setFavorite(@Param('id', ParseUUIDPipe) id: string, @Body() dto: SetFavoriteBodyDto) {
+    return this.examsService.setFavorite(id, dto.favorite);
   }
 
   @Get(':id/export')

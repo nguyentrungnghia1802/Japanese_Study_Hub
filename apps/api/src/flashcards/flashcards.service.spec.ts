@@ -29,6 +29,7 @@ describe('FlashcardsService (TASK-030 / FC-001..008)', () => {
     title: 'JLPT N5 Kanji',
     description: 'Basic N5 kanji set',
     coverRef: null,
+    isFavorite: false,
     createdAt: sampleDate,
     updatedAt: sampleDate,
     deletedAt: null,
@@ -101,6 +102,17 @@ describe('FlashcardsService (TASK-030 / FC-001..008)', () => {
       expect(result.items[0]).not.toHaveProperty('cards');
     });
 
+    it('filters flashcard sets by favorite state', async () => {
+      await service.listSets({ favorite: true });
+
+      expect(prismaMock.flashcardSet.count).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ isFavorite: true }) }),
+      );
+      expect(prismaMock.flashcardSet.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ isFavorite: true }) }),
+      );
+    });
+
     it('gets a single set with cards', async () => {
       const result = await service.getSet(sampleSet.id);
       expect(result.id).toBe(sampleSet.id);
@@ -125,6 +137,20 @@ describe('FlashcardsService (TASK-030 / FC-001..008)', () => {
       const result = await service.deleteSet(sampleSet.id);
       expect(result.success).toBe(true);
       expect(prismaMock.$transaction).toHaveBeenCalled();
+    });
+
+    it('sets favorite idempotently after verifying the set is active', async () => {
+      prismaMock.flashcardSet.findFirst
+        .mockResolvedValueOnce(sampleSet)
+        .mockResolvedValueOnce({ ...sampleSet, isFavorite: true });
+
+      const result = await service.setFavorite(sampleSet.id, true);
+
+      expect(result.isFavorite).toBe(true);
+      expect(prismaMock.flashcardSet.update).toHaveBeenCalledWith({
+        where: { id: sampleSet.id },
+        data: { isFavorite: true },
+      });
     });
   });
 
@@ -165,6 +191,7 @@ describe('FlashcardsService (TASK-030 / FC-001..008)', () => {
             title: 'JLPT N5 Kanji (Copy)',
             description: sampleSet.description,
             coverRef: sampleSet.coverRef,
+            isFavorite: false,
             createdAt: sampleDate,
             updatedAt: sampleDate,
           }),

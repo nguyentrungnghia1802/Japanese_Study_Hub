@@ -16,6 +16,7 @@ import {
   Edit,
   Sparkles,
   Upload,
+  Star,
 } from 'lucide-react';
 import { FlashcardSetDto } from '@japanese-learning/contracts';
 import { API_BASE_URL, apiClient, getApiErrorMessage } from '@/lib/api-client';
@@ -37,6 +38,7 @@ export default function FlashcardsPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sort, setSort] = useState<UiSortValue>('createdAt_desc');
+  const [favoriteOnly, setFavoriteOnly] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -84,10 +86,17 @@ export default function FlashcardsPage() {
       page: 1,
       pageSize: 20,
       sort,
+      favorite: favoriteOnly ? true : undefined,
     }),
     queryFn: ({ signal }) =>
       studyApi.flashcardSets(
-        { search: debouncedSearch || undefined, page: 1, pageSize: 20, sort },
+        {
+          search: debouncedSearch || undefined,
+          page: 1,
+          pageSize: 20,
+          sort,
+          favorite: favoriteOnly ? true : undefined,
+        },
         signal,
       ),
     placeholderData: (previousData) => previousData,
@@ -96,6 +105,15 @@ export default function FlashcardsPage() {
   const sets = setsQuery.data?.items ?? [];
   const isLoading = setsQuery.isLoading;
   const isRefreshing = setsQuery.isFetching && !isLoading;
+
+  const handleFavoriteToggle = async (id: string, favorite: boolean) => {
+    try {
+      await studyApi.setFlashcardFavorite(id, favorite);
+      await invalidateFlashcardQueries(queryClient, id);
+    } catch (err: unknown) {
+      alert(`Failed to update favorite: ${getApiErrorMessage(err, 'Unknown error')}`);
+    }
+  };
 
   const handleCreateSet = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -319,6 +337,26 @@ export default function FlashcardsPage() {
           <option value="updatedAt_desc">Recently updated</option>
           <option value="title_asc">Title A–Z</option>
         </select>
+        <select
+          value={favoriteOnly ? 'favorites' : 'all'}
+          onChange={(event) => setFavoriteOnly(event.target.value === 'favorites')}
+          aria-label="Filter flashcard decks by favorite"
+          style={{
+            position: 'absolute',
+            right: '8.5rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            padding: '0.35rem 0.5rem',
+            borderRadius: 'var(--radius-sm)',
+            background: '#1e293b',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-secondary)',
+            fontSize: '0.8rem',
+          }}
+        >
+          <option value="all">All decks</option>
+          <option value="favorites">Favorites</option>
+        </select>
       </div>
 
       {/* Sets Grid */}
@@ -471,6 +509,18 @@ export default function FlashcardsPage() {
 
                   {/* Actions Dropdown / Icons */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <button
+                      onClick={() => void handleFavoriteToggle(set.id, !set.isFavorite)}
+                      title={set.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                      aria-label={set.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                      style={{
+                        background: 'transparent',
+                        padding: '0.35rem',
+                        color: set.isFavorite ? 'var(--accent-amber)' : 'var(--text-muted)',
+                      }}
+                    >
+                      <Star size={15} fill={set.isFavorite ? 'currentColor' : 'none'} />
+                    </button>
                     <button
                       onClick={() => handleExportSet(set.id, set.title)}
                       title="Export as Markdown"
