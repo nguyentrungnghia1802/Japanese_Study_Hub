@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ApiError } from './api-client.js';
 import { CACHE_POLICY } from './cache-policy.js';
-import { invalidateFlashcardQueries } from './query-invalidation.js';
+import { invalidateExamQueries, invalidateFlashcardQueries } from './query-invalidation.js';
 import {
   createStudyQueryClient,
   getQueryCacheStats,
@@ -54,5 +54,29 @@ describe('Web query policy', () => {
     expect(
       queryClient.getQueryCache().find({ queryKey: queryKeys.exams() })?.state.isInvalidated,
     ).toBe(false);
+  });
+
+  it('invalidates official exam result reads after submission', async () => {
+    const queryClient = createStudyQueryClient();
+    const examId = '77777777-7777-4777-8777-777777777777';
+    await queryClient.fetchQuery({ queryKey: queryKeys.exam(examId), queryFn: async () => ({}) });
+    await queryClient.fetchQuery({
+      queryKey: queryKeys.bestResult(examId),
+      queryFn: async () => ({ bestScore: 80 }),
+    });
+    await queryClient.fetchQuery({ queryKey: queryKeys.dashboard(), queryFn: async () => ({}) });
+
+    await invalidateExamQueries(queryClient, examId);
+
+    expect(
+      queryClient.getQueryCache().find({ queryKey: queryKeys.exam(examId) })?.state.isInvalidated,
+    ).toBe(true);
+    expect(
+      queryClient.getQueryCache().find({ queryKey: queryKeys.bestResult(examId) })?.state
+        .isInvalidated,
+    ).toBe(true);
+    expect(
+      queryClient.getQueryCache().find({ queryKey: queryKeys.dashboard() })?.state.isInvalidated,
+    ).toBe(true);
   });
 });

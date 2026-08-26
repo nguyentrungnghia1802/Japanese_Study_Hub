@@ -44,6 +44,15 @@ export function createStudyQueryClient(): QueryClient {
   });
 }
 
+export const LIVE_ATTEMPT_QUERY_OPTIONS = {
+  staleTime: CACHE_POLICY.liveAttempt.staleTime,
+  gcTime: CACHE_POLICY.liveAttempt.gcTime,
+  retry: false,
+  refetchOnReconnect: true,
+  refetchOnWindowFocus: true,
+  refetchOnMount: false,
+} as const;
+
 export interface QueryCacheStats {
   total: number;
   active: number;

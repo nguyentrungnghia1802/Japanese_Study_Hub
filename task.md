@@ -201,16 +201,16 @@ Commit: `perf(web): cache exam library data`
 
 ## TASK-214 — Keep live exam attempts freshness-first
 
-- [ ] Treat attempt start/restore as freshness-sensitive.
-- [ ] Do not give live attempt payloads long stale windows.
-- [ ] Do not persist live attempt query data across browser restarts through a generic persistent query cache.
-- [ ] Keep server expiration authoritative.
-- [ ] Continue autosaving answers to the backend.
-- [ ] Revalidate attempt state on reconnect, tab restoration, or explicit resume.
-- [ ] Cancel obsolete autosave calls when superseded safely.
-- [ ] Prevent duplicate answer writes when the selected value has not changed.
-- [ ] Invalidate exam best-result/list/detail queries after final submission.
-- [ ] Verify browser/query cache never contains correctness metadata before grading.
+- [x] Treat attempt start/restore as freshness-sensitive.
+- [x] Do not give live attempt payloads long stale windows.
+- [x] Do not persist live attempt query data across browser restarts through a generic persistent query cache.
+- [x] Keep server expiration authoritative.
+- [x] Continue autosaving answers to the backend.
+- [x] Revalidate attempt state on reconnect, tab restoration, or explicit resume.
+- [x] Cancel obsolete autosave calls when superseded safely.
+- [x] Prevent duplicate answer writes when the selected value has not changed.
+- [x] Invalidate exam best-result/list/detail queries after final submission.
+- [x] Verify browser/query cache never contains correctness metadata before grading.
 
 Acceptance criteria:
 
@@ -218,9 +218,9 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] No-answer-leakage cache regression test.
-- [ ] Timer restore regression test.
-- [ ] Submit invalidation regression test.
+- [x] No-answer-leakage cache regression test.
+- [x] Timer restore regression test.
+- [x] Submit invalidation regression test.
 
 Commit: `perf(exams): preserve fresh live attempt state`
 

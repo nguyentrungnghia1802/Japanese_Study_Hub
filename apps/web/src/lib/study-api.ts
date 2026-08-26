@@ -22,6 +22,31 @@ function buildQuery(params: Record<string, string | number | boolean | null | un
   return encoded ? `?${encoded}` : '';
 }
 
+const FORBIDDEN_LIVE_ATTEMPT_KEYS = new Set([
+  'isCorrect',
+  'correctOptionId',
+  'answerKey',
+  'correctAnswer',
+]);
+
+export function assertLiveAttemptPayload(payload: LiveExamAttemptDto): LiveExamAttemptDto {
+  const pending: unknown[] = [payload];
+
+  while (pending.length > 0) {
+    const value = pending.pop();
+    if (!value || typeof value !== 'object') continue;
+
+    for (const [key, child] of Object.entries(value)) {
+      if (FORBIDDEN_LIVE_ATTEMPT_KEYS.has(key)) {
+        throw new Error('Live attempt response contains forbidden correctness metadata');
+      }
+      if (child && typeof child === 'object') pending.push(child);
+    }
+  }
+
+  return payload;
+}
+
 export const studyApi = {
   dashboard: (signal?: AbortSignal) =>
     apiClient<DashboardSummaryDto>('/dashboard/summary', { signal }),
@@ -65,7 +90,15 @@ export const studyApi = {
     apiClient<SearchResultsDto>(`/search${buildQuery({ q: query.trim(), limit })}`, { signal }),
 
   liveAttempt: (attemptId: string, signal?: AbortSignal) =>
-    apiClient<LiveExamAttemptDto>(`/attempts/${attemptId}`, { signal }),
+    apiClient<LiveExamAttemptDto>(`/attempts/${attemptId}`, { signal }).then(
+      assertLiveAttemptPayload,
+    ),
+
+  startAttempt: (examId: string, signal?: AbortSignal) =>
+    apiClient<LiveExamAttemptDto>(`/exams/${examId}/attempts`, {
+      method: 'POST',
+      signal,
+    }).then(assertLiveAttemptPayload),
 
   submitAttempt: (attemptId: string, body: unknown, signal?: AbortSignal) =>
     apiClient<ExamAttemptResultDto>(`/attempts/${attemptId}/submit`, {

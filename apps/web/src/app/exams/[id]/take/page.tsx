@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Clock,
   ChevronLeft,
@@ -16,64 +17,183 @@ import {
   Sparkles,
   Send,
 } from 'lucide-react';
-import {
-  AttemptStatus,
-  LiveExamAttemptDto,
-  ExamAttemptResultDto,
-} from '@japanese-learning/contracts';
-import { apiClient } from '@/lib/api-client';
-import { useQueryClient } from '@tanstack/react-query';
+import { AttemptStatus, ExamAttemptResultDto } from '@japanese-learning/contracts';
+import { apiClient, getApiErrorMessage } from '@/lib/api-client';
+import { LIVE_ATTEMPT_QUERY_OPTIONS } from '@/lib/query-client';
+import { queryKeys } from '@/lib/query-keys';
 import { invalidateExamQueries } from '@/lib/query-invalidation';
+import {
+  clearActiveAttemptId,
+  getServerRemainingSeconds,
+  readActiveAttemptId,
+  writeActiveAttemptId,
+} from '@/lib/live-attempt-policy';
+import { studyApi } from '@/lib/study-api';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
+interface AutosaveRequest {
+  sequence: number;
+  controller: AbortController;
+  promise: Promise<void>;
+}
+
+function isAbortError(error: unknown): boolean {
+  return (
+    (error instanceof DOMException && error.name === 'AbortError') ||
+    (error instanceof Error && error.name === 'AbortError')
+  );
+}
+
 export default function ExamTakePage() {
   const params = useParams();
-  const router = useRouter();
   const examId = params?.id as string;
   const queryClient = useQueryClient();
 
-  const [attempt, setAttempt] = useState<LiveExamAttemptDto | null>(null);
+  const [attemptContext, setAttemptContext] = useState<{
+    examId: string;
+    attemptId: string | null;
+  } | null>(null);
   const [result, setResult] = useState<ExamAttemptResultDto | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | null>>({});
-  const [isStarting, setIsStarting] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [timeLeftSeconds, setTimeLeftSeconds] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pendingAnswersRef = useRef<Record<string, string | null>>({});
+  const autosaveRequestsRef = useRef<Map<string, AutosaveRequest>>(new Map());
+  const answerSequenceRef = useRef<Map<string, number>>(new Map());
 
-  // Initialize or resume attempt
-  const initAttempt = useCallback(async () => {
-    setIsStarting(true);
-    setError(null);
-    try {
-      const data = await apiClient<LiveExamAttemptDto>(`/exams/${examId}/attempts`, {
-        method: 'POST',
-      });
-      setAttempt(data);
-      setAnswers(data.savedAnswers || {});
+  const activeAttemptId = attemptContext?.examId === examId ? attemptContext.attemptId : null;
+  const isHydrated = attemptContext?.examId === examId;
+  const bootstrapAttemptKey = `bootstrap:${examId}`;
+  const attemptQuery = useQuery({
+    ...LIVE_ATTEMPT_QUERY_OPTIONS,
+    queryKey: queryKeys.liveAttempt(activeAttemptId ?? bootstrapAttemptKey),
+    queryFn: ({ signal }) =>
+      activeAttemptId
+        ? studyApi.liveAttempt(activeAttemptId, signal)
+        : studyApi.startAttempt(examId, signal),
+    enabled: Boolean(examId) && isHydrated && !result,
+  });
+  const attemptData = attemptQuery.data;
+  const refetchAttempt = attemptQuery.refetch;
+  const attempt = attemptData ?? null;
+  const isStarting = !result && (!isHydrated || (attemptQuery.isPending && !attempt));
+  const error = attemptQuery.error
+    ? getApiErrorMessage(attemptQuery.error, 'Failed to start exam attempt.')
+    : null;
 
-      if (data.expiresAt) {
-        const remaining = Math.max(
-          0,
-          Math.round((new Date(data.expiresAt).getTime() - Date.now()) / 1000),
-        );
-        setTimeLeftSeconds(remaining);
-      }
-    } catch (err: unknown) {
-      const apiErr = err as Error;
-      setError(apiErr.message || 'Failed to start exam attempt.');
-    } finally {
-      setIsStarting(false);
-    }
+  useEffect(() => {
+    setAttemptContext({ examId, attemptId: readActiveAttemptId(examId) });
   }, [examId]);
 
   useEffect(() => {
-    if (examId) initAttempt();
-  }, [examId, initAttempt]);
+    const data = attemptData;
+    if (!data || !examId) return;
+
+    if (data.status !== AttemptStatus.IN_PROGRESS && activeAttemptId) {
+      clearActiveAttemptId(examId);
+      queryClient.removeQueries({
+        queryKey: queryKeys.liveAttempt(activeAttemptId),
+        exact: true,
+      });
+      setAttemptContext({ examId, attemptId: null });
+      return;
+    }
+
+    if (!activeAttemptId) {
+      queryClient.setQueryData(queryKeys.liveAttempt(data.attemptId), data);
+      writeActiveAttemptId(examId, data.attemptId);
+      setAttemptContext({ examId, attemptId: data.attemptId });
+      queryClient.removeQueries({
+        queryKey: queryKeys.liveAttempt(bootstrapAttemptKey),
+        exact: true,
+      });
+    }
+  }, [activeAttemptId, attemptData, bootstrapAttemptKey, examId, queryClient]);
+
+  useEffect(() => {
+    const data = attemptData;
+    if (!data) return;
+
+    const serverAnswers = data.savedAnswers || {};
+    const pendingAnswers = pendingAnswersRef.current;
+    for (const [questionId, selectedOptionId] of Object.entries(pendingAnswers)) {
+      if (serverAnswers[questionId] === selectedOptionId) {
+        delete pendingAnswers[questionId];
+      }
+    }
+
+    setAnswers({ ...serverAnswers, ...pendingAnswers });
+    setTimeLeftSeconds(getServerRemainingSeconds(data.expiresAt));
+  }, [attemptData]);
+
+  useEffect(() => {
+    const revalidate = () => {
+      if (!result && activeAttemptId && document.visibilityState === 'visible') {
+        void refetchAttempt();
+      }
+    };
+
+    window.addEventListener('online', revalidate);
+    document.addEventListener('visibilitychange', revalidate);
+    return () => {
+      window.removeEventListener('online', revalidate);
+      document.removeEventListener('visibilitychange', revalidate);
+    };
+  }, [activeAttemptId, refetchAttempt, result]);
+
+  const cancelAutosaves = useCallback(() => {
+    autosaveRequestsRef.current.forEach((request) => {
+      request.controller.abort();
+    });
+    autosaveRequestsRef.current.clear();
+    pendingAnswersRef.current = {};
+  }, []);
+
+  useEffect(() => cancelAutosaves, [cancelAutosaves]);
+
+  const queueAnswerSave = useCallback((questionId: string, optionId: string, attemptId: string) => {
+    const previous = autosaveRequestsRef.current.get(questionId);
+    previous?.controller.abort();
+
+    const sequence = (answerSequenceRef.current.get(questionId) || 0) + 1;
+    answerSequenceRef.current.set(questionId, sequence);
+    const controller = new AbortController();
+    pendingAnswersRef.current[questionId] = optionId;
+
+    let request: Promise<void>;
+    request = (async () => {
+      if (previous) await previous.promise.catch(() => undefined);
+      if (answerSequenceRef.current.get(questionId) !== sequence) return;
+
+      try {
+        await apiClient(`/attempts/${attemptId}/answers`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            answers: [{ questionId, selectedOptionId: optionId }],
+          }),
+          signal: controller.signal,
+        });
+        if (answerSequenceRef.current.get(questionId) === sequence) {
+          delete pendingAnswersRef.current[questionId];
+        }
+      } catch (error: unknown) {
+        if (answerSequenceRef.current.get(questionId) === sequence && !isAbortError(error)) {
+          delete pendingAnswersRef.current[questionId];
+        }
+      } finally {
+        const current = autosaveRequestsRef.current.get(questionId);
+        if (current?.sequence === sequence) autosaveRequestsRef.current.delete(questionId);
+      }
+    })();
+
+    autosaveRequestsRef.current.set(questionId, { sequence, controller, promise: request });
+    void request;
+  }, []);
 
   // Submit attempt handler
   const handleSubmit = useCallback(async () => {
@@ -82,68 +202,64 @@ export default function ExamTakePage() {
     setIsConfirmOpen(false);
 
     try {
-      const formattedAnswers = Object.entries(answers).map(([questionId, selectedOptionId]) => ({
-        questionId,
-        selectedOptionId,
-      }));
+      const formattedAnswers = Object.entries({ ...answers, ...pendingAnswersRef.current }).map(
+        ([questionId, selectedOptionId]) => ({ questionId, selectedOptionId }),
+      );
+      cancelAutosaves();
 
-      const res = await apiClient<ExamAttemptResultDto>(`/attempts/${attempt.attemptId}/submit`, {
-        method: 'POST',
-        body: JSON.stringify({ answers: formattedAnswers }),
-      });
+      const res = await studyApi.submitAttempt(attempt.attemptId, { answers: formattedAnswers });
 
       setResult(res);
+      clearActiveAttemptId(examId);
+      queryClient.removeQueries({
+        queryKey: queryKeys.liveAttempt(attempt.attemptId),
+        exact: true,
+      });
       await invalidateExamQueries(queryClient, examId);
       if (timerRef.current) clearInterval(timerRef.current);
     } catch (err: unknown) {
-      const apiErr = err as Error;
-      alert(`Submission failed: ${apiErr.message}`);
+      alert(`Submission failed: ${getApiErrorMessage(err, 'Unknown error')}`);
     } finally {
       setIsSubmitting(false);
     }
-  }, [attempt, answers, examId, isSubmitting, queryClient]);
+  }, [answers, attempt, cancelAutosaves, examId, isSubmitting, queryClient]);
 
   // Server-based countdown timer
   useEffect(() => {
     if (!attempt?.expiresAt || result) return;
 
-    const interval = setInterval(() => {
-      const remaining = Math.max(
-        0,
-        Math.round((new Date(attempt.expiresAt!).getTime() - Date.now()) / 1000),
-      );
-
+    const updateTimer = () => {
+      const remaining = getServerRemainingSeconds(attempt.expiresAt);
       setTimeLeftSeconds(remaining);
 
-      if (remaining <= 0) {
-        clearInterval(interval);
-        handleSubmit();
+      if (remaining !== null && remaining <= 0) {
+        void handleSubmit();
       }
-    }, 1000);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
 
     timerRef.current = interval;
     return () => clearInterval(interval);
-  }, [attempt, result, handleSubmit]);
+  }, [attempt?.expiresAt, result, handleSubmit]);
 
   // Autosave selection on change
-  const handleSelectOption = async (questionId: string, optionId: string) => {
+  const handleSelectOption = (questionId: string, optionId: string) => {
     if (result || isSubmitting) return;
 
-    const newAnswers = { ...answers, [questionId]: optionId };
-    setAnswers(newAnswers);
+    const hasPendingAnswer = Object.prototype.hasOwnProperty.call(
+      pendingAnswersRef.current,
+      questionId,
+    );
+    const currentAnswer = hasPendingAnswer
+      ? pendingAnswersRef.current[questionId]
+      : answers[questionId] || null;
+    if (currentAnswer === optionId) return;
 
     if (!attempt) return;
-
-    try {
-      await apiClient(`/attempts/${attempt.attemptId}/answers`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          answers: [{ questionId, selectedOptionId: optionId }],
-        }),
-      });
-    } catch {
-      // Background autosave failure is non-fatal; state remains in client
-    }
+    setAnswers((previous) => ({ ...previous, [questionId]: optionId }));
+    queueAnswerSave(questionId, optionId, attempt.attemptId);
   };
 
   if (isStarting) {
@@ -178,7 +294,7 @@ export default function ExamTakePage() {
     );
   }
 
-  if (error || !attempt) {
+  if (!result && (error || !attempt)) {
     return (
       <div
         style={{ maxWidth: '800px', margin: '4rem auto', padding: '0 1.5rem', textAlign: 'center' }}
@@ -196,6 +312,20 @@ export default function ExamTakePage() {
             Unable to Start Exam
           </h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>{error}</p>
+          <button
+            type="button"
+            onClick={() => void attemptQuery.refetch()}
+            style={{
+              padding: '0.625rem 1.25rem',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--gradient-brand)',
+              color: '#fff',
+              fontWeight: '600',
+              marginBottom: '1rem',
+            }}
+          >
+            Retry
+          </button>
           <Link
             href={`/exams/${examId}`}
             style={{
@@ -360,8 +490,19 @@ export default function ExamTakePage() {
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <button
               onClick={() => {
+                cancelAutosaves();
+                if (activeAttemptId) {
+                  queryClient.removeQueries({
+                    queryKey: queryKeys.liveAttempt(activeAttemptId),
+                    exact: true,
+                  });
+                }
+                clearActiveAttemptId(examId);
+                setAttemptContext({ examId, attemptId: null });
                 setResult(null);
-                initAttempt();
+                setAnswers({});
+                setCurrentIndex(0);
+                setTimeLeftSeconds(null);
               }}
               style={{
                 display: 'flex',
@@ -558,6 +699,8 @@ export default function ExamTakePage() {
   }
 
   // --- LIVE TAKING ENGINE (TASK-073) ---
+  if (!attempt) return null;
+
   const currentQuestion = attempt.questions[currentIndex];
   const answeredCount = Object.values(answers).filter((a) => a !== null && a !== undefined).length;
   const unansweredCount = attempt.totalQuestions - answeredCount;

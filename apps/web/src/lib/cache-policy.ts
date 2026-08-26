@@ -13,7 +13,7 @@ export const CACHE_POLICY = {
   },
   liveAttempt: {
     staleTime: 0,
-    gcTime: 300_000,
+    gcTime: 0,
   },
 } as const;
 
