@@ -40,7 +40,7 @@ export class FlashcardsController {
   @ApiOperation({ summary: 'List all flashcard sets with pagination & search' })
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number, maximum: 100 })
   @ApiQuery({
     name: 'sort',
     required: false,

@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { SearchService } from './search.service.js';
 
 @ApiTags('Search & Dashboard')
@@ -10,9 +10,11 @@ export class SearchController {
 
   @Get('search')
   @ApiOperation({ summary: 'Cross-domain search across flashcards, sets, exams, and folders' })
-  @ApiResponse({ status: 200, description: 'Grouped search results' })
+  @ApiResponse({ status: 200, description: 'Grouped search results (maximum 30 per group)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, maximum: 30 })
   async search(@Query('q') query = '', @Query('limit') limit = '20') {
-    const numLimit = parseInt(limit, 10) || 20;
+    const parsedLimit = parseInt(limit, 10);
+    const numLimit = Number.isFinite(parsedLimit) ? Math.min(30, Math.max(1, parsedLimit)) : 20;
     return this.searchService.search(query, numLimit);
   }
 

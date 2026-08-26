@@ -58,6 +58,9 @@ export interface ExamDto {
   questions?: ExamQuestionDto[];
 }
 
+/** Purpose-specific collection item; question and option trees stay on detail/attempt routes. */
+export type ExamListItemDto = Omit<ExamDto, 'questions' | 'shuffleQuestions' | 'shuffleOptions'>;
+
 export interface CreateExamDto {
   folderId?: string | null;
   title: string;

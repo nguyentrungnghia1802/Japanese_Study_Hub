@@ -1,9 +1,11 @@
 import {
   DashboardSummaryDto,
   ExamDto,
+  ExamListItemDto,
   ExamFolderDto,
   ExamAttemptResultDto,
   FlashcardSetDto,
+  FlashcardSetListItemDto,
   PaginatedResultDto,
   SearchResultsDto,
   LiveExamAttemptDto,
@@ -52,7 +54,7 @@ export const studyApi = {
     apiClient<DashboardSummaryDto>('/dashboard/summary', { signal }),
 
   flashcardSets: (query: FlashcardListQuery = {}, signal?: AbortSignal) =>
-    apiClient<PaginatedResultDto<FlashcardSetDto>>(
+    apiClient<PaginatedResultDto<FlashcardSetListItemDto>>(
       `/flashcard-sets${buildQuery({
         search: query.search,
         page: query.page ?? 1,
@@ -70,7 +72,7 @@ export const studyApi = {
   examFolders: (signal?: AbortSignal) => apiClient<ExamFolderDto[]>('/exam-folders', { signal }),
 
   exams: (query: ExamListQuery = {}, signal?: AbortSignal) =>
-    apiClient<PaginatedResultDto<ExamDto>>(
+    apiClient<PaginatedResultDto<ExamListItemDto>>(
       `/exams${buildQuery({
         folderId: query.folderId,
         search: query.search,

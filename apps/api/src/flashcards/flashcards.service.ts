@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { FlashcardSetListItemDto, PaginatedResultDto } from '@japanese-learning/contracts';
 import { exportFlashcardSetToMarkdown } from '@japanese-learning/shared';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateSetBodyDto } from './dto/create-set.dto.js';
@@ -42,7 +43,12 @@ export class FlashcardsService {
     };
   }
 
-  async listSets(options?: { search?: string; page?: number; limit?: number; sort?: string }) {
+  async listSets(options?: {
+    search?: string;
+    page?: number;
+    limit?: number;
+    sort?: string;
+  }): Promise<PaginatedResultDto<FlashcardSetListItemDto>> {
     const page = Math.max(1, options?.page || 1);
     const limit = Math.min(100, Math.max(1, options?.limit || 20));
     const skip = (page - 1) * limit;
@@ -93,7 +99,7 @@ export class FlashcardsService {
       })),
       total,
       page,
-      limit,
+      pageSize: limit,
       totalPages: Math.ceil(total / limit) || 1,
     };
   }

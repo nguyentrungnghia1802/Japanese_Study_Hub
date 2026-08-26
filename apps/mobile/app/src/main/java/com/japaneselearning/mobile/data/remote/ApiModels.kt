@@ -55,7 +55,7 @@ data class FlashcardSetsResponse(
     val items: List<FlashcardSetDto> = emptyList(),
     val total: Int = 0,
     val page: Int = 1,
-    val limit: Int = 20,
+    val pageSize: Int = 20,
     val totalPages: Int = 1,
 )
 
@@ -127,6 +127,9 @@ data class ExamDto(
 data class ExamsResponse(
     val items: List<ExamDto> = emptyList(),
     val total: Int = 0,
+    val page: Int = 1,
+    val pageSize: Int = 20,
+    val totalPages: Int = 1,
 )
 
 @Serializable

@@ -8,6 +8,7 @@ export class SearchService {
 
   async search(query: string, limit = 20): Promise<SearchResultsDto> {
     const q = query ? query.trim() : '';
+    const boundedLimit = Math.min(30, Math.max(1, Number.isFinite(limit) ? limit : 20));
     if (!q) {
       return {
         flashcardSets: [],
@@ -28,7 +29,7 @@ export class SearchService {
             { description: { contains: q, mode: 'insensitive' } },
           ],
         },
-        take: limit,
+        take: boundedLimit,
         orderBy: { updatedAt: 'desc' },
         include: {
           _count: {
@@ -47,7 +48,7 @@ export class SearchService {
             { back: { contains: q, mode: 'insensitive' } },
           ],
         },
-        take: limit,
+        take: boundedLimit,
         orderBy: { updatedAt: 'desc' },
         include: {
           set: { select: { title: true } },
@@ -63,7 +64,7 @@ export class SearchService {
             { description: { contains: q, mode: 'insensitive' } },
           ],
         },
-        take: limit,
+        take: boundedLimit,
         orderBy: { updatedAt: 'desc' },
         include: {
           _count: { select: { questions: true } },
@@ -77,7 +78,7 @@ export class SearchService {
           deletedAt: null,
           name: { contains: q, mode: 'insensitive' },
         },
-        take: limit,
+        take: boundedLimit,
         orderBy: { updatedAt: 'desc' },
         include: {
           _count: { select: { exams: { where: { deletedAt: null } } } },

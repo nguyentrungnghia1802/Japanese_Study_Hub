@@ -19,6 +19,9 @@ export interface FlashcardSetDto {
   cards?: FlashcardDto[];
 }
 
+/** Purpose-specific bounded item used by collection endpoints; cards stay on the detail route. */
+export type FlashcardSetListItemDto = Omit<FlashcardSetDto, 'cards'>;
+
 export type FlashcardSetResponseDto = FlashcardSetDto;
 
 export interface CreateFlashcardSetDto {

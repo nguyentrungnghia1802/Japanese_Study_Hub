@@ -1,5 +1,11 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
-import { ExamDto, QuestionType, CreateExamQuestionDto } from '@japanese-learning/contracts';
+import {
+  ExamDto,
+  ExamListItemDto,
+  PaginatedResultDto,
+  QuestionType,
+  CreateExamQuestionDto,
+} from '@japanese-learning/contracts';
 import { exportExamToMarkdown } from '@japanese-learning/shared';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateExamBodyDto } from './dto/create-exam.dto.js';
@@ -116,7 +122,7 @@ export class ExamsService {
     page?: number;
     limit?: number;
     sort?: string;
-  }): Promise<{ items: ExamDto[]; total: number }> {
+  }): Promise<PaginatedResultDto<ExamListItemDto>> {
     const page = Math.max(1, params?.page || 1);
     const limit = Math.min(100, Math.max(1, params?.limit || 20));
     const skip = (page - 1) * limit;
@@ -180,8 +186,6 @@ export class ExamsService {
           coverRef: e.coverRef,
           timeLimitSeconds: e.timeLimitSeconds,
           contentVersion: e.contentVersion,
-          shuffleQuestions: e.shuffleQuestions,
-          shuffleOptions: e.shuffleOptions,
           questionCount: e._count.questions,
           bestScore: best ? Number(best.bestScore) : null,
           createdAt: e.createdAt.toISOString(),
@@ -189,6 +193,9 @@ export class ExamsService {
         };
       }),
       total,
+      page,
+      pageSize: limit,
+      totalPages: Math.ceil(total / limit) || 1,
     };
   }
 

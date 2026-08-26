@@ -404,14 +404,14 @@ Commit: `perf(deploy): enable response compression`
 
 ## TASK-232 — Reduce API over-fetching
 
-- [ ] Identify large list/detail responses.
-- [ ] Remove fields not needed by list UIs.
-- [ ] Keep management DTOs separate from attempt DTOs.
-- [ ] Bound nested card/question payloads.
-- [ ] Add pagination where an endpoint can grow without limit.
-- [ ] Avoid returning full Markdown bodies in list responses when snippets suffice.
-- [ ] Preserve API compatibility where possible.
-- [ ] Update OpenAPI and clients for intentional changes.
+- [x] Identify large list/detail responses.
+- [x] Remove fields not needed by list UIs.
+- [x] Keep management DTOs separate from attempt DTOs.
+- [x] Bound nested card/question payloads.
+- [x] Add pagination where an endpoint can grow without limit.
+- [x] Avoid returning full Markdown bodies in list responses when snippets suffice.
+- [x] Preserve API compatibility where possible.
+- [x] Update OpenAPI and clients for intentional changes.
 
 Acceptance criteria:
 

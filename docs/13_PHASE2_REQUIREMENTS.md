@@ -96,6 +96,9 @@ avoid N+1 access and have justified indexes. Route bundles do not eagerly load
 unrelated heavy editor/import code. Virtualization is used only where measured
 large-list rendering cost justifies it.
 
+TASK-232's collection DTO and pagination decisions are recorded in
+`docs/performance/api-payload-audit.md`.
+
 ## 3. Learning productivity requirements
 
 ### P2-LEARN-RECENT
