@@ -125,6 +125,7 @@ Any uncovered requirement or mismatch reopens the relevant task; do not waive it
 | Android read cache has row/age limits and no answer keys          | TASK-270           | TASK-304, TASK-320 |
 | Phase 2 schema/data restores from backup                          | TASK-292           | TASK-320           |
 | Tags stay flat, normalized, and bounded                           | TASK-242           | TASK-302, TASK-303 |
+| FSRS state uses server UTC, bounded queue/logs, and idempotency   | TASK-250..251      | TASK-302, TASK-320 |
 
 ### Phase 2 release audit
 

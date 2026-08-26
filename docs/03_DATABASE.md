@@ -102,8 +102,23 @@ normalized slug through `flashcard_set_tags`.
 Constraints/indexes:
 
 - Index `(set_id, position)`
+- Index `(deleted_at, fsrs_due_at)` for active due-card queries.
 - Position uniqueness may be enforced per active set if implementation can maintain safely, otherwise normalize positions transactionally.
 - A card has exactly one `set_id`.
+
+### 5.1 FSRS scheduling fields
+
+Phase 2 adds `fsrs_state` (`NEW`, `LEARNING`, `REVIEW`, or `RELEARNING`), UTC
+`fsrs_due_at`, nullable stability/difficulty, elapsed and scheduled days,
+repetition and lapse counters, and nullable `fsrs_last_reviewed_at`. Existing
+cards are initialized as new cards with an immediate due time.
+
+`flashcard_review_logs` stores the server transition audit, including the
+client request id, rating, before/after state and due time, reviewed time, and
+resulting stability/difficulty. It has a unique key on
+`(flashcard_id, client_request_id)` and an index on `(flashcard_id,
+reviewed_at)`. Logs are bounded to 365 days and 500 rows per card by the review
+service.
 
 ---
 

@@ -182,6 +182,29 @@ Returns Markdown file response.
 
 ---
 
+## 6.1 Flashcard review endpoints
+
+### `GET /api/v1/review/summary`
+
+Returns server-time counts for active cards: `dueCount`, `newCount`, and
+`reviewCount`.
+
+### `GET /api/v1/review/queue?limit=20`
+
+Returns at most 20 active cards due for review, ordered by due time, position,
+and card id. The response contains no answer leakage beyond the normal card
+detail contract.
+
+### `POST /api/v1/review/{cardId}`
+
+Submits `{ "rating": "AGAIN|HARD|GOOD|EASY", "clientRequestId": "..." }`.
+The server uses its current UTC time and returns the resulting schedule. The
+same card/request id returns the original transition without applying it twice;
+soft-deleted cards are rejected. See
+[`docs/learning/fsrs-scheduling.md`](learning/fsrs-scheduling.md).
+
+---
+
 ## 7. Exam folder endpoints
 
 ### `GET /api/v1/exam-folders`

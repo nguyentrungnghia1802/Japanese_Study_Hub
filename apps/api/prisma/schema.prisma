@@ -34,15 +34,29 @@ enum RecentLearningKind {
   EXAM
 }
 
+enum FlashcardScheduleState {
+  NEW
+  LEARNING
+  REVIEW
+  RELEARNING
+}
+
+enum FlashcardReviewRating {
+  AGAIN
+  HARD
+  GOOD
+  EASY
+}
+
 model FlashcardSet {
-  id          String      @id @default(uuid()) @db.Uuid
-  title       String      @db.VarChar(255)
-  description String?     @db.Text
-  coverRef    String?     @map("cover_ref") @db.Text
-  isFavorite  Boolean     @default(false) @map("is_favorite")
-  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt   DateTime?   @map("deleted_at") @db.Timestamptz(6)
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String    @db.VarChar(255)
+  description String?   @db.Text
+  coverRef    String?   @map("cover_ref") @db.Text
+  isFavorite  Boolean   @default(false) @map("is_favorite")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   cards Flashcard[]
   tags  FlashcardSetTag[]
@@ -52,30 +66,64 @@ model FlashcardSet {
 }
 
 model Flashcard {
-  id        String       @id @default(uuid()) @db.Uuid
-  setId     String       @map("set_id") @db.Uuid
-  front     String       @db.Text
-  back      String       @db.Text
-  position  Int          @default(0)
-  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  id        String    @id @default(uuid()) @db.Uuid
+  setId     String    @map("set_id") @db.Uuid
+  front     String    @db.Text
+  back      String    @db.Text
+  position  Int       @default(0)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  set FlashcardSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  fsrsState          FlashcardScheduleState @default(NEW) @map("fsrs_state")
+  fsrsDueAt          DateTime               @default(now()) @map("fsrs_due_at") @db.Timestamptz(6)
+  fsrsStability      Float?                 @map("fsrs_stability")
+  fsrsDifficulty     Float?                 @map("fsrs_difficulty")
+  fsrsElapsedDays    Int                    @default(0) @map("fsrs_elapsed_days")
+  fsrsScheduledDays  Int                    @default(0) @map("fsrs_scheduled_days")
+  fsrsReps           Int                    @default(0) @map("fsrs_reps")
+  fsrsLapses         Int                    @default(0) @map("fsrs_lapses")
+  fsrsLastReviewedAt DateTime?              @map("fsrs_last_reviewed_at") @db.Timestamptz(6)
+
+  set        FlashcardSet         @relation(fields: [setId], references: [id], onDelete: Cascade)
+  reviewLogs FlashcardReviewLog[]
 
   @@index([setId, position])
   @@index([deletedAt])
+  @@index([deletedAt, fsrsDueAt])
   @@map("flashcards")
 }
 
+model FlashcardReviewLog {
+  id              String                 @id @default(uuid()) @db.Uuid
+  flashcardId     String                 @map("flashcard_id") @db.Uuid
+  clientRequestId String                 @map("client_request_id") @db.VarChar(128)
+  rating          FlashcardReviewRating
+  stateBefore     FlashcardScheduleState @map("state_before")
+  stateAfter      FlashcardScheduleState @map("state_after")
+  reviewedAt      DateTime               @map("reviewed_at") @db.Timestamptz(6)
+  dueAtBefore     DateTime               @map("due_at_before") @db.Timestamptz(6)
+  dueAtAfter      DateTime               @map("due_at_after") @db.Timestamptz(6)
+  scheduledDays   Int                    @map("scheduled_days")
+  stability       Float?
+  difficulty      Float?
+  createdAt       DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  flashcard Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+
+  @@unique([flashcardId, clientRequestId])
+  @@index([flashcardId, reviewedAt])
+  @@map("flashcard_review_logs")
+}
+
 model ExamFolder {
-  id        String       @id @default(uuid()) @db.Uuid
-  parentId  String?      @map("parent_id") @db.Uuid
-  name      String       @db.VarChar(255)
-  position  Int          @default(0)
-  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  id        String    @id @default(uuid()) @db.Uuid
+  parentId  String?   @map("parent_id") @db.Uuid
+  name      String    @db.VarChar(255)
+  position  Int       @default(0)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   parent   ExamFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   children ExamFolder[] @relation("FolderHierarchy")
@@ -87,26 +135,26 @@ model ExamFolder {
 }
 
 model Exam {
-  id               String           @id @default(uuid()) @db.Uuid
-  folderId         String?          @map("folder_id") @db.Uuid
-  title            String           @db.VarChar(255)
-  description      String?          @db.Text
-  coverRef         String?          @map("cover_ref") @db.Text
-  isFavorite       Boolean          @default(false) @map("is_favorite")
-  timeLimitSeconds Int?             @map("time_limit_seconds")
-  contentVersion   Int              @default(1) @map("content_version")
-  shuffleQuestions Boolean          @default(false) @map("shuffle_questions")
-  shuffleOptions   Boolean          @default(false) @map("shuffle_options")
-  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
-  deletedAt        DateTime?        @map("deleted_at") @db.Timestamptz(6)
+  id               String    @id @default(uuid()) @db.Uuid
+  folderId         String?   @map("folder_id") @db.Uuid
+  title            String    @db.VarChar(255)
+  description      String?   @db.Text
+  coverRef         String?   @map("cover_ref") @db.Text
+  isFavorite       Boolean   @default(false) @map("is_favorite")
+  timeLimitSeconds Int?      @map("time_limit_seconds")
+  contentVersion   Int       @default(1) @map("content_version")
+  shuffleQuestions Boolean   @default(false) @map("shuffle_questions")
+  shuffleOptions   Boolean   @default(false) @map("shuffle_options")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  folder           ExamFolder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  questions        ExamQuestion[]
-  attempts         ExamAttempt[]
-  bestResults      ExamBestResult[]
-  contexts         QuestionContext[]
-  tags             ExamTag[]
+  folder      ExamFolder?       @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  questions   ExamQuestion[]
+  attempts    ExamAttempt[]
+  bestResults ExamBestResult[]
+  contexts    QuestionContext[]
+  tags        ExamTag[]
 
   @@index([folderId])
   @@index([deletedAt])
@@ -114,14 +162,14 @@ model Exam {
 }
 
 model QuestionContext {
-  id          String        @id @default(uuid()) @db.Uuid
-  examId      String        @map("exam_id") @db.Uuid
+  id          String      @id @default(uuid()) @db.Uuid
+  examId      String      @map("exam_id") @db.Uuid
   type        ContextType
-  textContent String?       @map("text_content") @db.Text
-  mediaRef    String?       @map("media_ref") @db.Text
-  position    Int           @default(0)
-  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  textContent String?     @map("text_content") @db.Text
+  mediaRef    String?     @map("media_ref") @db.Text
+  position    Int         @default(0)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   exam      Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
   questions ExamQuestion[]
@@ -131,14 +179,14 @@ model QuestionContext {
 }
 
 model ExamQuestion {
-  id        String          @id @default(uuid()) @db.Uuid
-  examId    String          @map("exam_id") @db.Uuid
-  contextId String?         @map("context_id") @db.Uuid
-  type      QuestionType    @default(MULTIPLE_CHOICE_SINGLE)
-  content   String          @db.Text
-  position  Int             @default(0)
-  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String       @id @default(uuid()) @db.Uuid
+  examId    String       @map("exam_id") @db.Uuid
+  contextId String?      @map("context_id") @db.Uuid
+  type      QuestionType @default(MULTIPLE_CHOICE_SINGLE)
+  content   String       @db.Text
+  position  Int          @default(0)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   exam    Exam             @relation(fields: [examId], references: [id], onDelete: Cascade)
   context QuestionContext? @relation(fields: [contextId], references: [id], onDelete: SetNull)
@@ -149,13 +197,13 @@ model ExamQuestion {
 }
 
 model ExamOption {
-  id         String       @id @default(uuid()) @db.Uuid
-  questionId String       @map("question_id") @db.Uuid
-  content    String       @db.Text
-  isCorrect  Boolean      @default(false) @map("is_correct")
-  position   Int          @default(0)
-  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id         String   @id @default(uuid()) @db.Uuid
+  questionId String   @map("question_id") @db.Uuid
+  content    String   @db.Text
+  isCorrect  Boolean  @default(false) @map("is_correct")
+  position   Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   question ExamQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
@@ -164,22 +212,22 @@ model ExamOption {
 }
 
 model ExamAttempt {
-  id                     String              @id @default(uuid()) @db.Uuid
-  examId                 String              @map("exam_id") @db.Uuid
-  examVersion            Int                 @map("exam_version")
-  userKey                String              @default("primary_user") @map("user_key") @db.VarChar(255)
-  startedAt              DateTime            @default(now()) @map("started_at") @db.Timestamptz(6)
-  expiresAt              DateTime?           @map("expires_at") @db.Timestamptz(6)
-  submittedAt            DateTime?           @map("submitted_at") @db.Timestamptz(6)
-  status                 AttemptStatus       @default(IN_PROGRESS)
-  score                  Decimal?            @db.Decimal(5, 2)
-  correctCount           Int?                @map("correct_count")
-  totalQuestions         Int                 @map("total_questions")
-  durationSeconds        Int?                @map("duration_seconds")
-  questionOrderSnapshot  Json?               @map("question_order_snapshot")
-  optionOrderSnapshot    Json?               @map("option_order_snapshot")
-  createdAt              DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt              DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                    String        @id @default(uuid()) @db.Uuid
+  examId                String        @map("exam_id") @db.Uuid
+  examVersion           Int           @map("exam_version")
+  userKey               String        @default("primary_user") @map("user_key") @db.VarChar(255)
+  startedAt             DateTime      @default(now()) @map("started_at") @db.Timestamptz(6)
+  expiresAt             DateTime?     @map("expires_at") @db.Timestamptz(6)
+  submittedAt           DateTime?     @map("submitted_at") @db.Timestamptz(6)
+  status                AttemptStatus @default(IN_PROGRESS)
+  score                 Decimal?      @db.Decimal(5, 2)
+  correctCount          Int?          @map("correct_count")
+  totalQuestions        Int           @map("total_questions")
+  durationSeconds       Int?          @map("duration_seconds")
+  questionOrderSnapshot Json?         @map("question_order_snapshot")
+  optionOrderSnapshot   Json?         @map("option_order_snapshot")
+  createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   exam    Exam                @relation(fields: [examId], references: [id], onDelete: Cascade)
   answers ExamAttemptAnswer[]
@@ -189,13 +237,13 @@ model ExamAttempt {
 }
 
 model ExamAttemptAnswer {
-  id               String       @id @default(uuid()) @db.Uuid
-  attemptId        String       @map("attempt_id") @db.Uuid
-  questionId       String       @map("question_id") @db.Uuid
-  selectedOptionId String?      @map("selected_option_id") @db.Uuid
-  isCorrect        Boolean?     @map("is_correct")
-  createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id               String   @id @default(uuid()) @db.Uuid
+  attemptId        String   @map("attempt_id") @db.Uuid
+  questionId       String   @map("question_id") @db.Uuid
+  selectedOptionId String?  @map("selected_option_id") @db.Uuid
+  isCorrect        Boolean? @map("is_correct")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   attempt ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
 

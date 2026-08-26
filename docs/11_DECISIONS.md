@@ -224,3 +224,17 @@ clients must not claim HTTPS or `Secure` cookie guarantees.
 
 **Reason:** No domain or certificate authority was approved for this personal-use
 deployment. The runtime must match reality rather than overstate security.
+
+## ADR-026 — FSRS scheduling is server-authoritative and bounded
+
+**Decision:** Store FSRS state and review logs on each flashcard, calculate every
+transition from server UTC time, expose only the four bounded ratings, and make
+review submission idempotent with `(flashcard_id, client_request_id)`. Keep the
+review queue capped and prune review logs by both age and per-card count.
+
+**Reason:** Scheduling must be deterministic across Web and Android clients,
+safe to retry after network failures, and small enough to operate within the
+existing PostgreSQL/API architecture.
+
+**Compatibility:** Existing Study All/Shuffle behavior remains separate and
+available. Existing cards migrate to `NEW` with an immediate due time.

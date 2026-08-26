@@ -166,6 +166,10 @@ Scheduling timestamps are stored in UTC. Due comparisons use server time and a
 documented user timezone boundary; V1's single logical user defaults to UTC unless
 configuration explicitly supplies another IANA timezone.
 
+The field-level transition, edit/delete behavior, review-log retention, queue
+bound, and additive migration are defined in
+[`docs/learning/fsrs-scheduling.md`](learning/fsrs-scheduling.md) and ADR-026.
+
 ## 5. Exam review requirements
 
 ### P2-EXAM-REVIEW-001

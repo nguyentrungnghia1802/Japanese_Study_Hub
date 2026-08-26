@@ -538,17 +538,17 @@ Commit: `feat: add learning tags`
 
 ## TASK-250 — Define FSRS requirements and schema
 
-- [ ] Adopt FSRS unless a documented constraint requires another algorithm.
-- [ ] Define server-authoritative scheduling.
-- [ ] Define ratings: Again / Hard / Good / Easy.
-- [ ] Define per-card scheduling state.
-- [ ] Define review-log retention.
-- [ ] Define due/new/review counts.
-- [ ] Define timezone/day-boundary behavior.
-- [ ] Keep basic Study All mode.
-- [ ] Define behavior when card is edited/deleted.
-- [ ] Add schema and migration plan.
-- [ ] Record decision in `docs/11_DECISIONS.md`.
+- [x] Adopt FSRS unless a documented constraint requires another algorithm.
+- [x] Define server-authoritative scheduling.
+- [x] Define ratings: Again / Hard / Good / Easy.
+- [x] Define per-card scheduling state.
+- [x] Define review-log retention.
+- [x] Define due/new/review counts.
+- [x] Define timezone/day-boundary behavior.
+- [x] Keep basic Study All mode.
+- [x] Define behavior when card is edited/deleted.
+- [x] Add schema and migration plan.
+- [x] Record decision in `docs/11_DECISIONS.md`.
 
 Acceptance criteria:
 
