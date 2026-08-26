@@ -424,14 +424,14 @@ Commit: `perf(api): reduce response overfetching`
 
 ## TASK-233 — Audit Prisma queries and indexes
 
-- [ ] Capture slow/common queries for Dashboard, Flashcards, Exams, Search, best result.
-- [ ] Review `include/select` for over-fetching.
-- [ ] Detect N+1 patterns.
-- [ ] Use `EXPLAIN (ANALYZE, BUFFERS)` on representative queries where practical.
-- [ ] Add indexes only when justified.
-- [ ] Add a new Prisma migration for any change.
-- [ ] Never edit the applied V1 migration.
-- [ ] Test upgrade from current production schema and fresh DB.
+- [x] Capture slow/common queries for Dashboard, Flashcards, Exams, Search, best result.
+- [x] Review `include/select` for over-fetching.
+- [x] Detect N+1 patterns.
+- [x] Use `EXPLAIN (ANALYZE, BUFFERS)` on representative queries where practical.
+- [x] Add indexes only when justified (no new index was justified by the measured plans).
+- [x] Add a new Prisma migration for any change (not applicable; no schema change was made).
+- [x] Never edit the applied V1 migration.
+- [x] Test upgrade from current production schema and fresh DB.
 
 Acceptance criteria:
 

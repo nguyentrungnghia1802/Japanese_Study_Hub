@@ -97,6 +97,8 @@ describe('FlashcardsService (TASK-030 / FC-001..008)', () => {
       expect(result.items).toHaveLength(1);
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
+      expect(result.pageSize).toBe(10);
+      expect(result.items[0]).not.toHaveProperty('cards');
     });
 
     it('gets a single set with cards', async () => {
