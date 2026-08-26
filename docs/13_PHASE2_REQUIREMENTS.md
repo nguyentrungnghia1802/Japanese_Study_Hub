@@ -41,6 +41,9 @@ raw authorization headers, or pre-grading correctness metadata.
 The complete data classification, key, invalidation, HTTP, and storage rules are
 defined in `docs/performance/cache-storage-policy.md`.
 
+The current Web session decision and cookie deferral are recorded in
+`docs/security/web-auth-session-audit.md`.
+
 ### P2-CACHE-002 — Explicit invalidation
 
 Set/card mutations invalidate only affected set, list, dashboard, and search keys.

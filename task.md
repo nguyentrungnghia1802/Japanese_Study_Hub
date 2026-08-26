@@ -289,14 +289,14 @@ Commit: `ux(web): improve perceived loading performance`
 
 ## TASK-220 — Audit current Web authentication storage
 
-- [ ] Document how Web currently persists authentication.
-- [ ] Identify whether token/session data is JavaScript-accessible.
-- [ ] Verify expiry/logout behavior.
-- [ ] Verify cross-tab behavior.
-- [ ] Verify no token is persisted in general query cache.
-- [ ] Compare current behavior against `07_SECURITY.md`.
-- [ ] Decide whether the actual deployment can safely support HttpOnly cookie auth.
-- [ ] Do not weaken security simply to “use cookies”.
+- [x] Document how Web currently persists authentication.
+- [x] Identify whether token/session data is JavaScript-accessible.
+- [x] Verify expiry/logout behavior.
+- [x] Verify cross-tab behavior.
+- [x] Verify no token is persisted in general query cache.
+- [x] Compare current behavior against `07_SECURITY.md`.
+- [x] Decide whether the actual deployment can safely support HttpOnly cookie auth.
+- [x] Do not weaken security simply to “use cookies”.
 
 Acceptance criteria:
 
@@ -311,17 +311,22 @@ Commit: `security(web): audit session persistence`
 
 This task is conditional on TASK-220.
 
-- [ ] Preserve bearer-token support for Android.
-- [ ] If Web cookie auth is adopted, let the API auth guard accept the approved Web session cookie and Android bearer token without duplicating business auth logic.
-- [ ] Use `HttpOnly`.
-- [ ] Use `SameSite` appropriate to topology.
-- [ ] Use `Secure` when HTTPS is active.
-- [ ] Keep cookie payload minimal; no learning content.
-- [ ] Match cookie expiration to server token/session expiration.
-- [ ] Clear cookie on logout.
-- [ ] Configure Web credentials/CORS correctly.
-- [ ] Add CSRF protection if required.
-- [ ] If secure prerequisites are not met, explicitly defer this task instead of implementing an insecure cookie.
+Status: explicitly deferred. The actual deployment is still IP-only HTTP, so the
+HTTPS, trusted-origin, credentials/CORS, and CSRF prerequisites for a secure
+HttpOnly cookie are not met. The bearer strategy remains the approved Web/Android
+compatibility path; re-open this task only after those prerequisites are accepted.
+
+- [x] Preserve bearer-token support for Android (unchanged; no cookie migration).
+- [x] If Web cookie auth is adopted, let the API auth guard accept the approved Web session cookie and Android bearer token without duplicating business auth logic (deferred until prerequisites are met).
+- [x] Use `HttpOnly` (deferred; no cookie is issued).
+- [x] Use `SameSite` appropriate to topology (deferred with the topology decision).
+- [x] Use `Secure` when HTTPS is active (deferred until HTTPS is active).
+- [x] Keep cookie payload minimal; no learning content (deferred; no cookie is issued).
+- [x] Match cookie expiration to server token/session expiration (deferred; no cookie is issued).
+- [x] Clear cookie on logout (deferred; no cookie is issued).
+- [x] Configure Web credentials/CORS correctly (deferred until a trusted HTTPS origin is accepted).
+- [x] Add CSRF protection if required (deferred with cookie adoption).
+- [x] If secure prerequisites are not met, explicitly defer this task instead of implementing an insecure cookie.
 
 Acceptance criteria:
 
@@ -331,10 +336,10 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Login/logout cookie behavior.
-- [ ] Protected route with/without cookie.
-- [ ] Android bearer-token regression.
-- [ ] CSRF test if applicable.
+- [x] Login/logout cookie behavior (not applicable while cookie auth is explicitly deferred).
+- [x] Protected route with/without cookie (not applicable while cookie auth is explicitly deferred).
+- [x] Android bearer-token regression (existing bearer path preserved; no cookie change).
+- [x] CSRF test if applicable (not applicable while cookie auth is explicitly deferred).
 
 Commit: `security(auth): add web session cookie support`
 
