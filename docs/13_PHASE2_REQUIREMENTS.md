@@ -102,6 +102,9 @@ TASK-232's collection DTO and pagination decisions are recorded in
 TASK-234's measured route bundle table and dynamic import decisions are recorded
 in `docs/performance/bundle-audit.md`.
 
+TASK-235's large-list benchmark and no-virtualization decision are recorded in
+`docs/performance/virtualization-decision.md`.
+
 ## 3. Learning productivity requirements
 
 ### P2-LEARN-RECENT

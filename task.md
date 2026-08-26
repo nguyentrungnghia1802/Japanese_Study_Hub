@@ -463,10 +463,10 @@ Commit: `perf(web): reduce route bundle cost`
 
 ## TASK-235 — Add list virtualization only where justified
 
-- [ ] Measure realistic large flashcard/exam lists.
-- [ ] Add virtualization only where rendering cost is measurable.
-- [ ] Preserve accessibility, keyboard, search/sort/reorder behavior.
-- [ ] Do not virtualize small lists unnecessarily.
+- [x] Measure realistic large flashcard/exam lists.
+- [x] Add virtualization only where rendering cost is measurable (benchmark did not justify a windowing library).
+- [x] Preserve accessibility, keyboard, search/sort/reorder behavior.
+- [x] Do not virtualize small lists unnecessarily.
 
 Acceptance criteria:
 
