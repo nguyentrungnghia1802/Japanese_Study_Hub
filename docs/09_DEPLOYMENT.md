@@ -187,12 +187,23 @@ Minimum production policy:
 - At least one backup copy outside live DB volume
 - Periodic restore verification
 
+The repository implementation is bash docker/backup.sh; it writes to a host
+BACKUP_DIR outside the named PostgreSQL volume, retains 14 files by default,
+and refuses a backup path that resolves inside the inspected live volume.
+Use an owner-controlled daily scheduler on the VPS. The cron example and the
+2026-08-27 isolated restore result are recorded in
+docs/operations/backup-restore-2026-08-27.md.
+
 Recommended restore test:
 
 1. Create isolated database.
 2. Restore latest backup.
 3. Apply any required migrations.
 4. Run smoke queries/application health.
+
+For a Docker-based isolated target, run bash docker/verify-backup-restore.sh
+<backup.sql.gz>. Live restore requires the explicit ALLOW_LIVE_RESTORE=1
+environment variable and is intentionally not used for verification.
 
 ---
 
@@ -208,6 +219,13 @@ Production logs should include:
 
 Never include secrets/passwords/full tokens.
 
+TASK-293 adds request, slow-request, failed-login, failed-import,
+failed-exam-submit, liveness, and database-readiness signals to normal API
+logs. View recent matching lines with bash docker/recent-errors.sh; set SINCE
+and TAIL for a narrower window. The logger records route templates, status,
+duration, and request ID only. It never records request bodies, credentials,
+tokens, answer keys, or imported content.
+
 ---
 
 ## 10. Health checks
@@ -216,6 +234,10 @@ API health should verify at least:
 
 - Process alive
 - Database connection reachable
+
+The public liveness endpoint is /health and the database-backed readiness
+endpoint is /health/ready. Both are excluded from the API global prefix and are
+safe for container/load-balancer checks without authentication.
 
 Do not make health payload expose sensitive infrastructure details.
 

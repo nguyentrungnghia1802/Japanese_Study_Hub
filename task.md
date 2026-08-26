@@ -857,8 +857,9 @@ Verification:
 
 - [x] `docker compose -f docker-compose.prod.yml config --quiet` passes with
       non-secret validation environment values.
-- [x] `docker/production-update.sh` passes `bash -n` and documents pull,
-      migration, health, rollback, and volume-safety behavior.
+- [x] CI validates all deployment shell scripts with `bash -n`; the update
+      script documents pull, migration, health, rollback, and volume-safety
+      behavior.
 - [x] The script keeps `latest` as the default while allowing an immutable
       published SHA through `IMAGE_TAG`.
 
@@ -868,16 +869,26 @@ Commit: `ops: add simple production update workflow`
 
 ## TASK-292 — Verify Phase 2 backup/restore
 
-- [ ] Verify daily PostgreSQL backup still runs.
-- [ ] Verify retention.
-- [ ] Verify backup is outside live DB volume.
-- [ ] Perform isolated restore after Phase 2 migrations.
-- [ ] Verify Phase 2 data is restored.
-- [ ] Record restore date/result.
+- [ ] Verify daily PostgreSQL backup still runs. (VPS scheduler access is owner-controlled.)
+- [x] Verify retention.
+- [x] Verify backup is outside live DB volume.
+- [x] Perform isolated restore after Phase 2 migrations.
+- [x] Verify Phase 2 data is restored.
+- [x] Record restore date/result.
 
 Acceptance criteria:
 
 - Phase 2 schema/data are demonstrably restorable.
+
+Verification:
+
+- [x] Local PostgreSQL 16 compressed backup and isolated restore passed on
+      2026-08-27; restored Phase 2 counts and schema are recorded in
+      docs/operations/backup-restore-2026-08-27.md.
+- [x] Backup script retention, atomic write, and live-volume boundary are
+      implemented and reviewed.
+- [ ] Production daily scheduler history and the current off-volume artifact
+      require owner-controlled VPS access and are not fabricated.
 
 Commit: `ops: verify phase 2 backup restore`
 
@@ -885,17 +896,26 @@ Commit: `ops: verify phase 2 backup restore`
 
 ## TASK-293 — Add lightweight production observability
 
-- [ ] Add request-duration logging/metrics at a lightweight level.
-- [ ] Track slow API requests above a documented threshold.
-- [ ] Track safe failed login/import/exam submit events.
-- [ ] Track health/readiness.
-- [ ] Do not add enterprise observability infrastructure.
-- [ ] Never log tokens/passwords/full imported content/answer keys.
-- [ ] Add a simple command/view for recent production errors.
+- [x] Add request-duration logging/metrics at a lightweight level.
+- [x] Track slow API requests above a documented threshold.
+- [x] Track safe failed login/import/exam submit events.
+- [x] Track health/readiness.
+- [x] Do not add enterprise observability infrastructure.
+- [x] Never log tokens/passwords/full imported content/answer keys.
+- [x] Add a simple command/view for recent production errors.
 
 Acceptance criteria:
 
 - Performance regressions can be diagnosed from normal server logs.
+
+Verification:
+
+- [x] API tests cover safe route/event classification, slow-request logging,
+      and liveness/readiness success/failure.
+- [x] SLOW_REQUEST_MS is configurable and documented; recent-errors.sh filters
+      normal container logs without introducing a telemetry service.
+- [x] The interceptor logs route/status/duration/request ID only and never
+      reads or emits request bodies.
 
 Commit: `ops: add lightweight performance observability`
 
@@ -1089,12 +1109,3 @@ Commit: `chore: prepare phase 2 release`
 Project may be declared **100% complete for Phase 2** only after TASK-321 is fully satisfied.
 
 Commit: `chore: finalize phase 2 release`
-- [x] Pull latest GHCR Web/API images.
-- [x] Run database migration safely.
-- [x] Recreate/update containers.
-- [x] Run health checks.
-- [x] Stop on failed migration/health check.
-- [x] Prune only safe dangling images after success.
-- [x] Never delete database volumes.
-- [x] Document rollback where practical.
-- [x] Keep compatibility with the owner's chosen `:latest` policy.

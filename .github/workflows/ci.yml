@@ -41,6 +41,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
+      - name: Validate deployment shell scripts
+        run: bash -n docker/backup.sh docker/restore.sh docker/production-update.sh docker/verify-backup-restore.sh docker/recent-errors.sh
+
       - name: Install pnpm
         uses: pnpm/action-setup@v6
 
