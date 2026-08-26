@@ -1120,12 +1120,12 @@ Run from clean checkout/environment where practical.
 
 If any item fails:
 
-- [ ] Stop release.
-- [ ] Reproduce failure.
-- [ ] Fix root cause.
-- [ ] Add regression test when applicable.
-- [ ] Re-run affected checks.
-- [ ] Re-run full Phase 2 validation.
+- [x] Stop release while the production gates remain open.
+- [x] Reproduce the dependency, cache-probe, and deployed-readiness failures.
+- [x] Fix the local root causes and document the owner-controlled boundary.
+- [x] Add regression coverage where applicable (environment and cache smoke).
+- [x] Re-run the affected checks.
+- [x] Re-run the full local Phase 2 validation; production gates remain open.
 
 Acceptance criteria:
 
