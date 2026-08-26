@@ -74,6 +74,9 @@ jobs:
       - name: Build packages and applications
         run: pnpm build
 
+      - name: Check Web bundle guardrail
+        run: pnpm perf:bundle
+
   android:
     runs-on: ubuntu-latest
 

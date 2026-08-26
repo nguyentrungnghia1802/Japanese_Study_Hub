@@ -947,12 +947,25 @@ Commit: `test(web): cover cache and navigation behavior`
 
 ## TASK-301 — Add performance regression guardrails
 
-- [ ] Define reasonable bundle-size thresholds.
-- [ ] Add CI check for accidental major bundle growth where reliable.
-- [ ] Add API response-size smoke checks.
-- [ ] Add query-count/N+1 regression check where practical.
-- [ ] Avoid flaky micro-benchmark gates.
-- [ ] Keep baseline metrics documented.
+- [x] Define reasonable bundle-size thresholds.
+- [x] Add CI check for accidental major bundle growth where reliable.
+- [x] Add API response-size smoke checks.
+- [x] Add query-count/N+1 regression check where practical.
+- [x] Avoid flaky micro-benchmark gates.
+- [x] Keep baseline metrics documented.
+
+Verification:
+
+- [x] The Web production build passed the bounded manifest guard with
+      1,067,171 static JavaScript bytes, 172,834-byte largest chunk, and
+      400,628-byte largest route.
+- [x] CI runs the bundle guard after the production build; Node syntax checks
+      pass for both guard scripts.
+- [x] The API response smoke passed /health and /health/ready at 89 and
+      105 bytes; authenticated collection paths can be added through the
+      documented environment variables.
+- [x] Existing PostgreSQL 16 EXPLAIN/query audit remains the N+1 guard without
+      a flaky timing threshold.
 
 Commit: `test(perf): add regression guardrails`
 
