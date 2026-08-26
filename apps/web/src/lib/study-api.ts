@@ -15,6 +15,8 @@ import {
   FlashcardReviewResponseDto,
   FlashcardReviewSummaryDto,
   SubmitFlashcardReviewDto,
+  StartMistakePracticeDto,
+  WrongAnswerReviewQueueDto,
 } from '@japanese-learning/contracts';
 import { apiClient } from './api-client';
 import { ExamListQuery, FlashcardListQuery } from './query-keys';
@@ -93,6 +95,31 @@ export const studyApi = {
       body: JSON.stringify(body),
       signal,
     }),
+
+  mistakes: (limit = 20, examId?: string, signal?: AbortSignal) =>
+    apiClient<WrongAnswerReviewQueueDto>(
+      `/exam-review/mistakes${buildQuery({ limit, examId })}`,
+      { signal },
+    ),
+
+  dismissMistake: (mistakeId: string, signal?: AbortSignal) =>
+    apiClient<{ success: boolean }>(`/exam-review/mistakes/${mistakeId}`, {
+      method: 'DELETE',
+      signal,
+    }),
+
+  clearMistakes: (examId?: string, signal?: AbortSignal) =>
+    apiClient<{ success: boolean; removedCount: number }>(
+      `/exam-review/mistakes${buildQuery({ examId })}`,
+      { method: 'DELETE', signal },
+    ),
+
+  startMistakePractice: (body: StartMistakePracticeDto, signal?: AbortSignal) =>
+    apiClient<LiveExamAttemptDto>('/exam-review/practice', {
+      method: 'POST',
+      body: JSON.stringify(body),
+      signal,
+    }).then(assertLiveAttemptPayload),
 
   setFlashcardTags: (setId: string, tags: string[], signal?: AbortSignal) =>
     apiClient<FlashcardSetDto>(`/flashcard-sets/${setId}/tags`, {

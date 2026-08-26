@@ -32,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.japaneselearning.mobile.core.ui.EmptyState
 import com.japaneselearning.mobile.core.ui.ErrorState
 import com.japaneselearning.mobile.core.ui.LoadingState
+import com.japaneselearning.mobile.core.ui.CachedContentNotice
 import com.japaneselearning.mobile.core.ui.LogoMark
 import com.japaneselearning.mobile.core.ui.SectionTitle
 import com.japaneselearning.mobile.core.ui.StatCard
@@ -50,6 +51,7 @@ fun DashboardScreen(
         state.data == null -> EmptyState("Chưa có dữ liệu", "Hãy thử tải lại trang tổng quan.")
         else -> {
             val data = state.data
+            CachedContentNotice(state.isStale, state.isLoading)
             LazyColumn(
                 contentPadding = PaddingValues(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),

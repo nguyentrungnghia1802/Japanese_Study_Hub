@@ -126,6 +126,8 @@ Any uncovered requirement or mismatch reopens the relevant task; do not waive it
 | Phase 2 schema/data restores from backup                          | TASK-292           | TASK-320                     |
 | Tags stay flat, normalized, and bounded                           | TASK-242           | TASK-302, TASK-303           |
 | FSRS state uses server UTC, bounded queue/logs, and idempotency   | TASK-250..253      | TASK-302, TASK-303, TASK-304, TASK-320 |
+| Mistake queue contains only submitted/current-version prompts      | TASK-260           | TASK-302, TASK-303, TASK-304           |
+| Practice review cannot update official best result                | TASK-261           | TASK-302, TASK-303, TASK-304           |
 
 ### Phase 2 release audit
 

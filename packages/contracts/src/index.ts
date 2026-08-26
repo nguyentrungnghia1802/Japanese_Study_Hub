@@ -8,3 +8,4 @@ export * from './recent.dto.js';
 export * from './favorite.dto.js';
 export * from './tags.dto.js';
 export * from './review.dto.js';
+export * from './exam-review.dto.js';

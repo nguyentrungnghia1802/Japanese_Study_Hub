@@ -29,6 +29,7 @@ export async function invalidateExamQueries(
     queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() }),
     queryClient.invalidateQueries({ queryKey: queryKeys.searchRoot() }),
     queryClient.invalidateQueries({ queryKey: queryKeys.tags() }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.mistakesRoot() }),
   ];
 
   if (examId) {
@@ -53,5 +54,12 @@ export async function invalidateReviewQueries(
     queryClient.invalidateQueries({ queryKey: queryKeys.reviewRoot() }),
     queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() }),
     ...(setId ? [queryClient.invalidateQueries({ queryKey: queryKeys.flashcardSet(setId) })] : []),
+  ]);
+}
+
+export async function invalidateMistakeQueries(queryClient: QueryClient): Promise<void> {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: queryKeys.mistakesRoot() }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboard() }),
   ]);
 }

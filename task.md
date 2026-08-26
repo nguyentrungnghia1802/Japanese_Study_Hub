@@ -644,19 +644,26 @@ Commit: `feat(android): add spaced repetition review`
 
 ## TASK-260 — Add wrong-answer review queue
 
-- [ ] Derive/store incorrect and unanswered items from submitted attempts.
-- [ ] Never expose answers before submission.
-- [ ] Add bounded review-queue endpoint.
-- [ ] Add Web “Review mistakes”.
-- [ ] Add Android “Review mistakes”.
-- [ ] Allow dismiss/clear.
-- [ ] Respect exam content versioning.
-- [ ] Remove invalid references after delete/version changes.
+- [x] Derive/store incorrect and unanswered items from submitted attempts.
+- [x] Never expose answers before submission.
+- [x] Add bounded review-queue endpoint.
+- [x] Add Web “Review mistakes”.
+- [x] Add Android “Review mistakes”.
+- [x] Allow dismiss/clear.
+- [x] Respect exam content versioning.
+- [x] Remove invalid references after delete/version changes.
 
 Acceptance criteria:
 
-- Mistake review never changes authoritative exam scoring.
-- Version boundaries remain correct.
+- [x] Mistake review never changes authoritative exam scoring.
+- [x] Version boundaries remain correct.
+
+Verification:
+
+- [x] API unit tests cover derivation, sanitization, bounds, dismissal, clear,
+      and stale-version cleanup.
+- [x] Web typecheck/lint/unit tests pass.
+- [x] Android debug unit tests/lint/assemble pass.
 
 Commit: `feat(exams): add wrong answer review`
 
@@ -664,17 +671,24 @@ Commit: `feat(exams): add wrong answer review`
 
 ## TASK-261 — Add incorrect-only practice mode
 
-- [ ] Implement as practice/review, not a normal scored exam unless explicitly documented.
-- [ ] Build subset from incorrect/unanswered items.
-- [ ] Do not overwrite official best score.
-- [ ] Show clear Practice labeling.
-- [ ] Support Web.
-- [ ] Support Android if shared API allows.
-- [ ] Add tests ensuring best-result isolation.
+- [x] Implement as practice/review, not a normal scored exam unless explicitly documented.
+- [x] Build subset from incorrect/unanswered items.
+- [x] Do not overwrite official best score.
+- [x] Show clear Practice labeling.
+- [x] Support Web.
+- [x] Support Android if shared API allows.
+- [x] Add tests ensuring best-result isolation.
 
 Acceptance criteria:
 
-- User can focus on weak questions without corrupting official results.
+- [x] User can focus on weak questions without corrupting official results.
+
+Verification:
+
+- [x] API tests cover current-version subset creation and practice best/mistake
+      isolation.
+- [x] Web route/type/unit gates pass.
+- [x] Android debug unit tests/lint/assemble pass.
 
 Commit: `feat(exams): add incorrect-only practice`
 
@@ -684,24 +698,32 @@ Commit: `feat(exams): add incorrect-only practice`
 
 ## TASK-270 — Add bounded Room read cache
 
-- [ ] Keep Android online-first.
-- [ ] Do not implement full offline sync.
-- [ ] Add Room only for selected read-mostly data:
+- [x] Keep Android online-first.
+- [x] Do not implement full offline sync.
+- [x] Add Room only for selected read-mostly data:
   - flashcard set summaries;
   - exam summaries;
   - recent/resume metadata;
   - optional small flashcard detail cache.
-- [ ] Never cache pre-grading correct-answer metadata.
-- [ ] Bound row count and/or cache age.
-- [ ] Add expiry cleanup.
-- [ ] Treat server as source of truth.
-- [ ] Show cached data immediately and refresh in background.
-- [ ] Clearly display offline/stale state.
+- [x] Never cache pre-grading correct-answer metadata.
+- [x] Bound row count and/or cache age.
+- [x] Add expiry cleanup.
+- [x] Treat server as source of truth.
+- [x] Show cached data immediately and refresh in background.
+- [x] Clearly display offline/stale state.
 
 Acceptance criteria:
 
-- Android opens useful content quickly after prior sync.
-- Cache cannot grow without bound.
+- [x] Android opens useful content quickly after prior sync.
+- [x] Cache cannot grow without bound.
+
+Verification:
+
+- [x] Room cache unit tests cover the 100-row bound, seven-day expiry cleanup,
+      and the absence of answer/question trees in cached projections.
+- [x] Android debug unit tests/lint/assemble pass after cache integration.
+- [x] Android cache policy is documented in the database, development,
+      requirements, and decision records.
 
 Commit: `perf(android): add bounded read cache`
 
@@ -709,19 +731,27 @@ Commit: `perf(android): add bounded read cache`
 
 ## TASK-271 — Optimize Android startup/navigation
 
-- [ ] Measure cold/warm startup.
-- [ ] Avoid blocking startup on unnecessary network calls.
-- [ ] Restore auth efficiently.
-- [ ] Load cached Home/library first where available.
-- [ ] Refresh in background.
-- [ ] Avoid recomposition hotspots.
-- [ ] Keep ViewModel state stable across navigation/config changes.
-- [ ] Use lazy/paging lists where justified.
+- [x] Measure cold/warm startup.
+- [x] Avoid blocking startup on unnecessary network calls.
+- [x] Restore auth efficiently.
+- [x] Load cached Home/library first where available.
+- [x] Refresh in background.
+- [x] Avoid recomposition hotspots.
+- [x] Keep ViewModel state stable across navigation/config changes.
+- [x] Use lazy/paging lists where justified.
 
 Acceptance criteria:
 
-- Returning user reaches useful content faster.
-- Navigation does not repeatedly reload identical data.
+- [x] Returning user reaches useful content faster.
+- [x] Navigation does not repeatedly reload identical data.
+
+Verification:
+
+- [x] Startup measurement script parses and records cold/warm `am start -W`
+      metrics when an emulator/device is available.
+- [x] Auth unit test proves cached identity renders before remote verification.
+- [x] Android debug unit tests/lint/assemble pass after startup/navigation
+      changes.
 
 Commit: `perf(android): improve startup and navigation`
 

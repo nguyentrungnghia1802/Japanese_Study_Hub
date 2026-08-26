@@ -128,6 +128,10 @@ private class FakeReviewRepository : StudyRepository {
     override suspend fun getAttempt(attemptId: String): LiveAttempt = error("unused")
     override suspend fun saveAnswer(attemptId: String, questionId: String, selectedOptionId: String?) = Unit
     override suspend fun submitAttempt(attemptId: String, answers: Map<String, String?>): ExamResult = error("unused")
+    override suspend fun startMistakePractice(examId: String, mistakeIds: List<String>) = error("unused")
+    override suspend fun getWrongAnswerReviewQueue(limit: Int) = error("unused")
+    override suspend fun dismissWrongAnswer(mistakeId: String) = Unit
+    override suspend fun clearWrongAnswers(examId: String?) = Unit
     override suspend fun getDashboard(): DashboardSummary = error("unused")
     override suspend fun search(query: String): SearchResults = error("unused")
 

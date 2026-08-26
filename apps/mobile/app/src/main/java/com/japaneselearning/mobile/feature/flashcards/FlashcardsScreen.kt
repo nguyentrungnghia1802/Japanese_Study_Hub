@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.japaneselearning.mobile.core.ui.EmptyState
 import com.japaneselearning.mobile.core.ui.ErrorState
 import com.japaneselearning.mobile.core.ui.LoadingState
+import com.japaneselearning.mobile.core.ui.CachedContentNotice
 import com.japaneselearning.mobile.core.ui.SectionTitle
 
 @Composable
@@ -47,6 +48,7 @@ fun FlashcardsScreen(
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         SectionTitle("Flashcards", Modifier.padding(top = 20.dp))
         Text("Ôn lại từ vựng và mẫu câu theo bộ thẻ.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        CachedContentNotice(state.screen.isStale, state.screen.isLoading && state.screen.data != null)
         Spacer(Modifier.height(16.dp))
         OutlinedTextField(
             value = state.query,

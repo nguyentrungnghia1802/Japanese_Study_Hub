@@ -1,5 +1,7 @@
 package com.japaneselearning.mobile.core.di
 
+import android.content.Context
+import androidx.room.Room
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.japaneselearning.mobile.core.config.AppConfig
 import com.japaneselearning.mobile.core.network.AuthInterceptor
@@ -11,6 +13,8 @@ import com.japaneselearning.mobile.core.storage.TokenStore
 import com.japaneselearning.mobile.data.remote.StudyApi
 import com.japaneselearning.mobile.data.repository.StudyRepository
 import com.japaneselearning.mobile.data.repository.StudyRepositoryImpl
+import com.japaneselearning.mobile.data.cache.StudyReadCache
+import com.japaneselearning.mobile.data.cache.StudyReadCacheDatabase
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -25,6 +29,17 @@ import retrofit2.Retrofit
 @Module
 @InstallIn(SingletonComponent::class)
 object StorageModule {
+    @Provides
+    @Singleton
+    fun provideStudyReadCacheDatabase(@dagger.hilt.android.qualifiers.ApplicationContext context: Context): StudyReadCacheDatabase =
+        Room.databaseBuilder(context, StudyReadCacheDatabase::class.java, "study_read_cache.db")
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideStudyReadCache(database: StudyReadCacheDatabase): StudyReadCache =
+        StudyReadCache(database.studyReadCacheDao())
+
     @Provides
     @Singleton
     fun provideTokenStore(store: EncryptedTokenStore): TokenStore = store

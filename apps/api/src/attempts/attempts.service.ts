@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import {
   AttemptStatus,
   QuestionType,
@@ -32,6 +33,7 @@ interface AttemptSnapshot {
   examVersion: number;
   timeLimitSeconds: number | null;
   questions: SnapshotQuestion[];
+  isPractice?: boolean;
 }
 
 @Injectable()
@@ -99,6 +101,7 @@ export class AttemptsService {
       examVersion: exam.contentVersion,
       timeLimitSeconds: exam.timeLimitSeconds,
       questions: questionsList,
+      isPractice: false,
     };
 
     const attempt = await this.prisma.examAttempt.create({
@@ -140,6 +143,7 @@ export class AttemptsService {
         })),
       })),
       savedAnswers: {},
+      isPractice: false,
     };
   }
 
@@ -183,6 +187,7 @@ export class AttemptsService {
         })),
       })),
       savedAnswers,
+      isPractice: attempt.isPractice,
     };
   }
 
@@ -322,63 +327,69 @@ export class AttemptsService {
         include: { answers: true },
       });
 
-      // 2. Best-result service (TASK-063)
-      const existingBest = await tx.examBestResult.findUnique({
-        where: {
-          userKey_examId_examVersion: {
-            userKey: 'primary_user',
-            examId: attempt.examId,
-            examVersion: attempt.examVersion,
-          },
-        },
-      });
-
       let newBestFlag = false;
       let currentBestScore = score;
 
-      if (!existingBest) {
-        await tx.examBestResult.create({
-          data: {
-            examId: attempt.examId,
-            examVersion: attempt.examVersion,
-            userKey: 'primary_user',
-            bestScore: score,
-            correctCount,
-            totalQuestions,
-            durationSeconds,
-            attemptCount: 1,
-            achievedAt: submittedAt,
-            lastAttemptAt: submittedAt,
+      if (!attempt.isPractice) {
+        // 2. Derive mistakes from the immutable submitted snapshot. Practice
+        // attempts never create mistakes or official learning history.
+        await this.persistMistakes(tx, attempt, snapshot, answerMap);
+
+        // 3. Best-result service (TASK-063)
+        const existingBest = await tx.examBestResult.findUnique({
+          where: {
+            userKey_examId_examVersion: {
+              userKey: 'primary_user',
+              examId: attempt.examId,
+              examVersion: attempt.examVersion,
+            },
           },
         });
-        newBestFlag = true;
-      } else {
-        const prevScore = Number(existingBest.bestScore);
 
-        if (score > prevScore) {
-          await tx.examBestResult.update({
-            where: { id: existingBest.id },
+        if (!existingBest) {
+          await tx.examBestResult.create({
             data: {
+              examId: attempt.examId,
+              examVersion: attempt.examVersion,
+              userKey: 'primary_user',
               bestScore: score,
               correctCount,
               totalQuestions,
               durationSeconds,
-              attemptCount: { increment: 1 },
+              attemptCount: 1,
               achievedAt: submittedAt,
               lastAttemptAt: submittedAt,
             },
           });
           newBestFlag = true;
         } else {
-          // Lower or equal score does not replace best score
-          await tx.examBestResult.update({
-            where: { id: existingBest.id },
-            data: {
-              attemptCount: { increment: 1 },
-              lastAttemptAt: submittedAt,
-            },
-          });
-          currentBestScore = prevScore;
+          const prevScore = Number(existingBest.bestScore);
+
+          if (score > prevScore) {
+            await tx.examBestResult.update({
+              where: { id: existingBest.id },
+              data: {
+                bestScore: score,
+                correctCount,
+                totalQuestions,
+                durationSeconds,
+                attemptCount: { increment: 1 },
+                achievedAt: submittedAt,
+                lastAttemptAt: submittedAt,
+              },
+            });
+            newBestFlag = true;
+          } else {
+            // Lower or equal score does not replace best score
+            await tx.examBestResult.update({
+              where: { id: existingBest.id },
+              data: {
+                attemptCount: { increment: 1 },
+                lastAttemptAt: submittedAt,
+              },
+            });
+            currentBestScore = prevScore;
+          }
         }
       }
 
@@ -406,6 +417,7 @@ export class AttemptsService {
       durationSeconds: number | null;
       startedAt: Date;
       submittedAt: Date | null;
+      isPractice: boolean;
       answers: Array<{ questionId: string; selectedOptionId: string | null }>;
     },
     snapshot: AttemptSnapshot,
@@ -465,6 +477,44 @@ export class AttemptsService {
       questions: gradedQuestions,
       isNewBest,
       bestScore: bestScore !== undefined ? bestScore : numericScore,
+      isPractice: Boolean(attempt.isPractice || snapshot.isPractice),
     };
+  }
+
+  private async persistMistakes(
+    tx: Prisma.TransactionClient,
+    attempt: { id: string; examId: string; examVersion: number },
+    snapshot: AttemptSnapshot,
+    answerMap: Map<string, string | null>,
+  ): Promise<void> {
+    for (const question of snapshot.questions) {
+      const selectedOptionId = answerMap.get(question.id) ?? null;
+      const correctOption = question.options.find((option) => option.isCorrect);
+      const isCorrect = Boolean(
+        selectedOptionId && correctOption && selectedOptionId === correctOption.id,
+      );
+      if (isCorrect) continue;
+
+      await tx.examMistake.upsert({
+        where: {
+          examId_examVersion_questionId: {
+            examId: attempt.examId,
+            examVersion: attempt.examVersion,
+            questionId: question.id,
+          },
+        },
+        update: {
+          sourceAttemptId: attempt.id,
+          selectedOptionId,
+        },
+        create: {
+          examId: attempt.examId,
+          examVersion: attempt.examVersion,
+          questionId: question.id,
+          sourceAttemptId: attempt.id,
+          selectedOptionId,
+        },
+      });
+    }
   }
 }

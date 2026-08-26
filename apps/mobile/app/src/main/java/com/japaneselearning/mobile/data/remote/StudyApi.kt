@@ -1,6 +1,7 @@
 package com.japaneselearning.mobile.data.remote
 
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -101,6 +102,20 @@ interface StudyApi {
         @Path("attemptId") attemptId: String,
         @Body request: SubmitAttemptRequest = SubmitAttemptRequest(),
     ): ExamResultDto
+
+    @GET("exam-review/mistakes")
+    suspend fun getWrongAnswerReviewQueue(@Query("limit") limit: Int = 20): WrongAnswerReviewQueueDto
+
+    @DELETE("exam-review/mistakes/{mistakeId}")
+    suspend fun dismissWrongAnswer(
+        @Path("mistakeId") mistakeId: String,
+    ): SuccessResponse
+
+    @DELETE("exam-review/mistakes")
+    suspend fun clearWrongAnswers(@Query("examId") examId: String? = null): ClearMistakesResponse
+
+    @POST("exam-review/practice")
+    suspend fun startMistakePractice(@Body request: StartMistakePracticeRequest): LiveAttemptDto
 
     @GET("search")
     suspend fun search(

@@ -109,6 +109,9 @@ src/
 │   ├── fsrs.ts
 │   ├── review.controller.ts
 │   └── review.service.ts
+├── exam-review/
+│   ├── exam-review.controller.ts
+│   └── exam-review.service.ts
 ├── exports/
 ├── search/
 ├── media/
@@ -127,6 +130,8 @@ Rules:
 - FSRS transitions are a pure/testable domain operation; review persistence,
   idempotency, and retention remain in the review application service.
 - Authentication logic is isolated.
+- `exam-review` owns the bounded wrong-answer queue and starts isolated
+  practice attempts; `attempts` remains the only scoring boundary.
 
 ---
 
@@ -173,6 +178,11 @@ queue through `StudyRepository`. It keeps only that active batch in the
 ViewModel, sends ratings with a stable client request id for transient retries,
 and never calculates or overwrites scheduling state locally. Basic Study
 All/Shuffle remains a separate route and does not mutate FSRS state.
+
+The Android client also has a small Room read cache for list summaries,
+dashboard counts, and recent/resume metadata. It is online-first: cached data
+may render immediately with a stale notice, then server data replaces it. Live
+attempts, FSRS transitions, and pre-grading answer keys never enter this cache.
 
 ---
 

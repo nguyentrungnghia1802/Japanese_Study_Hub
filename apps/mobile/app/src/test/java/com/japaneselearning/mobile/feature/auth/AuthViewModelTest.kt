@@ -13,15 +13,18 @@ import com.japaneselearning.mobile.data.model.FlashcardSet
 import com.japaneselearning.mobile.data.model.LiveAttempt
 import com.japaneselearning.mobile.data.model.SearchResults
 import com.japaneselearning.mobile.data.model.User
+import com.japaneselearning.mobile.data.model.WrongAnswerReviewQueue
 import com.japaneselearning.mobile.data.repository.StudyRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -50,11 +53,30 @@ class AuthViewModelTest {
         assertEquals("admin", viewModel.state.value.user?.username)
         assertEquals("token", tokenStore.readToken())
     }
+
+    @Test
+    fun cachedUsernameOpensSessionBeforeRemoteVerificationCompletes() = runTest(dispatcher) {
+        val tokenStore = FakeTokenStore(initialToken = "token", initialUsername = "cached-user")
+        val verification = CompletableDeferred<Unit>()
+        val viewModel = AuthViewModel(FakeRepository(tokenStore, verification), tokenStore)
+
+        runCurrent()
+
+        assertEquals(false, viewModel.state.value.isLoading)
+        assertEquals("cached-user", viewModel.state.value.user?.username)
+
+        verification.complete(Unit)
+        advanceUntilIdle()
+        assertEquals("admin", viewModel.state.value.user?.username)
+    }
 }
 
-private class FakeTokenStore : TokenStore {
-    private val value = MutableStateFlow<String?>(null)
-    private var username: String? = null
+private class FakeTokenStore(
+    initialToken: String? = null,
+    initialUsername: String? = null,
+) : TokenStore {
+    private val value = MutableStateFlow(initialToken)
+    private var username: String? = initialUsername
     override val token: Flow<String?> = value
     override suspend fun readToken(): String? = value.value
     override suspend fun saveSession(token: String, username: String) {
@@ -65,12 +87,18 @@ private class FakeTokenStore : TokenStore {
     override suspend fun clear() { value.value = null; username = null }
 }
 
-private class FakeRepository(private val tokenStore: TokenStore) : StudyRepository {
+private class FakeRepository(
+    private val tokenStore: TokenStore,
+    private val meBlock: CompletableDeferred<Unit>? = null,
+) : StudyRepository {
     override suspend fun login(username: String, password: String): User {
         tokenStore.saveSession("token", username)
         return User(username)
     }
-    override suspend fun me() = User("admin")
+    override suspend fun me(): User {
+        meBlock?.await()
+        return User("admin")
+    }
     override suspend fun logout() = Unit
     override suspend fun listFlashcardSets(search: String?, favoriteOnly: Boolean, tag: String?) = emptyList<FlashcardSet>()
     override suspend fun getFlashcardSet(setId: String): FlashcardSet = error("unused")
@@ -93,6 +121,10 @@ private class FakeRepository(private val tokenStore: TokenStore) : StudyReposito
     override suspend fun getAttempt(attemptId: String): LiveAttempt = error("unused")
     override suspend fun saveAnswer(attemptId: String, questionId: String, selectedOptionId: String?) = Unit
     override suspend fun submitAttempt(attemptId: String, answers: Map<String, String?>): ExamResult = error("unused")
+    override suspend fun startMistakePractice(examId: String, mistakeIds: List<String>): LiveAttempt = error("unused")
+    override suspend fun getWrongAnswerReviewQueue(limit: Int): WrongAnswerReviewQueue = error("unused")
+    override suspend fun dismissWrongAnswer(mistakeId: String) = Unit
+    override suspend fun clearWrongAnswers(examId: String?) = Unit
     override suspend fun getDashboard(): DashboardSummary = error("unused")
     override suspend fun search(query: String): SearchResults = error("unused")
 }

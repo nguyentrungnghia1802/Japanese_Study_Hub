@@ -1,5 +1,6 @@
 package com.japaneselearning.mobile.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
@@ -14,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -33,6 +35,8 @@ import com.japaneselearning.mobile.feature.dashboard.DashboardScreen
 import com.japaneselearning.mobile.feature.exams.ExamDetailScreen
 import com.japaneselearning.mobile.feature.exams.ExamTakeScreen
 import com.japaneselearning.mobile.feature.exams.ExamsScreen
+import com.japaneselearning.mobile.feature.exams.MistakesScreen
+import com.japaneselearning.mobile.feature.exams.PracticeScreen
 import com.japaneselearning.mobile.feature.flashcards.FlashcardDetailScreen
 import com.japaneselearning.mobile.feature.flashcards.FlashcardStudyScreen
 import com.japaneselearning.mobile.feature.flashcards.FlashcardReviewScreen
@@ -46,6 +50,8 @@ object Routes {
     const val FLASHCARD_DETAIL = "flashcard/{setId}"
     const val FLASHCARD_STUDY = "flashcard/{setId}/study"
     const val EXAMS = "exams"
+    const val EXAM_MISTAKES = "exam-mistakes"
+    const val EXAM_PRACTICE = "exam-practice/{examId}/{mistakeIds}"
     const val EXAM_DETAIL = "exam/{examId}"
     const val EXAM_TAKE = "exam/{examId}/take"
     const val SEARCH = "search"
@@ -68,13 +74,15 @@ private fun AuthenticatedApp(onLogout: () -> Unit) {
     val navController = rememberNavController()
     val entry by navController.currentBackStackEntryAsState()
     val route = entry?.destination?.route
-    val topLevel = listOf(
+    val topLevel = remember {
+        listOf(
         BottomDestination(Routes.DASHBOARD, "Tổng quan") { Icon(Icons.Default.Dashboard, null) },
         BottomDestination(Routes.FLASHCARDS, "Bộ thẻ") { Icon(Icons.Default.Style, null) },
         BottomDestination(Routes.REVIEW, "Ôn tập") { Icon(Icons.Default.Replay, null) },
         BottomDestination(Routes.EXAMS, "Đề thi") { Icon(Icons.Default.FolderCopy, null) },
         BottomDestination(Routes.SEARCH, "Tìm kiếm") { Icon(Icons.Default.Search, null) },
-    )
+        )
+    }
     val showBottomBar = topLevel.any { route == it.route }
 
     Scaffold(
@@ -145,7 +153,25 @@ private fun StudyNavHost(
         composable(Routes.EXAMS) {
             ExamsScreen(
                 onOpenExam = { examId -> navController.navigate("exam/$examId") },
+                onOpenMistakes = { navController.navigate(Routes.EXAM_MISTAKES) },
             )
+        }
+        composable(Routes.EXAM_MISTAKES) {
+            MistakesScreen(
+                onBack = { navController.popBackStack() },
+                onOpenPractice = { examId, mistakeId ->
+                    navController.navigate("exam-practice/${Uri.encode(examId)}/${Uri.encode(mistakeId)}")
+                },
+            )
+        }
+        composable(
+            Routes.EXAM_PRACTICE,
+            arguments = listOf(
+                navArgument("examId") { type = NavType.StringType },
+                navArgument("mistakeIds") { type = NavType.StringType },
+            ),
+        ) {
+            PracticeScreen(onBack = { navController.popBackStack() })
         }
         composable(
             Routes.EXAM_DETAIL,

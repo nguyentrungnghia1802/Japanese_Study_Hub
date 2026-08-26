@@ -14,6 +14,7 @@ import { CacheControlMiddleware } from './common/middleware/cache-control.middle
 import { LearningModule } from './learning/learning.module.js';
 import { TagModule } from './common/tag.module.js';
 import { ReviewModule } from './review/review.module.js';
+import { ExamReviewModule } from './exam-review/exam-review.module.js';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ReviewModule } from './review/review.module.js';
     LearningModule,
     TagModule,
     ReviewModule,
+    ExamReviewModule,
   ],
 })
 export class AppModule implements NestModule {

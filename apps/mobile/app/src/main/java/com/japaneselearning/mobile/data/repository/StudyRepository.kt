@@ -2,6 +2,7 @@ package com.japaneselearning.mobile.data.repository
 
 import com.japaneselearning.mobile.core.network.ApiErrorMapper
 import com.japaneselearning.mobile.core.storage.TokenStore
+import com.japaneselearning.mobile.data.cache.StudyReadCache
 import com.japaneselearning.mobile.data.model.DashboardSummary
 import com.japaneselearning.mobile.data.model.Exam
 import com.japaneselearning.mobile.data.model.ExamFolder
@@ -16,6 +17,8 @@ import com.japaneselearning.mobile.data.model.LiveAttempt
 import com.japaneselearning.mobile.data.model.LearningTag
 import com.japaneselearning.mobile.data.model.SearchResults
 import com.japaneselearning.mobile.data.model.User
+import com.japaneselearning.mobile.data.model.WrongAnswerReviewItem
+import com.japaneselearning.mobile.data.model.WrongAnswerReviewQueue
 import com.japaneselearning.mobile.data.remote.AnswerDto
 import com.japaneselearning.mobile.data.remote.DashboardDto
 import com.japaneselearning.mobile.data.remote.ExamDto
@@ -33,6 +36,7 @@ import com.japaneselearning.mobile.data.remote.SearchResultsDto
 import com.japaneselearning.mobile.data.remote.StudyApi
 import com.japaneselearning.mobile.data.remote.LoginRequest
 import com.japaneselearning.mobile.data.remote.SaveAnswersRequest
+import com.japaneselearning.mobile.data.remote.StartMistakePracticeRequest
 import com.japaneselearning.mobile.data.remote.SubmitAttemptRequest
 import com.japaneselearning.mobile.data.remote.SetTagsRequest
 import javax.inject.Inject
@@ -93,6 +97,14 @@ interface StudyRepository {
 
     suspend fun submitAttempt(attemptId: String, answers: Map<String, String?>): ExamResult
 
+    suspend fun startMistakePractice(examId: String, mistakeIds: List<String>): LiveAttempt
+
+    suspend fun getWrongAnswerReviewQueue(limit: Int = 20): WrongAnswerReviewQueue
+
+    suspend fun dismissWrongAnswer(mistakeId: String)
+
+    suspend fun clearWrongAnswers(examId: String? = null)
+
     suspend fun getDashboard(): DashboardSummary
 
     suspend fun search(query: String): SearchResults
@@ -102,6 +114,7 @@ interface StudyRepository {
 class StudyRepositoryImpl @Inject constructor(
     private val api: StudyApi,
     private val tokenStore: TokenStore,
+    private val readCache: StudyReadCache,
 ) : StudyRepository {
     override suspend fun login(username: String, password: String): User {
         val response = request { api.login(LoginRequest(username, password)) }
@@ -123,13 +136,19 @@ class StudyRepositoryImpl @Inject constructor(
         tokenStore.clear()
     }
 
-    override suspend fun listFlashcardSets(search: String?, favoriteOnly: Boolean, tag: String?): List<FlashcardSet> =
-        request { api.listFlashcardSets(search = search, favorite = favoriteOnly.takeIf { it }, tag = tag) }
-            .items
-            .map(::mapSet)
+    override suspend fun listFlashcardSets(search: String?, favoriteOnly: Boolean, tag: String?): List<FlashcardSet> {
+        val sets = request {
+            api.listFlashcardSets(search = search, favorite = favoriteOnly.takeIf { it }, tag = tag)
+        }.items.map(::mapSet)
+        if (search.isNullOrBlank() && !favoriteOnly && tag == null) runCatching { readCache.saveFlashcardSets(sets) }
+        return sets
+    }
 
-    override suspend fun getFlashcardSet(setId: String): FlashcardSet =
-        mapSet(request { api.getFlashcardSet(setId) })
+    override suspend fun getFlashcardSet(setId: String): FlashcardSet {
+        val set = mapSet(request { api.getFlashcardSet(setId) })
+        runCatching { readCache.saveFlashcardSets(listOf(set)) }
+        return set
+    }
 
     override suspend fun getFlashcardReviewSummary(): FlashcardReviewSummary =
         mapReviewSummary(request { api.getFlashcardReviewSummary() })
@@ -176,8 +195,8 @@ class StudyRepositoryImpl @Inject constructor(
         search: String?,
         favoriteOnly: Boolean,
         tag: String?,
-    ): List<Exam> =
-        request {
+    ): List<Exam> {
+        val exams = request {
             api.listExams(
                 folderId = folderId,
                 search = search,
@@ -185,6 +204,9 @@ class StudyRepositoryImpl @Inject constructor(
                 tag = tag,
             )
         }.items.map(::mapExam)
+        if (search.isNullOrBlank() && folderId == null && !favoriteOnly && tag == null) runCatching { readCache.saveExams(exams) }
+        return exams
+    }
 
     override suspend fun getExam(examId: String): Exam =
         mapExam(request { api.getExam(examId) })
@@ -226,8 +248,30 @@ class StudyRepositoryImpl @Inject constructor(
         return mapResult(request { api.submitAttempt(attemptId, request) })
     }
 
-    override suspend fun getDashboard(): DashboardSummary =
-        mapDashboard(request { api.dashboard() })
+    override suspend fun startMistakePractice(examId: String, mistakeIds: List<String>): LiveAttempt =
+        mapAttempt(request { api.startMistakePractice(StartMistakePracticeRequest(examId, mistakeIds)) })
+
+    override suspend fun getWrongAnswerReviewQueue(limit: Int): WrongAnswerReviewQueue {
+        val response = request { api.getWrongAnswerReviewQueue(limit.coerceIn(1, 20)) }
+        return WrongAnswerReviewQueue(
+            items = response.items.map(::mapWrongAnswer),
+            total = response.total,
+        )
+    }
+
+    override suspend fun dismissWrongAnswer(mistakeId: String) {
+        request { api.dismissWrongAnswer(mistakeId) }
+    }
+
+    override suspend fun clearWrongAnswers(examId: String?) {
+        request { api.clearWrongAnswers(examId) }
+    }
+
+    override suspend fun getDashboard(): DashboardSummary {
+        val dashboard = mapDashboard(request { api.dashboard() })
+        runCatching { readCache.saveDashboard(dashboard) }
+        return dashboard
+    }
 
     override suspend fun search(query: String): SearchResults =
         mapSearch(request { api.search(query) })
@@ -342,6 +386,24 @@ class StudyRepositoryImpl @Inject constructor(
         },
     )
 
+    private fun mapWrongAnswer(dto: com.japaneselearning.mobile.data.remote.WrongAnswerReviewItemDto) =
+        WrongAnswerReviewItem(
+            id = dto.id,
+            examId = dto.examId,
+            examTitle = dto.examTitle,
+            examVersion = dto.examVersion,
+            questionId = dto.questionId,
+            questionType = dto.questionType,
+            questionContent = dto.questionContent,
+            options = dto.options.map { option ->
+                com.japaneselearning.mobile.data.model.LiveOption(option.id, option.content)
+            },
+            selectedOptionId = dto.selectedOptionId,
+            sourceAttemptId = dto.sourceAttemptId,
+            createdAt = dto.createdAt,
+            updatedAt = dto.updatedAt,
+        )
+
     private fun mapAttempt(dto: LiveAttemptDto) = LiveAttempt(
         attemptId = dto.attemptId,
         examId = dto.examId,
@@ -357,6 +419,7 @@ class StudyRepositoryImpl @Inject constructor(
             )
         },
         savedAnswers = dto.savedAnswers,
+        isPractice = dto.isPractice,
     )
 
     private fun mapResult(dto: ExamResultDto) = ExamResult(
@@ -385,6 +448,7 @@ class StudyRepositoryImpl @Inject constructor(
         },
         isNewBest = dto.isNewBest,
         bestScore = dto.bestScore,
+        isPractice = dto.isPractice,
     )
 
     private fun mapDashboard(dto: DashboardDto) = DashboardSummary(

@@ -2,6 +2,7 @@ package com.japaneselearning.mobile.feature.flashcards
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.japaneselearning.mobile.data.cache.StudyReadCache
 import com.japaneselearning.mobile.core.ui.ScreenState
 import com.japaneselearning.mobile.data.model.FlashcardSet
 import com.japaneselearning.mobile.data.model.LearningTag
@@ -26,6 +27,7 @@ data class FlashcardsUiState(
 @HiltViewModel
 class FlashcardsViewModel @Inject constructor(
     private val repository: StudyRepository,
+    private val readCache: StudyReadCache,
 ) : ViewModel() {
     private val _state = MutableStateFlow(FlashcardsUiState())
     val state: StateFlow<FlashcardsUiState> = _state.asStateFlow()
@@ -68,7 +70,15 @@ class FlashcardsViewModel @Inject constructor(
     fun load(query: String = _state.value.query) {
         viewModelScope.launch {
             val current = _state.value.screen.data
-            _state.update { it.copy(screen = ScreenState(isLoading = true, data = current)) }
+            val canUseCache = query.isBlank() && !_state.value.favoriteOnly && _state.value.selectedTag == null
+            if (canUseCache) {
+                runCatching { readCache.readFlashcardSets() }.getOrNull()?.let { cached ->
+                    _state.update {
+                        it.copy(screen = ScreenState(isLoading = true, data = cached.data, isStale = true))
+                    }
+                }
+            }
+            _state.update { it.copy(screen = ScreenState(isLoading = true, data = it.screen.data ?: current, isStale = it.screen.isStale)) }
             try {
                 val sets = repository.listFlashcardSets(
                     search = query.trim().takeIf { it.isNotEmpty() },
@@ -85,6 +95,7 @@ class FlashcardsViewModel @Inject constructor(
                             isLoading = false,
                             data = current,
                             error = error.message ?: "Không tải được bộ thẻ.",
+                            isStale = it.screen.data != null,
                         ),
                     )
                 }

@@ -320,6 +320,18 @@ Before starting:
 
 Starting creates a server attempt.
 
+## 13.1 Review mistakes and Practice
+
+The Exams area exposes a `Review mistakes` destination. It displays no more than
+20 incorrect/unanswered prompts from submitted attempts, shows the selected
+answer when present, and offers per-item dismiss, clear-all, and `Practice`
+actions. The pre-submit view never shows correctness or the answer key.
+
+Practice is visibly labeled `PRACTICE MODE`, has no countdown, and contains only
+the selected weak questions. After submission it may show grading feedback, but
+the result explicitly states that the official exam best score is unchanged.
+The same bounded flow is available on Android.
+
 ---
 
 ## 14. Exam taking screen

@@ -155,6 +155,10 @@ For critical user journeys:
 - Cannot edit submitted attempt
 - Cannot answer question not belonging to attempt
 - Cannot submit option not belonging to question
+- Wrong-answer queue contains incorrect and unanswered submitted questions only
+- Live mistake queue omits correctness metadata
+- Deleted or old-version mistake references are removed
+- Practice submission does not write official best-result or mistake history
 
 ---
 
@@ -234,6 +238,8 @@ CI or local release process shall test:
 10. Verify score/highlighting
 11. Retake with lower score
 12. Verify best unchanged
+13. Open Review mistakes and confirm selected/unanswered prompts are sanitized
+14. Start Practice, submit, and verify official best remains unchanged
 
 ---
 

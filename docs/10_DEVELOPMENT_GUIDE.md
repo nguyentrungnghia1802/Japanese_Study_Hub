@@ -59,6 +59,16 @@
 - Keep the active FSRS review queue in the ViewModel and cap it at 20 cards.
 - Reuse the same client request id when a rating is retried after a network
   failure; the server remains authoritative for the next due time.
+- Keep exam mistake reads bounded to 20 items and do not add correctness fields
+  to the review DTO. Practice requests carry selected mistake ids only; server
+  snapshots own grading metadata and `isPractice` skips official best/mistake
+  writes.
+- Keep Android Room reads online-first and summary-only. Enforce row and age
+  bounds in the cache layer, clean expired rows before reads, render an
+  explicit stale/offline notice, and never allow cache failures to hide a
+  successful server response.
+- Do not persist active attempts, answer keys, FSRS transitions, or pending
+  mutations in the read cache.
 
 From the repository root, mobile checks are run with:
 

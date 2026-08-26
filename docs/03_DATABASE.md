@@ -269,6 +269,7 @@ Cardinality rules 2–6 and exactly-one-correct are enforced transactionally in 
 | duration_seconds        | integer     |  yes | after submission              |
 | question_order_snapshot | jsonb       |  yes | IDs/order when shuffled       |
 | option_order_snapshot   | jsonb       |  yes | stable shuffled option order  |
+| is_practice             | boolean     |   no | default false; excludes official best/mistake writes |
 | created_at              | timestamptz |   no |                               |
 | updated_at              | timestamptz |   no |                               |
 
@@ -276,6 +277,49 @@ Notes:
 
 - The snapshots may instead be normalized into attempt item tables if desired. JSONB is acceptable at V1 personal scale if strictly validated.
 - Submission must be idempotent.
+
+## 11.1 `exam_mistakes`
+
+Phase 2 stores one current wrong or unanswered reference per exam content
+version and question. `selected_option_id` is nullable for unanswered items;
+the source attempt id is retained for audit context without exposing answer keys.
+
+| Column             | Type        | Null | Notes |
+| ------------------ | ----------- | ---: | ----- |
+| id                 | UUID        |   no | PK |
+| exam_id            | UUID        |   no | FK exams, cascade |
+| exam_version       | integer     |   no | content version boundary |
+| question_id        | UUID        |   no | FK exam_questions, cascade |
+| source_attempt_id  | UUID        |   no | submitted attempt reference |
+| selected_option_id | UUID        |  yes | null = unanswered |
+| created_at         | timestamptz |   no | |
+| updated_at         | timestamptz |   no | |
+
+Unique key `(exam_id, exam_version, question_id)` bounds duplicate history.
+The API removes stale version rows; cascade deletion removes rows when an
+exam/question is deleted. Practice snapshots contain correctness flags only on
+the server and live responses remain sanitized.
+
+---
+
+## 11.2 Android Room read cache
+
+The Android client keeps a local, non-authoritative Room projection for
+read-mostly summaries only. The cache contains flashcard-set summaries, exam
+summaries, recent/resume metadata, and dashboard counts. It deliberately does
+not contain live attempts, graded answers, FSRS transitions, or pre-grading
+correctness metadata.
+
+Cache policy:
+
+- maximum 100 rows per bounded summary projection;
+- maximum seven-day age, with expired-row cleanup before reads;
+- cached rows are replaced by server data after refresh;
+- stale/offline state is visible in the UI;
+- no pending mutation queue or bidirectional offline synchronization.
+
+The server remains the source of truth. Cache failures are best-effort and
+must not make a successful network response fail.
 
 ---
 

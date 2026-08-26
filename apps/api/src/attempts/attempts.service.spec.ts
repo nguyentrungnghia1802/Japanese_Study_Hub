@@ -19,6 +19,9 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
       upsert: ReturnType<typeof vi.fn>;
       findMany: ReturnType<typeof vi.fn>;
     };
+    examMistake: {
+      upsert: ReturnType<typeof vi.fn>;
+    };
     examBestResult: {
       findUnique: ReturnType<typeof vi.fn>;
       create: ReturnType<typeof vi.fn>;
@@ -119,6 +122,9 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
           { questionId: 'q-2', selectedOptionId: 'opt-4' },
         ]),
       },
+      examMistake: {
+        upsert: vi.fn().mockResolvedValue({}),
+      },
       examBestResult: {
         findUnique: vi.fn().mockResolvedValue(null),
         create: vi.fn().mockResolvedValue({ id: 'best-1', bestScore: 100 }),
@@ -184,6 +190,37 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
   });
 
   describe('TASK-062 & TASK-063 — Submission, scoring, and best results', () => {
+    it('derives wrong and unanswered questions into the bounded review source', async () => {
+      prismaMock.examAttemptAnswer.findMany.mockResolvedValueOnce([
+        { questionId: 'q-1', selectedOptionId: 'opt-2' },
+      ]);
+
+      await service.submitAttempt('attempt-1');
+
+      expect(prismaMock.examMistake.upsert).toHaveBeenCalledTimes(2);
+      expect(prismaMock.examMistake.upsert).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          create: expect.objectContaining({
+            examId: 'exam-1',
+            examVersion: 1,
+            questionId: 'q-1',
+            selectedOptionId: 'opt-2',
+            sourceAttemptId: 'attempt-1',
+          }),
+        }),
+      );
+      expect(prismaMock.examMistake.upsert).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          create: expect.objectContaining({
+            questionId: 'q-2',
+            selectedOptionId: null,
+          }),
+        }),
+      );
+    });
+
     it('evaluates score accurately and records new best score', async () => {
       const graded = await service.submitAttempt('attempt-1');
 
@@ -243,6 +280,54 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
 
       expect(graded.isNewBest).toBe(false);
       expect(graded.bestScore).toBe(100);
+    });
+
+    it('keeps practice submissions out of official best scores and mistake history', async () => {
+      prismaMock.examAttempt.findUnique.mockResolvedValueOnce({
+        id: 'practice-1',
+        examId: 'exam-1',
+        examVersion: 1,
+        isPractice: true,
+        status: AttemptStatus.IN_PROGRESS,
+        score: null,
+        durationSeconds: null,
+        startedAt: sampleDate,
+        submittedAt: null,
+        expiresAt: null,
+        questionOrderSnapshot: {
+          examId: 'exam-1',
+          examTitle: 'JLPT N3 Grammar Mock',
+          examVersion: 1,
+          timeLimitSeconds: null,
+          isPractice: true,
+          questions: sampleExam.questions,
+        },
+        answers: [],
+      });
+      prismaMock.examAttemptAnswer.findMany.mockResolvedValueOnce([
+        { questionId: 'q-1', selectedOptionId: 'opt-2' },
+      ]);
+      prismaMock.examAttempt.update.mockResolvedValueOnce({
+        id: 'practice-1',
+        examId: 'exam-1',
+        examVersion: 1,
+        isPractice: true,
+        status: AttemptStatus.SUBMITTED,
+        score: 0,
+        durationSeconds: 2,
+        startedAt: sampleDate,
+        submittedAt: new Date(),
+        answers: [{ questionId: 'q-1', selectedOptionId: 'opt-2' }],
+      });
+
+      const graded = await service.submitAttempt('practice-1');
+
+      expect(graded.isPractice).toBe(true);
+      expect(graded.isNewBest).toBe(false);
+      expect(prismaMock.examBestResult.findUnique).not.toHaveBeenCalled();
+      expect(prismaMock.examBestResult.create).not.toHaveBeenCalled();
+      expect(prismaMock.examBestResult.update).not.toHaveBeenCalled();
+      expect(prismaMock.examMistake.upsert).not.toHaveBeenCalled();
     });
   });
 });

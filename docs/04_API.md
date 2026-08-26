@@ -406,6 +406,30 @@ Response:
 
 Submission must be idempotent.
 
+### `GET /api/v1/exam-review/mistakes?limit=20&examId={examId}`
+
+Returns at most 20 incorrect or unanswered items from submitted normal
+attempts. It includes prompt/options, selected option, exam version, and source
+attempt metadata, but never `isCorrect`, `correctOptionId`, or an answer key.
+Deleted exams and old content-version rows are removed while the queue is read.
+
+### `DELETE /api/v1/exam-review/mistakes/{mistakeId}`
+
+Dismisses one queued mistake. `DELETE /api/v1/exam-review/mistakes?examId=...`
+clears one exam's queue; without `examId` it clears the complete queue.
+
+### `POST /api/v1/exam-review/practice`
+
+Starts an untimed practice attempt from 1–20 mistake ids:
+
+```json
+{ "examId": "...", "mistakeIds": ["..."] }
+```
+
+The returned live attempt is marked `isPractice: true` and remains sanitized.
+Submitting it uses server grading for feedback but does not create/update an
+official best result or add practice mistakes to the queue.
+
 ---
 
 ## 11. Best result endpoints

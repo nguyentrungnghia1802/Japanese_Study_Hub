@@ -236,6 +236,7 @@ data class LiveAttemptDto(
     val totalQuestions: Int,
     val questions: List<LiveQuestionDto> = emptyList(),
     val savedAnswers: Map<String, String?> = emptyMap(),
+    val isPractice: Boolean = false,
 )
 
 @Serializable
@@ -249,6 +250,12 @@ data class SaveAnswersRequest(val answers: List<AnswerDto>)
 
 @Serializable
 data class SubmitAttemptRequest(val answers: List<AnswerDto>? = null)
+
+@Serializable
+data class StartMistakePracticeRequest(
+    val examId: String,
+    val mistakeIds: List<String>,
+)
 
 @Serializable
 data class GradedOptionDto(
@@ -285,6 +292,7 @@ data class ExamResultDto(
     val questions: List<GradedQuestionDto> = emptyList(),
     val isNewBest: Boolean,
     val bestScore: Double,
+    val isPractice: Boolean = false,
 )
 
 @Serializable
@@ -337,4 +345,32 @@ data class RecentBestScoreDto(
     val examTitle: String,
     val bestScore: Double,
     val achievedAt: String,
+)
+
+@Serializable
+data class WrongAnswerReviewItemDto(
+    val id: String,
+    val examId: String,
+    val examTitle: String,
+    val examVersion: Int,
+    val questionId: String,
+    val questionType: String,
+    val questionContent: String,
+    val options: List<LiveOptionDto> = emptyList(),
+    val selectedOptionId: String? = null,
+    val sourceAttemptId: String,
+    val createdAt: String,
+    val updatedAt: String,
+)
+
+@Serializable
+data class WrongAnswerReviewQueueDto(
+    val items: List<WrongAnswerReviewItemDto> = emptyList(),
+    val total: Int = 0,
+)
+
+@Serializable
+data class ClearMistakesResponse(
+    val success: Boolean = true,
+    val removedCount: Int = 0,
 )

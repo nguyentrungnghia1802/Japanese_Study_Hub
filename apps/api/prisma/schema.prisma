@@ -158,6 +158,7 @@ model Exam {
   questions   ExamQuestion[]
   attempts    ExamAttempt[]
   bestResults ExamBestResult[]
+  mistakes    ExamMistake[]
   contexts    QuestionContext[]
   tags        ExamTag[]
 
@@ -193,9 +194,10 @@ model ExamQuestion {
   createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  exam    Exam             @relation(fields: [examId], references: [id], onDelete: Cascade)
-  context QuestionContext? @relation(fields: [contextId], references: [id], onDelete: SetNull)
-  options ExamOption[]
+  exam     Exam             @relation(fields: [examId], references: [id], onDelete: Cascade)
+  context  QuestionContext? @relation(fields: [contextId], references: [id], onDelete: SetNull)
+  options  ExamOption[]
+  mistakes ExamMistake[]
 
   @@index([examId, position])
   @@map("exam_questions")
@@ -231,6 +233,7 @@ model ExamAttempt {
   durationSeconds       Int?          @map("duration_seconds")
   questionOrderSnapshot Json?         @map("question_order_snapshot")
   optionOrderSnapshot   Json?         @map("option_order_snapshot")
+  isPractice            Boolean       @default(false) @map("is_practice")
   createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
@@ -239,6 +242,24 @@ model ExamAttempt {
 
   @@index([examId, userKey])
   @@map("exam_attempts")
+}
+
+model ExamMistake {
+  id               String   @id @default(uuid()) @db.Uuid
+  examId           String   @map("exam_id") @db.Uuid
+  examVersion      Int      @map("exam_version")
+  questionId       String   @map("question_id") @db.Uuid
+  sourceAttemptId  String   @map("source_attempt_id") @db.Uuid
+  selectedOptionId String?  @map("selected_option_id") @db.Uuid
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  exam     Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question ExamQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, examVersion, questionId])
+  @@index([examId, examVersion, updatedAt])
+  @@map("exam_mistakes")
 }
 
 model ExamAttemptAnswer {

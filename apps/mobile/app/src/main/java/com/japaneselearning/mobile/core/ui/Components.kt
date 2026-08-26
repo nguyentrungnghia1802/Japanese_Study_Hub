@@ -110,6 +110,17 @@ fun SectionTitle(title: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun CachedContentNotice(isStale: Boolean, isRefreshing: Boolean) {
+    if (isStale || isRefreshing) {
+        Text(
+            if (isRefreshing) "Đang làm mới từ máy chủ…" else "Đang hiển thị dữ liệu đã lưu; có thể đã cũ.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelMedium,
+        )
+    }
+}
+
+@Composable
 fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,

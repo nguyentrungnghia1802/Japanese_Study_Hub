@@ -190,6 +190,12 @@ are removed after deletion/version changes.
 Incorrect-only practice is clearly labeled practice/review, uses only submitted
 mistakes, and cannot create or overwrite an official exam best result.
 
+Implementation boundary: `ExamMistake` is unique per exam/content-version/
+question and the API clamps the queue and practice selection to 20. Normal
+submission derives incorrect and unanswered rows transactionally from the
+immutable snapshot. The practice snapshot is the only place that carries
+correctness metadata before grading; `LiveExamAttemptDto` remains sanitized.
+
 ## 6. Import/search requirements
 
 ### P2-SEARCH-RESPONSIVE
@@ -214,6 +220,12 @@ recent/resume metadata, and optionally small flashcard details. It shows cached
 data with an explicit stale/offline state and refreshes from the server. It does
 not cache pre-grading correctness metadata, grow without expiry/row limits, or
 implement full offline synchronization.
+
+Implementation boundary: the current client caches only summary projections and
+dashboard/recent metadata, caps bounded projections at 100 rows, removes rows
+older than seven days before reads, and treats all writes as best-effort. Active
+attempts, answer keys, FSRS state, and pending mutations remain network/server
+owned.
 
 ## 8. Operations and observability requirements
 

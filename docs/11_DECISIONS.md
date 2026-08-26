@@ -238,3 +238,25 @@ existing PostgreSQL/API architecture.
 
 **Compatibility:** Existing Study All/Shuffle behavior remains separate and
 available. Existing cards migrate to `NEW` with an immediate due time.
+
+## ADR-027 — Exam mistakes and practice are isolated from official results
+
+**Decision:** Persist incorrect/unanswered references only when a normal exam
+attempt is submitted. Expose a bounded sanitized queue, and create separate
+untimed attempts with `is_practice=true` for incorrect-only practice. Practice
+results are graded for feedback but never update official best results or create
+new mistake rows.
+
+**Reason:** Focused remediation must not change authoritative exam history or
+leak answer keys before a practice submission.
+
+## ADR-028 — Android cache is a bounded, non-authoritative read projection
+
+**Decision:** Use Room only for small list/dashboard summaries and recent/resume
+metadata. Rows expire after seven days and bounded projections are trimmed to
+100 rows. Cached data may render immediately with an explicit stale/offline
+state, then is replaced by server data. No active attempts, answer keys, FSRS
+state, or mutation queue is stored locally.
+
+**Reason:** A small read cache improves returning-user startup without creating
+an offline synchronization system or a second source of truth.

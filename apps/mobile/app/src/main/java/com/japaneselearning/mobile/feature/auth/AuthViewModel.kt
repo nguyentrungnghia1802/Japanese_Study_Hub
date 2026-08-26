@@ -2,6 +2,7 @@ package com.japaneselearning.mobile.feature.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.japaneselearning.mobile.core.network.ApiException
 import com.japaneselearning.mobile.core.storage.TokenStore
 import com.japaneselearning.mobile.data.model.User
 import com.japaneselearning.mobile.data.repository.StudyRepository
@@ -72,6 +73,22 @@ class AuthViewModel @Inject constructor(
             try {
                 if (tokenStore.readToken().isNullOrBlank()) {
                     _state.value = AuthUiState(isLoading = false)
+                    return@launch
+                }
+                val cachedUsername = tokenStore.readUsername()
+                if (!cachedUsername.isNullOrBlank()) {
+                    _state.value = AuthUiState(isLoading = false, user = User(cachedUsername))
+                    try {
+                        _state.update { it.copy(user = repository.me()) }
+                    } catch (cancellation: CancellationException) {
+                        throw cancellation
+                    } catch (error: Throwable) {
+                        if (error is ApiException && error.isUnauthorized) {
+                            _state.value = AuthUiState(isLoading = false)
+                        }
+                        // Keep the cached identity for transient/offline failures;
+                        // content screens can use their bounded read cache and retry.
+                    }
                     return@launch
                 }
                 val user = repository.me()

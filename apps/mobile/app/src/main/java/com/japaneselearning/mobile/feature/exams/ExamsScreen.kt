@@ -25,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,19 +37,26 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.japaneselearning.mobile.core.ui.EmptyState
 import com.japaneselearning.mobile.core.ui.ErrorState
 import com.japaneselearning.mobile.core.ui.LoadingState
+import com.japaneselearning.mobile.core.ui.CachedContentNotice
 import com.japaneselearning.mobile.core.ui.SectionTitle
 import com.japaneselearning.mobile.data.model.ExamFolder
 
 @Composable
 fun ExamsScreen(
     onOpenExam: (String) -> Unit,
+    onOpenMistakes: () -> Unit,
     viewModel: ExamsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
         SectionTitle("Đề thi", Modifier.padding(top = 20.dp))
         Text("Luyện tập và theo dõi điểm cao nhất của từng đề.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        CachedContentNotice(state.exams.isStale, state.exams.isLoading && state.exams.data != null)
         Spacer(Modifier.height(16.dp))
+        OutlinedButton(onClick = onOpenMistakes) {
+            Text("Review mistakes")
+        }
+        Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             value = state.query,
             onValueChange = viewModel::setQuery,

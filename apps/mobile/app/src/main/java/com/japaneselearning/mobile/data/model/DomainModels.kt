@@ -112,6 +112,7 @@ data class LiveAttempt(
     val expiresAt: String?,
     val questions: List<LiveQuestion>,
     val savedAnswers: Map<String, String?>,
+    val isPractice: Boolean = false,
 )
 
 data class LiveQuestion(
@@ -133,6 +134,7 @@ data class ExamResult(
     val questions: List<GradedQuestion>,
     val isNewBest: Boolean,
     val bestScore: Double,
+    val isPractice: Boolean = false,
 )
 
 data class GradedQuestion(
@@ -176,5 +178,25 @@ data class SearchResults(
     val flashcards: List<Flashcard>,
     val exams: List<Exam>,
     val folders: List<ExamFolder>,
+    val total: Int,
+)
+
+data class WrongAnswerReviewItem(
+    val id: String,
+    val examId: String,
+    val examTitle: String,
+    val examVersion: Int,
+    val questionId: String,
+    val questionType: String,
+    val questionContent: String,
+    val options: List<LiveOption>,
+    val selectedOptionId: String?,
+    val sourceAttemptId: String,
+    val createdAt: String,
+    val updatedAt: String,
+)
+
+data class WrongAnswerReviewQueue(
+    val items: List<WrongAnswerReviewItem>,
     val total: Int,
 )

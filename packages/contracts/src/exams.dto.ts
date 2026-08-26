@@ -129,6 +129,7 @@ export interface LiveExamAttemptDto {
   totalQuestions: number;
   questions: LiveExamQuestionDto[];
   savedAnswers?: Record<string, string | null>; // questionId -> selectedOptionId
+  isPractice?: boolean;
 }
 
 export interface SaveAnswersDto {
@@ -175,6 +176,7 @@ export interface ExamAttemptResultDto {
   questions: QuestionGradedResultDto[];
   isNewBest: boolean;
   bestScore: number;
+  isPractice?: boolean;
 }
 
 export interface ExamBestResultDto {
