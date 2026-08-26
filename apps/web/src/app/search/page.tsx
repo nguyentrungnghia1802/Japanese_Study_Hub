@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { SearchResultsDto } from '@japanese-learning/contracts';
 import { apiClient, getApiErrorMessage } from '@/lib/api-client';
+import { getUiPreference, setUiPreference, UiLibraryTab } from '@/lib/ui-preferences';
 
 type SearchTab = 'ALL' | 'SETS' | 'CARDS' | 'EXAMS' | 'FOLDERS';
 
@@ -24,6 +25,24 @@ export default function SearchPage() {
   const [results, setResults] = useState<SearchResultsDto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedTab = getUiPreference('libraryTab');
+    if (
+      storedTab === 'ALL' ||
+      storedTab === 'SETS' ||
+      storedTab === 'CARDS' ||
+      storedTab === 'EXAMS' ||
+      storedTab === 'FOLDERS'
+    ) {
+      setActiveTab(storedTab as UiLibraryTab);
+    }
+  }, []);
+
+  const selectTab = (tab: SearchTab) => {
+    setActiveTab(tab);
+    setUiPreference('libraryTab', tab);
+  };
 
   const performSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
@@ -171,7 +190,7 @@ export default function SearchPage() {
       {results && (
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
           <button
-            onClick={() => setActiveTab('ALL')}
+            onClick={() => selectTab('ALL')}
             style={{
               padding: '0.45rem 1rem',
               borderRadius: 'var(--radius-md)',
@@ -185,7 +204,7 @@ export default function SearchPage() {
             All Results ({results.total})
           </button>
           <button
-            onClick={() => setActiveTab('SETS')}
+            onClick={() => selectTab('SETS')}
             style={{
               padding: '0.45rem 1rem',
               borderRadius: 'var(--radius-md)',
@@ -199,7 +218,7 @@ export default function SearchPage() {
             Flashcard Sets ({results.flashcardSets.length})
           </button>
           <button
-            onClick={() => setActiveTab('CARDS')}
+            onClick={() => selectTab('CARDS')}
             style={{
               padding: '0.45rem 1rem',
               borderRadius: 'var(--radius-md)',
@@ -213,7 +232,7 @@ export default function SearchPage() {
             Cards ({results.flashcards.length})
           </button>
           <button
-            onClick={() => setActiveTab('EXAMS')}
+            onClick={() => selectTab('EXAMS')}
             style={{
               padding: '0.45rem 1rem',
               borderRadius: 'var(--radius-md)',
@@ -227,7 +246,7 @@ export default function SearchPage() {
             Exams ({results.exams.length})
           </button>
           <button
-            onClick={() => setActiveTab('FOLDERS')}
+            onClick={() => selectTab('FOLDERS')}
             style={{
               padding: '0.45rem 1rem',
               borderRadius: 'var(--radius-md)',

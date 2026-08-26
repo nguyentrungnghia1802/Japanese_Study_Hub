@@ -72,10 +72,11 @@ correctness metadata is stored in browser storage.
 The only new localStorage keys allowed are versioned UI preferences:
 
 - `jsh_ui_preferences_v1.sort` — one of the documented sort values.
-- `jsh_ui_preferences_v1.flashcard_search` — optional bounded string, max 120
-  Unicode code points.
 - `jsh_ui_preferences_v1.exam_folder` — UUID or empty string.
 - `jsh_ui_preferences_v1.library_tab` — one of the documented tab values.
+
+Search text is deliberately not persisted: it may contain learning content or
+private notes, so it remains in the URL/component state only.
 
 Implementations must remove invalid values, cap each value at 256 bytes, and keep
 the allow-list finite. Do not create per-query localStorage keys. Cookies, if

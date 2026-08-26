@@ -28,6 +28,7 @@ import { PrefetchLink } from '@/components/navigation/prefetch-link';
 import { invalidateExamQueries } from '@/lib/query-invalidation';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
+import { getUiPreference, setUiPreference, UiSortValue } from '@/lib/ui-preferences';
 
 export default function ExamsPage() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function ExamsPage() {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [sort, setSort] = useState<UiSortValue>('createdAt_desc');
 
   // Folder modal
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
@@ -57,8 +59,18 @@ export default function ExamsPage() {
     const folder = params.get('folder');
     const uuidPattern =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    setSelectedFolderId(folder && uuidPattern.test(folder) ? folder : null);
+    setSelectedFolderId(
+      folder && uuidPattern.test(folder) ? folder : getUiPreference('examFolder') || null,
+    );
     setSearch(params.get('search') || '');
+    const storedSort = getUiPreference('sort');
+    if (
+      storedSort === 'createdAt_desc' ||
+      storedSort === 'updatedAt_desc' ||
+      storedSort === 'title_asc'
+    ) {
+      setSort(storedSort);
+    }
   }, []);
 
   const updateLibraryUrl = (nextFolderId: string | null, nextSearch: string) => {
@@ -73,12 +85,18 @@ export default function ExamsPage() {
 
   const selectFolder = (folderId: string | null) => {
     setSelectedFolderId(folderId);
+    setUiPreference('examFolder', folderId || '');
     updateLibraryUrl(folderId, search);
   };
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
     updateLibraryUrl(selectedFolderId, value);
+  };
+
+  const handleSortChange = (value: UiSortValue) => {
+    setSort(value);
+    setUiPreference('sort', value);
   };
 
   useEffect(() => {
@@ -96,7 +114,7 @@ export default function ExamsPage() {
       search: debouncedSearch || undefined,
       page: 1,
       pageSize: 50,
-      sort: 'createdAt_desc',
+      sort,
     }),
     queryFn: ({ signal }) =>
       studyApi.exams(
@@ -105,7 +123,7 @@ export default function ExamsPage() {
           search: debouncedSearch || undefined,
           page: 1,
           pageSize: 50,
-          sort: 'createdAt_desc',
+          sort,
         },
         signal,
       ),
@@ -589,7 +607,7 @@ export default function ExamsPage() {
               placeholder="Search exams by title or description..."
               style={{
                 width: '100%',
-                padding: '0.75rem 1rem 0.75rem 2.75rem',
+                padding: '0.75rem 11rem 0.75rem 2.75rem',
                 borderRadius: 'var(--radius-md)',
                 background: 'rgba(15, 23, 42, 0.6)',
                 border: '1px solid var(--border-subtle)',
@@ -598,6 +616,27 @@ export default function ExamsPage() {
                 outline: 'none',
               }}
             />
+            <select
+              value={sort}
+              onChange={(event) => handleSortChange(event.target.value as UiSortValue)}
+              aria-label="Sort exams"
+              style={{
+                position: 'absolute',
+                right: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                padding: '0.35rem 0.5rem',
+                borderRadius: 'var(--radius-sm)',
+                background: '#1e293b',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-secondary)',
+                fontSize: '0.8rem',
+              }}
+            >
+              <option value="createdAt_desc">Newest</option>
+              <option value="updatedAt_desc">Recently updated</option>
+              <option value="title_asc">Title A–Z</option>
+            </select>
           </div>
 
           {/* Exam Grid */}

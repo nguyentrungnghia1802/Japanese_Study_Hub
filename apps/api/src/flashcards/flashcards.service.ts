@@ -42,7 +42,7 @@ export class FlashcardsService {
     };
   }
 
-  async listSets(options?: { search?: string; page?: number; limit?: number }) {
+  async listSets(options?: { search?: string; page?: number; limit?: number; sort?: string }) {
     const page = Math.max(1, options?.page || 1);
     const limit = Math.min(100, Math.max(1, options?.limit || 20));
     const skip = (page - 1) * limit;
@@ -59,11 +59,18 @@ export class FlashcardsService {
         : {}),
     };
 
+    const orderBy =
+      options?.sort === 'title_asc'
+        ? { title: 'asc' as const }
+        : options?.sort === 'updatedAt_desc'
+          ? { updatedAt: 'desc' as const }
+          : { createdAt: 'desc' as const };
+
     const [total, sets] = await Promise.all([
       this.prisma.flashcardSet.count({ where }),
       this.prisma.flashcardSet.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take: limit,
         include: {

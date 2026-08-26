@@ -23,10 +23,12 @@ import { PrefetchLink } from '@/components/navigation/prefetch-link';
 import { invalidateFlashcardQueries } from '@/lib/query-invalidation';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
+import { getUiPreference, setUiPreference, UiSortValue } from '@/lib/ui-preferences';
 
 export default function FlashcardsPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [sort, setSort] = useState<UiSortValue>('createdAt_desc');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -38,7 +40,15 @@ export default function FlashcardsPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    setSearch(params.get('search') || '');
+    setSearch(params.get('search') ?? '');
+    const storedSort = getUiPreference('sort');
+    if (
+      storedSort === 'createdAt_desc' ||
+      storedSort === 'updatedAt_desc' ||
+      storedSort === 'title_asc'
+    ) {
+      setSort(storedSort);
+    }
   }, []);
 
   const handleSearchChange = (value: string) => {
@@ -48,6 +58,11 @@ export default function FlashcardsPage() {
     else params.delete('search');
     const query = params.toString();
     router.replace(`/flashcards${query ? `?${query}` : ''}`, { scroll: false });
+  };
+
+  const handleSortChange = (value: UiSortValue) => {
+    setSort(value);
+    setUiPreference('sort', value);
   };
 
   useEffect(() => {
@@ -60,11 +75,11 @@ export default function FlashcardsPage() {
       search: debouncedSearch || undefined,
       page: 1,
       pageSize: 20,
-      sort: 'createdAt_desc',
+      sort,
     }),
     queryFn: ({ signal }) =>
       studyApi.flashcardSets(
-        { search: debouncedSearch || undefined, page: 1, pageSize: 20, sort: 'createdAt_desc' },
+        { search: debouncedSearch || undefined, page: 1, pageSize: 20, sort },
         signal,
       ),
     placeholderData: (previousData) => previousData,
@@ -266,7 +281,7 @@ export default function FlashcardsPage() {
           placeholder="Search flashcard sets by title or description..."
           style={{
             width: '100%',
-            padding: '0.75rem 1rem 0.75rem 2.75rem',
+            padding: '0.75rem 11rem 0.75rem 2.75rem',
             borderRadius: 'var(--radius-md)',
             background: 'rgba(15, 23, 42, 0.6)',
             border: '1px solid var(--border-subtle)',
@@ -275,6 +290,27 @@ export default function FlashcardsPage() {
             outline: 'none',
           }}
         />
+        <select
+          value={sort}
+          onChange={(event) => handleSortChange(event.target.value as UiSortValue)}
+          aria-label="Sort flashcard decks"
+          style={{
+            position: 'absolute',
+            right: '0.75rem',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            padding: '0.35rem 0.5rem',
+            borderRadius: 'var(--radius-sm)',
+            background: '#1e293b',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-secondary)',
+            fontSize: '0.8rem',
+          }}
+        >
+          <option value="createdAt_desc">Newest</option>
+          <option value="updatedAt_desc">Recently updated</option>
+          <option value="title_asc">Title A–Z</option>
+        </select>
       </div>
 
       {/* Sets Grid */}

@@ -41,18 +41,25 @@ export class ExamsController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({
+    name: 'sort',
+    required: false,
+    enum: ['createdAt_desc', 'updatedAt_desc', 'title_asc'],
+  })
   @ApiResponse({ status: 200, description: 'List of exams' })
   async listExams(
     @Query('folderId') folderId?: string,
     @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('sort') sort?: string,
   ) {
     return this.examsService.listExams({
       folderId,
       search,
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
+      sort,
     });
   }
 

@@ -347,17 +347,17 @@ Commit: `security(auth): add web session cookie support`
 
 ## TASK-222 — Persist only tiny UI preferences
 
-- [ ] Identify useful preferences such as preferred sort/filter and last selected library tab.
-- [ ] Do not persist API response bodies as preferences.
-- [ ] Prefer localStorage for non-sensitive client-only preferences unless a cookie is needed server-side.
-- [ ] If a preference cookie is used, keep it compact and versioned.
-- [ ] Add reset/migration behavior for invalid old values.
-- [ ] Bound the number and size of persisted keys.
+- [x] Identify useful preferences such as preferred sort/filter and last selected library tab.
+- [x] Do not persist API response bodies as preferences.
+- [x] Prefer localStorage for non-sensitive client-only preferences unless a cookie is needed server-side.
+- [x] If a preference cookie is used, keep it compact and versioned (no cookie is needed for client-only preferences).
+- [x] Add reset/migration behavior for invalid old values.
+- [x] Bound the number and size of persisted keys.
 
 Acceptance criteria:
 
-- Useful preferences survive refresh/restart.
-- No secrets or learning content are stored as preferences.
+- Useful sort/filter/tab preferences survive refresh/restart.
+- No secrets, search text, or learning content are stored as preferences.
 
 Commit: `feat(web): persist minimal ui preferences`
 

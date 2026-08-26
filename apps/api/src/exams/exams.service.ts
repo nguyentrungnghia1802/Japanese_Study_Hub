@@ -115,6 +115,7 @@ export class ExamsService {
     search?: string;
     page?: number;
     limit?: number;
+    sort?: string;
   }): Promise<{ items: ExamDto[]; total: number }> {
     const page = Math.max(1, params?.page || 1);
     const limit = Math.min(100, Math.max(1, params?.limit || 20));
@@ -142,12 +143,19 @@ export class ExamsService {
       ];
     }
 
+    const orderBy =
+      params?.sort === 'title_asc'
+        ? [{ title: 'asc' as const }]
+        : params?.sort === 'updatedAt_desc'
+          ? [{ updatedAt: 'desc' as const }]
+          : [{ createdAt: 'desc' as const }];
+
     const [exams, total] = await Promise.all([
       this.prisma.exam.findMany({
         where,
         skip,
         take: limit,
-        orderBy: [{ createdAt: 'desc' }],
+        orderBy,
         include: {
           _count: {
             select: { questions: true },
