@@ -111,18 +111,18 @@ Commit: `docs(perf): define bounded cache and storage policy`
 
 ## TASK-210 — Standardize the Web client data-fetching layer
 
-- [ ] Inspect the current Web API client and existing dependencies.
-- [ ] Reuse an existing equivalent query-cache solution if already present.
-- [ ] Otherwise adopt one mainstream solution such as TanStack Query.
-- [ ] Add one application-level query client/provider.
-- [ ] Centralize query-key construction.
-- [ ] Centralize retry behavior.
-- [ ] Centralize authenticated API error mapping.
-- [ ] Add cancellation/abort support for obsolete requests.
-- [ ] Configure stale/GC defaults from TASK-202.
-- [ ] Disable automatic retry for non-retryable 4xx errors.
-- [ ] Keep mutations explicit and uncached.
-- [ ] Keep exam live-attempt queries under stricter freshness rules.
+- [x] Inspect the current Web API client and existing dependencies.
+- [x] Reuse an existing equivalent query-cache solution if already present.
+- [x] Otherwise adopt one mainstream solution such as TanStack Query.
+- [x] Add one application-level query client/provider.
+- [x] Centralize query-key construction.
+- [x] Centralize retry behavior.
+- [x] Centralize authenticated API error mapping.
+- [x] Add cancellation/abort support for obsolete requests.
+- [x] Configure stale/GC defaults from TASK-202.
+- [x] Disable automatic retry for non-retryable 4xx errors.
+- [x] Keep mutations explicit and uncached.
+- [x] Keep exam live-attempt queries under stricter freshness rules.
 
 Acceptance criteria:
 
@@ -132,8 +132,8 @@ Acceptance criteria:
 
 Tests:
 
-- [ ] Retry/error classification tests.
-- [ ] Cache invalidation regression tests.
+- [x] Retry/error classification tests.
+- [x] Cache invalidation regression tests.
 
 Commit: `perf(web): establish cached data access layer`
 

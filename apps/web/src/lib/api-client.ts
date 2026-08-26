@@ -20,6 +20,13 @@ export class ApiError extends Error {
   }
 }
 
+export function getApiErrorMessage(
+  error: unknown,
+  fallback = 'An unexpected error occurred',
+): string {
+  return error instanceof ApiError || error instanceof Error ? error.message : fallback;
+}
+
 export async function apiClient<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 

@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/auth-context';
 import { Navbar } from '@/components/layout/navbar';
 import { AuthGuard } from '@/components/auth/auth-guard';
+import { QueryProvider } from '@/components/providers/query-provider';
 
 export const metadata: Metadata = {
   title: 'Japanese Study Hub | Personal Japanese Learning Platform',
@@ -25,10 +26,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ja">
       <body>
-        <AuthProvider>
-          <Navbar />
-          <AuthGuard>{children}</AuthGuard>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <Navbar />
+            <AuthGuard>{children}</AuthGuard>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

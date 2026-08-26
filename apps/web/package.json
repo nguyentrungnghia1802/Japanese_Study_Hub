@@ -13,6 +13,7 @@
   "dependencies": {
     "@japanese-learning/contracts": "workspace:*",
     "@japanese-learning/shared": "workspace:*",
+    "@tanstack/react-query": "^5.102.5",
     "clsx": "^2.1.1",
     "dompurify": "^3.2.4",
     "lucide-react": "^0.475.0",
