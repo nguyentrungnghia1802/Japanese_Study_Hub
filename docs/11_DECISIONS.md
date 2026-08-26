@@ -162,3 +162,19 @@ secure persistence, timer restoration, and CI verification explicit.
 
 **Compatibility:** Web, Backend, Database, and REST API contracts remain unchanged.
 The current V1 mobile release is Android-only; iOS is a future separate client.
+
+---
+
+## ADR-020 — Separate local and production Android API variants
+
+**Decision:** Keep the `debug` Android variant on the local API URL and provide an
+installable `production` variant that embeds the production API URL at Gradle build
+time. The production variant is used for owner/device validation; release signing
+remains external and no signing key is committed.
+
+**Reason:** On a physical Android device, `localhost` resolves to the device itself,
+not the developer machine. A separate production variant prevents a downloaded APK
+from accidentally targeting local development while preserving local development
+behavior.
+
+**Compatibility:** The REST API, Web client, Backend, and Database are unchanged.

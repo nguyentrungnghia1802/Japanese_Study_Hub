@@ -1119,7 +1119,8 @@ Commit: `docs: complete final project documentation audit`
 - [x] Preserve the existing Web/API/Database contract and implement auth,
       dashboard, flashcards, exams, search, retry/error states, timer, submit, and result flows.
 - [x] Centralize development/production API base URL injection at Android build time.
-- [x] Add Android unit tests and CI checks for Gradle tests, lint, and debug APK build.
+- [x] Add Android unit tests and CI checks for Gradle tests, lint, debug APK, and
+      production-configured APK builds.
 - [x] Update workspace configuration, deployment guidance, architecture decisions,
       traceability, README, and release gates.
 
@@ -1147,7 +1148,7 @@ Run from clean checkout/environment where practical:
 - [x] Mobile smoke path passes.
 - [x] Web production build passes.
 - [x] API production build passes.
-- [x] Mobile Gradle unit tests/lint/debug APK build passes.
+- [x] Mobile Gradle unit tests/lint/debug APK and production-configured APK builds pass.
 - [x] Fresh database migration passes.
 - [x] Backup restore test has passed.
 - [x] Security release checklist passes.

@@ -88,7 +88,7 @@ pnpm dev
 
 cd apps/mobile
 ./gradlew testDebugUnitTest lintDebug assembleDebug
-adb install -r "app/build/outputs/apk/debug/Japanese Study Hub.apk"
+adb install -r "app/build/outputs/apk/debug/Japanese Study Hub-debug.apk"
 ```
 
 The Android debug build defaults to `http://localhost:4000/api/v1`. For an Android
@@ -98,9 +98,17 @@ emulator whose host machine is the local API, use:
 ./gradlew assembleDebug -PapiBaseUrl=http://10.0.2.2:4000/api/v1
 ```
 
-Release builds default to `http://157.173.127.217:4000/api/v1`; a deployment can
-override the centralized build-time value with the same `apiBaseUrl` Gradle property.
-No signing key or release secret is stored in the repository.
+For an installable APK that uses the production API, build the `production` variant:
+
+```bash
+./gradlew assembleProduction
+adb install -r "app/build/outputs/apk/production/Japanese Study Hub.apk"
+```
+
+Production and release builds default to `http://157.173.127.217:4000/api/v1`; a
+deployment can override the centralized build-time value with the same `apiBaseUrl`
+Gradle property. The `production` variant uses the local debug keystore only for
+owner/device validation; no signing key or release secret is stored in the repository.
 
 ## 7. Definition of project completion
 

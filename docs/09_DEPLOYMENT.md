@@ -100,8 +100,9 @@ Docker build argument; changing only the running container environment cannot
 change the already-built browser bundle.
 
 The Android API value is embedded into the native binary at Gradle build time. The
-debug variant defaults to `http://localhost:4000/api/v1`, the release variant
-defaults to `http://157.173.127.217:4000/api/v1`, and `-PapiBaseUrl=...` overrides
+debug variant defaults to `http://localhost:4000/api/v1` for local development, while
+the installable `production` variant and the release variant default to
+`http://157.173.127.217:4000/api/v1`. The `-PapiBaseUrl=...` property overrides
 either variant without changing source code. Android cleartext traffic is enabled
 for the current HTTP development/production IP and must be replaced with HTTPS when
 the deployment endpoint supports it.
@@ -120,9 +121,9 @@ CORS_ORIGINS=http://157.173.127.217:3000
 NEXT_PUBLIC_API_BASE_URL=http://157.173.127.217:4000/api/v1
 ```
 
-The Android release build uses the same production API URL by default. Production
-API CORS must allow `http://157.173.127.217:3000` for the Web client; Android native
-requests do not send a browser Origin header.
+The Android production/release builds use the same production API URL by default.
+Production API CORS must allow `http://157.173.127.217:3000` for the Web client;
+Android native requests do not send a browser Origin header.
 
 The GHCR publish workflow passes the production Web value to the Docker build.
 When `CORS_ORIGINS` is omitted, the API defaults to localhost outside

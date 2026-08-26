@@ -45,13 +45,13 @@ A requirement is considered delivered only when its implementation task and rele
 
 ## 3.1 Android Native migration verification
 
-| Mobile area                    | Android implementation                                          | Verification                                                      |
-| ------------------------------ | --------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Authentication and persistence | `feature/auth`, Keystore-encrypted DataStore, `StudyRepository` | `AuthViewModelTest`, API error mapping test                       |
-| Flashcard study                | `feature/flashcards`, `StudyViewModel`, Compose navigation      | `StudySessionLogicTest`, `testDebugUnitTest`, emulator smoke path |
-| Exam timer and submit          | `feature/exams`, server `expiresAt`, active-attempt DataStore   | `ExamSessionLogicTest`, emulator timed-exam smoke path            |
-| API configuration              | Gradle `BuildConfig.API_BASE_URL`                               | debug/release Gradle configuration review                         |
-| Android quality gate           | Gradle wrapper                                                  | `testDebugUnitTest`, `lintDebug`, `assembleDebug` in CI           |
+| Mobile area                    | Android implementation                                          | Verification                                                                                           |
+| ------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Authentication and persistence | `feature/auth`, Keystore-encrypted DataStore, `StudyRepository` | `AuthViewModelTest`, API error mapping test                                                            |
+| Flashcard study                | `feature/flashcards`, `StudyViewModel`, Compose navigation      | `StudySessionLogicTest`, `testDebugUnitTest`, emulator smoke path                                      |
+| Exam timer and submit          | `feature/exams`, server `expiresAt`, active-attempt DataStore   | `ExamSessionLogicTest`, emulator timed-exam smoke path                                                 |
+| API configuration              | Gradle `BuildConfig.API_BASE_URL`                               | debug/production/release Gradle configuration verification                                             |
+| Android quality gate           | Gradle wrapper                                                  | `testDebugUnitTest`, `lintDebug`, `assembleDebug`, `assembleProduction`, and `verifyApiBaseUrls` in CI |
 
 ## 4. Cross-cutting invariants
 

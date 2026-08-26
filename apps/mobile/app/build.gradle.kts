@@ -13,6 +13,9 @@ val configuredApiBaseUrl = providers.gradleProperty("apiBaseUrl")
     ?.trimEnd('/')
     ?.takeIf { it.isNotBlank() }
 
+val localApiBaseUrl = "http://localhost:4000/api/v1"
+val productionApiBaseUrl = "http://157.173.127.217:4000/api/v1"
+
 fun apiField(defaultValue: String): String =
     "\"${configuredApiBaseUrl ?: defaultValue}\""
 
@@ -40,7 +43,23 @@ android {
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                apiField("http://localhost:4000/api/v1"),
+                apiField(localApiBaseUrl),
+            )
+        }
+        create("production") {
+            // Installable owner-validation build using the production API.
+            // Release signing remains external and is intentionally not committed.
+            isDebuggable = false
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                apiField(productionApiBaseUrl),
+            )
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
             )
         }
         release {
@@ -48,7 +67,7 @@ android {
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                apiField("http://157.173.127.217:4000/api/v1"),
+                apiField(productionApiBaseUrl),
             )
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -78,11 +97,31 @@ androidComponents {
     onVariants { variant ->
         variant.outputs.forEach { output ->
             val artifactName = when (variant.name) {
-                "debug" -> "Japanese Study Hub.apk"
-                "release" -> "Japanese Study Hub-release.apk"
+                "debug" -> "Japanese Study Hub-debug.apk"
+                "production" -> "Japanese Study Hub.apk"
+                "release" -> "Japanese Study Hub-release-unsigned.apk"
                 else -> "Japanese Study Hub-${variant.name}.apk"
             }
             output.outputFileName.set(artifactName)
+        }
+    }
+}
+
+tasks.register("verifyApiBaseUrls") {
+    dependsOn("generateDebugBuildConfig", "generateProductionBuildConfig")
+    doLast {
+        val debugBuildConfig = layout.buildDirectory.file(
+            "generated/source/buildConfig/debug/com/japaneselearning/mobile/BuildConfig.java",
+        ).get().asFile.readText()
+        val productionBuildConfig = layout.buildDirectory.file(
+            "generated/source/buildConfig/production/com/japaneselearning/mobile/BuildConfig.java",
+        ).get().asFile.readText()
+
+        check("API_BASE_URL = \"$localApiBaseUrl\"" in debugBuildConfig) {
+            "Debug API base URL must remain $localApiBaseUrl"
+        }
+        check("API_BASE_URL = \"$productionApiBaseUrl\"" in productionBuildConfig) {
+            "Production API base URL must remain $productionApiBaseUrl"
         }
     }
 }

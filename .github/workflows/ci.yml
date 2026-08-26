@@ -105,4 +105,4 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Android tests, lint, and debug build
-        run: ./gradlew testDebugUnitTest lintDebug assembleDebug --stacktrace
+        run: ./gradlew testDebugUnitTest lintDebug assembleDebug assembleProduction verifyApiBaseUrls --stacktrace

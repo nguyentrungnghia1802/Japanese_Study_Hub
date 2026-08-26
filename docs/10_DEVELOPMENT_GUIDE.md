@@ -62,12 +62,29 @@ From the repository root, mobile checks are run with:
 ```text
 cd apps/mobile
 ./gradlew testDebugUnitTest lintDebug assembleDebug
-adb install -r "app/build/outputs/apk/debug/Japanese Study Hub.apk"
+adb install -r "app/build/outputs/apk/debug/Japanese Study Hub-debug.apk"
 ```
 
 The API endpoint is centralized in `BuildConfig.API_BASE_URL`. Debug builds default
-to `http://localhost:4000/api/v1`, release builds default to the production API, and
-`-PapiBaseUrl=...` is the supported build-time override.
+to `http://localhost:4000/api/v1`. On a physical device connected over USB, run
+`adb reverse tcp:4000 tcp:4000` before starting the local API. For an Android
+emulator whose host machine is the local API, use:
+
+```bash
+./gradlew assembleDebug -PapiBaseUrl=http://10.0.2.2:4000/api/v1
+```
+
+For an installable APK that uses the production API, build the `production` variant:
+
+```bash
+./gradlew assembleProduction
+adb install -r "app/build/outputs/apk/production/Japanese Study Hub.apk"
+```
+
+Production and release builds default to `http://157.173.127.217:4000/api/v1`, and
+`-PapiBaseUrl=...` is the supported build-time override. The `production` variant
+uses the local debug keystore only for owner/device validation; no signing key or
+release secret is stored in the repository.
 
 ---
 
