@@ -74,6 +74,19 @@ android {
     }
 }
 
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            val artifactName = when (variant.name) {
+                "debug" -> "Japanese Study Hub.apk"
+                "release" -> "Japanese Study Hub-release.apk"
+                else -> "Japanese Study Hub-${variant.name}.apk"
+            }
+            output.outputFileName.set(artifactName)
+        }
+    }
+}
+
 kotlin {
     jvmToolchain(21)
 }

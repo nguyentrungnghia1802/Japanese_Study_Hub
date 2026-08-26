@@ -62,7 +62,7 @@ From the repository root, mobile checks are run with:
 ```text
 cd apps/mobile
 ./gradlew testDebugUnitTest lintDebug assembleDebug
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r "app/build/outputs/apk/debug/Japanese Study Hub.apk"
 ```
 
 The API endpoint is centralized in `BuildConfig.API_BASE_URL`. Debug builds default

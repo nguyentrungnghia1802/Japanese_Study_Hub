@@ -88,7 +88,7 @@ pnpm dev
 
 cd apps/mobile
 ./gradlew testDebugUnitTest lintDebug assembleDebug
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r "app/build/outputs/apk/debug/Japanese Study Hub.apk"
 ```
 
 The Android debug build defaults to `http://localhost:4000/api/v1`. For an Android
