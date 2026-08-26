@@ -62,6 +62,16 @@ Reverse Proxy / Platform Edge
 
 PostgreSQL should not be directly public unless platform architecture requires controlled exposure.
 
+The checked-in one-command update workflow is `bash docker/production-update.sh`.
+It requires a VPS `.env.production` file containing the GHCR image owner/tag,
+database URL/credentials, auth secrets, CORS origin, and optional host ports.
+The script validates Compose, pulls API/Web images, starts PostgreSQL, runs
+`prisma migrate deploy` in the pulled API image, recreates only API/Web, checks
+both HTTP health endpoints, and prunes dangling images only. It never runs
+`down -v`, removes named volumes, or performs an automatic destructive rollback.
+The default image tag remains `latest`; set `IMAGE_TAG` for a deliberate rollback
+to a previously published immutable SHA tag.
+
 Current production differs from this recommended topology: the owner endpoint
 is IP-only HTTP on ports 3000/4000, with no checked-in TLS reverse-proxy
 configuration. The read-only 2026-08-27 audit found HTTP health/Web success and

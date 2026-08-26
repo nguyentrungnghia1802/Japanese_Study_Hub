@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD_is_required}
+      POSTGRES_DB: ${POSTGRES_DB:-japanese_learning}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-japanese_learning}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  api:
+    image: ghcr.io/${GHCR_OWNER:-nguyentrungnghia1802}/japanese-study-hub-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL_is_required}
+      AUTH_USERNAME: ${AUTH_USERNAME:?AUTH_USERNAME_is_required}
+      AUTH_PASSWORD_HASH: ${AUTH_PASSWORD_HASH:?AUTH_PASSWORD_HASH_is_required}
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:?AUTH_TOKEN_SECRET_is_required}
+      CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS_is_required}
+      UPLOAD_MAX_BYTES: ${UPLOAD_MAX_BYTES:-10485760}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${API_PORT:-4000}:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:4000/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  web:
+    image: ghcr.io/${GHCR_OWNER:-nguyentrungnghia1802}/japanese-study-hub-web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:3000 >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+volumes:
+  postgres_data:
+    name: ${POSTGRES_VOLUME_NAME:-japanese_study_hub_postgres_data}
+    driver: local

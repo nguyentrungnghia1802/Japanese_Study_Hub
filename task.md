@@ -839,19 +839,28 @@ Commit: `security(deploy): align production transport policy`
 
 ## TASK-291 — Add one-command VPS deploy/update workflow
 
-- [ ] Pull latest GHCR Web/API images.
-- [ ] Run database migration safely.
-- [ ] Recreate/update containers.
-- [ ] Run health checks.
-- [ ] Stop on failed migration/health check.
-- [ ] Prune only safe dangling images after success.
-- [ ] Never delete database volumes.
-- [ ] Document rollback where practical.
-- [ ] Keep compatibility with the owner's chosen `:latest` policy.
+- [x] Pull latest GHCR Web/API images.
+- [x] Run database migration safely.
+- [x] Recreate/update containers.
+- [x] Run health checks.
+- [x] Stop on failed migration/health check.
+- [x] Prune only safe dangling images after success.
+- [x] Never delete database volumes.
+- [x] Document rollback where practical.
+- [x] Keep compatibility with the owner's chosen `:latest` policy.
 
 Acceptance criteria:
 
 - Production update is one documented safe command/script.
+
+Verification:
+
+- [x] `docker compose -f docker-compose.prod.yml config --quiet` passes with
+      non-secret validation environment values.
+- [x] `docker/production-update.sh` passes `bash -n` and documents pull,
+      migration, health, rollback, and volume-safety behavior.
+- [x] The script keeps `latest` as the default while allowing an immutable
+      published SHA through `IMAGE_TAG`.
 
 Commit: `ops: add simple production update workflow`
 
@@ -1080,3 +1089,12 @@ Commit: `chore: prepare phase 2 release`
 Project may be declared **100% complete for Phase 2** only after TASK-321 is fully satisfied.
 
 Commit: `chore: finalize phase 2 release`
+- [x] Pull latest GHCR Web/API images.
+- [x] Run database migration safely.
+- [x] Recreate/update containers.
+- [x] Run health checks.
+- [x] Stop on failed migration/health check.
+- [x] Prune only safe dangling images after success.
+- [x] Never delete database volumes.
+- [x] Document rollback where practical.
+- [x] Keep compatibility with the owner's chosen `:latest` policy.
