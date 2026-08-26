@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BookOpen, FileCheck, Search, LayoutDashboard, LogOut, User } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { PrefetchLink } from '@/components/navigation/prefetch-link';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -43,7 +43,7 @@ export function Navbar() {
         }}
       >
         {/* Brand Logo */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <PrefetchLink href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div
             style={{
               width: '38px',
@@ -78,7 +78,7 @@ export function Navbar() {
               日本語学習
             </div>
           </div>
-        </Link>
+        </PrefetchLink>
 
         {/* Navigation Links */}
         <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -87,7 +87,7 @@ export function Navbar() {
             const isActive =
               pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
             return (
-              <Link
+              <PrefetchLink
                 key={link.href}
                 href={link.href}
                 style={{
@@ -106,7 +106,7 @@ export function Navbar() {
               >
                 <Icon size={16} />
                 <span>{link.label}</span>
-              </Link>
+              </PrefetchLink>
             );
           })}
         </nav>

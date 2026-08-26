@@ -24,6 +24,7 @@ import {
 import { ExamDto, ExamFolderDto } from '@japanese-learning/contracts';
 import { API_BASE_URL, apiClient, getApiErrorMessage } from '@/lib/api-client';
 import { ExamImportModal } from '@/components/exams/exam-import-modal';
+import { PrefetchLink } from '@/components/navigation/prefetch-link';
 import { invalidateExamQueries } from '@/lib/query-invalidation';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
@@ -789,7 +790,7 @@ export default function ExamsPage() {
                       </div>
                     </div>
 
-                    <Link href={`/exams/${exam.id}`} style={{ textDecoration: 'none' }}>
+                    <PrefetchLink href={`/exams/${exam.id}`} style={{ textDecoration: 'none' }}>
                       <h3
                         style={{
                           fontSize: '1.1875rem',
@@ -801,7 +802,7 @@ export default function ExamsPage() {
                       >
                         {exam.title}
                       </h3>
-                    </Link>
+                    </PrefetchLink>
 
                     {/* Best Score Badge (TASK-070 prominence) */}
                     <div
@@ -872,6 +873,7 @@ export default function ExamsPage() {
                     }}
                   >
                     <Link
+                      prefetch={false}
                       href={`/exams/${exam.id}/take`}
                       style={{
                         flex: 1,
@@ -894,7 +896,7 @@ export default function ExamsPage() {
                       <span>Take Exam</span>
                     </Link>
 
-                    <Link
+                    <PrefetchLink
                       href={`/exams/${exam.id}/edit`}
                       style={{
                         display: 'flex',
@@ -912,7 +914,7 @@ export default function ExamsPage() {
                     >
                       <Edit size={14} />
                       <span>Edit</span>
-                    </Link>
+                    </PrefetchLink>
                   </div>
                 </div>
               ))}

@@ -249,12 +249,12 @@ Commit: `perf(web): remove unnecessary route reloads`
 
 ## TASK-216 — Add targeted route and data prefetching
 
-- [ ] Use framework route prefetching for high-probability internal navigation.
-- [ ] Prefetch entity detail on deliberate hover/focus or immediately before navigation where beneficial.
-- [ ] Do not prefetch every item in a large list.
-- [ ] Do not prefetch large exam attempt payloads.
-- [ ] Add a conservative prefetch limit.
-- [ ] Disable prefetch where bandwidth cost outweighs UX benefit.
+- [x] Use framework route prefetching for high-probability internal navigation.
+- [x] Prefetch entity detail on deliberate hover/focus or immediately before navigation where beneficial.
+- [x] Do not prefetch every item in a large list.
+- [x] Do not prefetch large exam attempt payloads.
+- [x] Add a conservative prefetch limit.
+- [x] Disable prefetch where bandwidth cost outweighs UX benefit.
 
 Acceptance criteria:
 

@@ -19,6 +19,7 @@ import {
 import { FlashcardSetDto } from '@japanese-learning/contracts';
 import { API_BASE_URL, apiClient, getApiErrorMessage } from '@/lib/api-client';
 import { FlashcardImportModal } from '@/components/flashcards/flashcard-import-modal';
+import { PrefetchLink } from '@/components/navigation/prefetch-link';
 import { invalidateFlashcardQueries } from '@/lib/query-invalidation';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
@@ -462,7 +463,7 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
 
-                <Link href={`/flashcards/${set.id}`} style={{ textDecoration: 'none' }}>
+                <PrefetchLink href={`/flashcards/${set.id}`} style={{ textDecoration: 'none' }}>
                   <h3
                     style={{
                       fontSize: '1.25rem',
@@ -474,7 +475,7 @@ export default function FlashcardsPage() {
                   >
                     {set.title}
                   </h3>
-                </Link>
+                </PrefetchLink>
 
                 {set.description && (
                   <p
@@ -504,7 +505,7 @@ export default function FlashcardsPage() {
                   borderTop: '1px solid var(--border-subtle)',
                 }}
               >
-                <Link
+                <PrefetchLink
                   href={`/flashcards/${set.id}/study`}
                   style={{
                     flex: 1,
@@ -525,9 +526,9 @@ export default function FlashcardsPage() {
                 >
                   <Play size={14} />
                   <span>Study</span>
-                </Link>
+                </PrefetchLink>
 
-                <Link
+                <PrefetchLink
                   href={`/flashcards/${set.id}`}
                   style={{
                     display: 'flex',
@@ -545,7 +546,7 @@ export default function FlashcardsPage() {
                 >
                   <Edit size={14} />
                   <span>Edit</span>
-                </Link>
+                </PrefetchLink>
               </div>
             </div>
           ))}
