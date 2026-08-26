@@ -67,6 +67,16 @@ a {
   }
 }
 
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 button {
   font-family: inherit;
   cursor: pointer;

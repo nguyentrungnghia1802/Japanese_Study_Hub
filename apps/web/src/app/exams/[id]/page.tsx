@@ -87,6 +87,20 @@ export default function ExamDetailPage() {
           >
             {error || 'Exam not found'}
           </h2>
+          <button
+            type="button"
+            onClick={() => void examQuery.refetch()}
+            style={{
+              padding: '0.5rem 1.25rem',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--gradient-brand)',
+              color: '#fff',
+              fontWeight: '600',
+              marginTop: '1rem',
+            }}
+          >
+            Retry
+          </button>
           <Link
             href="/exams"
             style={{

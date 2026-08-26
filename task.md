@@ -267,13 +267,13 @@ Commit: `perf(web): add targeted route prefetching`
 
 ## TASK-217 — Improve perceived loading performance
 
-- [ ] Replace blocking page spinners with skeletons where appropriate.
-- [ ] Use stale cached content during background refresh instead of clearing the screen.
-- [ ] Preserve form data during mutation submission.
-- [ ] Avoid layout shifts when list/detail data arrives.
-- [ ] Show small non-blocking refresh indicators for background fetches.
-- [ ] Keep recoverable error + Retry behavior.
-- [ ] Do not mask hard errors behind permanently stale data.
+- [x] Replace blocking page spinners with skeletons where appropriate.
+- [x] Use stale cached content during background refresh instead of clearing the screen.
+- [x] Preserve form data during mutation submission.
+- [x] Avoid layout shifts when list/detail data arrives.
+- [x] Show small non-blocking refresh indicators for background fetches.
+- [x] Keep recoverable error + Retry behavior.
+- [x] Do not mask hard errors behind permanently stale data.
 
 Acceptance criteria:
 

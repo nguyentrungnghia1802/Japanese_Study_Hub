@@ -16,8 +16,10 @@ import {
   Layers,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { getApiErrorMessage } from '@/lib/api-client';
 import { FlashcardImportModal } from '@/components/flashcards/flashcard-import-modal';
 import { ExamImportModal } from '@/components/exams/exam-import-modal';
+import { SkeletonBlock } from '@/components/ui/skeleton';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
 
@@ -47,6 +49,29 @@ export default function DashboardPage() {
           style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.75rem' }}
         >
           Refreshing your learning summary…
+        </div>
+      )}
+      {dashboardQuery.isError && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            color: 'var(--accent-rose)',
+            marginBottom: '1rem',
+          }}
+        >
+          <span>
+            {getApiErrorMessage(dashboardQuery.error, 'Unable to load dashboard summary.')}
+          </span>
+          <button
+            type="button"
+            onClick={() => void dashboardQuery.refetch()}
+            style={{ color: 'var(--brand-primary)', background: 'transparent', fontWeight: '600' }}
+          >
+            Retry
+          </button>
         </div>
       )}
       {/* Welcome Banner */}
@@ -189,7 +214,11 @@ export default function DashboardPage() {
             </div>
           </div>
           <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--text-primary)' }}>
-            {summary?.totalFlashcardSets || 0}
+            {isLoading ? (
+              <SkeletonBlock width="3.25rem" height="2.4rem" />
+            ) : (
+              summary?.totalFlashcardSets || 0
+            )}
           </div>
         </div>
 
@@ -231,7 +260,11 @@ export default function DashboardPage() {
             </div>
           </div>
           <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--text-primary)' }}>
-            {summary?.totalCards || 0}
+            {isLoading ? (
+              <SkeletonBlock width="3.25rem" height="2.4rem" />
+            ) : (
+              summary?.totalCards || 0
+            )}
           </div>
         </div>
 
@@ -273,7 +306,11 @@ export default function DashboardPage() {
             </div>
           </div>
           <div style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--text-primary)' }}>
-            {summary?.totalExams || 0}
+            {isLoading ? (
+              <SkeletonBlock width="3.25rem" height="2.4rem" />
+            ) : (
+              summary?.totalExams || 0
+            )}
           </div>
         </div>
       </div>
@@ -328,7 +365,16 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {summary?.recentFlashcardSets && summary.recentFlashcardSets.length > 0 ? (
+            {isLoading ? (
+              [1, 2].map((item) => (
+                <div key={item} className="glass-panel" style={{ padding: '1.25rem' }}>
+                  <SkeletonBlock width="65%" height="1.15rem" />
+                  <div style={{ marginTop: '0.6rem' }}>
+                    <SkeletonBlock width="30%" height="0.75rem" />
+                  </div>
+                </div>
+              ))
+            ) : summary?.recentFlashcardSets && summary.recentFlashcardSets.length > 0 ? (
               summary.recentFlashcardSets.map((set) => (
                 <div
                   key={set.id}
@@ -427,7 +473,16 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {summary?.recentExams && summary.recentExams.length > 0 ? (
+            {isLoading ? (
+              [1, 2].map((item) => (
+                <div key={item} className="glass-panel" style={{ padding: '1.25rem' }}>
+                  <SkeletonBlock width="65%" height="1.15rem" />
+                  <div style={{ marginTop: '0.6rem' }}>
+                    <SkeletonBlock width="45%" height="0.75rem" />
+                  </div>
+                </div>
+              ))
+            ) : summary?.recentExams && summary.recentExams.length > 0 ? (
               summary.recentExams.map((exam) => (
                 <div
                   key={exam.id}

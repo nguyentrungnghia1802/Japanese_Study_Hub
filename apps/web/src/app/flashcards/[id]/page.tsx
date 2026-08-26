@@ -23,6 +23,7 @@ import { API_BASE_URL, apiClient, getApiErrorMessage } from '@/lib/api-client';
 import { invalidateFlashcardQueries } from '@/lib/query-invalidation';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
+import { SkeletonBlock } from '@/components/ui/skeleton';
 
 export default function FlashcardSetDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -196,10 +197,11 @@ export default function FlashcardSetDetailPage() {
 
   if (isLoading) {
     return (
-      <div
-        style={{ maxWidth: '900px', margin: '0 auto', padding: '3rem 1.5rem', textAlign: 'center' }}
-      >
-        <p style={{ color: 'var(--text-secondary)' }}>Loading deck...</p>
+      <div aria-busy="true" style={{ maxWidth: '900px', margin: '0 auto', padding: '3rem 1.5rem' }}>
+        <SkeletonBlock height="3rem" />
+        <div style={{ marginTop: '1rem' }}>
+          <SkeletonBlock height="22rem" />
+        </div>
       </div>
     );
   }
@@ -212,6 +214,20 @@ export default function FlashcardSetDetailPage() {
         <p style={{ color: 'var(--accent-rose)', marginBottom: '1rem' }}>
           {error || 'Deck not found'}
         </p>
+        <button
+          type="button"
+          onClick={() => void setQuery.refetch()}
+          style={{
+            padding: '0.5rem 1rem',
+            background: 'var(--gradient-brand)',
+            borderRadius: 'var(--radius-md)',
+            color: '#fff',
+            fontWeight: '600',
+            marginRight: '0.5rem',
+          }}
+        >
+          Retry
+        </button>
         <button
           onClick={() => router.push('/flashcards')}
           style={{

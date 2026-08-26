@@ -14,7 +14,7 @@ import {
   Award,
 } from 'lucide-react';
 import { SearchResultsDto } from '@japanese-learning/contracts';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, getApiErrorMessage } from '@/lib/api-client';
 
 type SearchTab = 'ALL' | 'SETS' | 'CARDS' | 'EXAMS' | 'FOLDERS';
 
@@ -23,22 +23,25 @@ export default function SearchPage() {
   const [activeTab, setActiveTab] = useState<SearchTab>('ALL');
   const [results, setResults] = useState<SearchResultsDto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const performSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
       setResults(null);
       setIsLoading(false);
+      setError(null);
       return;
     }
 
     setIsLoading(true);
+    setError(null);
     try {
       const data = await apiClient<SearchResultsDto>(
         `/search?q=${encodeURIComponent(q.trim())}&limit=30`,
       );
       setResults(data);
-    } catch {
-      // ignore
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, 'Unable to complete search.'));
     } finally {
       setIsLoading(false);
     }
@@ -57,9 +60,42 @@ export default function SearchPage() {
       results.flashcards.length > 0 ||
       results.exams.length > 0 ||
       results.folders.length > 0);
+  const isRefreshing = isLoading && results !== null;
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '2rem auto', padding: '0 1.5rem 5rem' }}>
+    <div
+      aria-busy={isLoading}
+      style={{ maxWidth: '1000px', margin: '2rem auto', padding: '0 1.5rem 5rem' }}
+    >
+      {isRefreshing && (
+        <div
+          role="status"
+          style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.75rem' }}
+        >
+          Refreshing search results…
+        </div>
+      )}
+      {error && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            color: 'var(--accent-rose)',
+            marginBottom: '1rem',
+          }}
+        >
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => void performSearch(query)}
+            style={{ color: 'var(--brand-primary)', background: 'transparent', fontWeight: '600' }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
       {/* Search Header */}
       <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
         <div
@@ -208,7 +244,7 @@ export default function SearchPage() {
       )}
 
       {/* Loading state */}
-      {isLoading && (
+      {isLoading && !results && (
         <div style={{ textAlign: 'center', padding: '3rem 0' }}>
           <div
             className="glass-panel"
@@ -238,7 +274,7 @@ export default function SearchPage() {
       )}
 
       {/* Results Sections */}
-      {!isLoading && results && (
+      {results && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           {/* Flashcard Sets */}
           {(activeTab === 'ALL' || activeTab === 'SETS') && results.flashcardSets.length > 0 && (

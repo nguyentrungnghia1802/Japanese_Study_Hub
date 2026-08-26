@@ -17,6 +17,7 @@ import { FlashcardDto } from '@japanese-learning/contracts';
 import { getApiErrorMessage } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
+import { SkeletonBlock } from '@/components/ui/skeleton';
 
 export default function FlashcardStudyPage() {
   const { id } = useParams<{ id: string }>();
@@ -116,10 +117,8 @@ export default function FlashcardStudyPage() {
 
   if (isLoading) {
     return (
-      <div
-        style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 1.5rem', textAlign: 'center' }}
-      >
-        <p style={{ color: 'var(--text-secondary)' }}>Preparing flashcard session...</p>
+      <div aria-busy="true" style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 1.5rem' }}>
+        <SkeletonBlock height="24rem" />
       </div>
     );
   }
@@ -134,6 +133,19 @@ export default function FlashcardStudyPage() {
             ? getApiErrorMessage(setQuery.error, 'Unable to load this deck')
             : 'No cards available to study in this deck'}
         </h2>
+        <button
+          type="button"
+          onClick={() => void setQuery.refetch()}
+          style={{
+            padding: '0.5rem 1.25rem',
+            background: 'var(--gradient-brand)',
+            color: '#fff',
+            borderRadius: 'var(--radius-md)',
+            marginRight: '0.5rem',
+          }}
+        >
+          Retry
+        </button>
         <button
           onClick={() => router.push(`/flashcards/${id}`)}
           style={{
