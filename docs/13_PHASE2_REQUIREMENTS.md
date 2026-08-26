@@ -160,6 +160,10 @@ Web and Android can complete due/new reviews with reveal plus Again/Hard/Good/Ea
 ratings. The active queue is small and bounded. Basic Study All/Shuffle remains
 available. Deleted or materially invalid cards leave review queues safely.
 
+TASK-252 delivers the Web flow with Dashboard/navigation entry points, a maximum
+20-card active batch, bounded next-card prefetch, in-place progress/completion,
+and server-submitted ratings. TASK-253 covers the equivalent Android flow.
+
 ### P2-FSRS-004 — Timezone boundary
 
 Scheduling timestamps are stored in UTC. Due comparisons use server time and a

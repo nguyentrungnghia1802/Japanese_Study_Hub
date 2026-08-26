@@ -591,20 +591,26 @@ Commit: `feat(flashcards): add fsrs scheduler`
 
 ## TASK-252 — Add Web Review mode
 
-- [ ] Add “Review due” entry point.
-- [ ] Show new/due counts.
-- [ ] Reuse card flip interaction.
-- [ ] Show Again/Hard/Good/Easy after reveal.
-- [ ] Submit rating to backend.
-- [ ] Prefetch only a small number of next cards.
-- [ ] Keep review session cache bounded.
-- [ ] Show progress and completion.
-- [ ] Keep Study All / Shuffle mode.
+- [x] Add “Review due” entry point.
+- [x] Show new/due counts.
+- [x] Reuse card flip interaction.
+- [x] Show Again/Hard/Good/Easy after reveal.
+- [x] Submit rating to backend.
+- [x] Prefetch only a small number of next cards.
+- [x] Keep review session cache bounded.
+- [x] Show progress and completion.
+- [x] Keep Study All / Shuffle mode.
 
 Acceptance criteria:
 
 - User can complete due review without page reloads.
 - Review state persists server-side.
+
+Verification:
+
+- [x] Web route/cache regression tests pass.
+- [x] Local production browser smoke completes a real Good rating and reaches
+      100% without navigating away from Review.
 
 Commit: `feat(web): add spaced repetition review`
 

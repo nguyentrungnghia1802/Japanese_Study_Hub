@@ -15,6 +15,7 @@ import {
   Upload,
   Clock,
   Layers,
+  RotateCw,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { getApiErrorMessage } from '@/lib/api-client';
@@ -40,6 +41,11 @@ export default function DashboardPage() {
   const dashboardQuery = useQuery({
     queryKey: queryKeys.dashboard(),
     queryFn: ({ signal }) => studyApi.dashboard(signal),
+  });
+  const reviewSummaryQuery = useQuery({
+    queryKey: queryKeys.reviewSummary(),
+    queryFn: ({ signal }) => studyApi.reviewSummary(signal),
+    staleTime: 0,
   });
   const summary = dashboardQuery.data;
   const isLoading = dashboardQuery.isLoading;
@@ -177,6 +183,64 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <section
+        aria-labelledby="review-summary-heading"
+        className="glass-panel"
+        style={{ padding: '1.25rem 1.5rem', marginBottom: '2.5rem' }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <RotateCw size={18} style={{ color: 'var(--accent-cyan)' }} />
+            <div>
+              <h2
+                id="review-summary-heading"
+                style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1rem' }}
+              >
+                Review due cards
+              </h2>
+              <p style={{ margin: '0.25rem 0 0', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                FSRS keeps the next review server-scheduled.
+              </p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
+              Due <strong>{reviewSummaryQuery.data?.dueCount ?? '—'}</strong>
+            </span>
+            <span style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>
+              New <strong>{reviewSummaryQuery.data?.newCount ?? '—'}</strong>
+            </span>
+            <Link
+              href="/flashcards/review"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.55rem 0.9rem',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(56, 189, 248, 0.12)',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                color: 'var(--accent-cyan)',
+                fontSize: '0.8125rem',
+                fontWeight: '700',
+                textDecoration: 'none',
+              }}
+            >
+              <RotateCw size={14} />
+              Review due
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {summary?.recentLearning && summary.recentLearning.length > 0 && (
         <section

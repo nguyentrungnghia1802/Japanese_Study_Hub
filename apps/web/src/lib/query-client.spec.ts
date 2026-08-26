@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { ApiError } from './api-client.js';
 import { CACHE_POLICY } from './cache-policy.js';
-import { invalidateExamQueries, invalidateFlashcardQueries } from './query-invalidation.js';
+import {
+  invalidateExamQueries,
+  invalidateFlashcardQueries,
+  invalidateReviewQueries,
+} from './query-invalidation.js';
 import {
   createStudyQueryClient,
   getQueryCacheStats,
@@ -73,6 +77,33 @@ describe('Web query policy', () => {
     ).toBe(true);
     expect(
       queryClient.getQueryCache().find({ queryKey: queryKeys.bestResult(examId) })?.state
+        .isInvalidated,
+    ).toBe(true);
+    expect(
+      queryClient.getQueryCache().find({ queryKey: queryKeys.dashboard() })?.state.isInvalidated,
+    ).toBe(true);
+  });
+
+  it('invalidates review and dashboard reads after a rating', async () => {
+    const queryClient = createStudyQueryClient();
+    await queryClient.fetchQuery({
+      queryKey: queryKeys.reviewQueue(20),
+      queryFn: async () => ({ cards: [] }),
+    });
+    await queryClient.fetchQuery({
+      queryKey: queryKeys.reviewSummary(),
+      queryFn: async () => ({ dueCount: 0, newCount: 0 }),
+    });
+    await queryClient.fetchQuery({ queryKey: queryKeys.dashboard(), queryFn: async () => ({}) });
+
+    await invalidateReviewQueries(queryClient);
+
+    expect(
+      queryClient.getQueryCache().find({ queryKey: queryKeys.reviewQueue(20) })?.state
+        .isInvalidated,
+    ).toBe(true);
+    expect(
+      queryClient.getQueryCache().find({ queryKey: queryKeys.reviewSummary() })?.state
         .isInvalidated,
     ).toBe(true);
     expect(

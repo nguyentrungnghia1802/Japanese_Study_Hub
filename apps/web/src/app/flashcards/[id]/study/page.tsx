@@ -18,6 +18,7 @@ import { getApiErrorMessage } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
 import { SkeletonBlock } from '@/components/ui/skeleton';
+import { FlashcardFlipCard } from '@/components/flashcards/flashcard-flip-card';
 
 export default function FlashcardStudyPage() {
   const { id } = useParams<{ id: string }>();
@@ -355,104 +356,12 @@ export default function FlashcardStudyPage() {
       ) : (
         /* Active Card Study Area */
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          {/* Flashcard 3D Perspective Card */}
-          <div
-            onClick={handleToggleFlip}
-            style={{
-              flex: 1,
-              minHeight: '340px',
-              perspective: '1000px',
-              cursor: 'pointer',
-              marginBottom: '1.5rem',
-            }}
-          >
-            <div
-              className="glass-panel"
-              style={{
-                width: '100%',
-                height: '100%',
-                minHeight: '340px',
-                borderRadius: 'var(--radius-lg)',
-                padding: '2.5rem',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                boxShadow: 'var(--shadow-lg)',
-                border: isFlipped
-                  ? '1px solid rgba(168, 85, 247, 0.4)'
-                  : '1px solid rgba(56, 189, 248, 0.4)',
-                background: isFlipped
-                  ? 'radial-gradient(ellipse at top, rgba(88, 28, 135, 0.25) 0%, rgba(15, 23, 42, 0.9) 100%)'
-                  : 'radial-gradient(ellipse at top, rgba(30, 58, 138, 0.25) 0%, rgba(15, 23, 42, 0.9) 100%)',
-                transition: 'transform 0.4s ease, border-color 0.3s ease',
-              }}
-            >
-              {/* Badge indicator */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '1.25rem',
-                  left: '1.5rem',
-                  fontSize: '0.75rem',
-                  fontWeight: '700',
-                  letterSpacing: '0.05em',
-                  padding: '0.2rem 0.6rem',
-                  borderRadius: '9999px',
-                  background: isFlipped ? 'rgba(168, 85, 247, 0.15)' : 'rgba(56, 189, 248, 0.15)',
-                  color: isFlipped ? 'var(--accent-purple)' : 'var(--accent-cyan)',
-                }}
-              >
-                {isFlipped ? 'BACK / MEANING' : 'FRONT / PROMPT'}
-              </div>
-
-              {/* Card Body */}
-              <div style={{ width: '100%', padding: '1rem 0' }}>
-                {!isFlipped ? (
-                  <div
-                    style={{
-                      fontSize: '2.5rem',
-                      fontWeight: '800',
-                      color: 'var(--text-primary)',
-                      letterSpacing: '0.02em',
-                      lineHeight: '1.4',
-                    }}
-                  >
-                    {currentCard.front}
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      fontSize: '1.5rem',
-                      fontWeight: '600',
-                      color: '#f1f5f9',
-                      lineHeight: '1.6',
-                      whiteSpace: 'pre-line',
-                    }}
-                  >
-                    {currentCard.back}
-                  </div>
-                )}
-              </div>
-
-              {/* Flip Hint */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '1.25rem',
-                  color: 'var(--text-muted)',
-                  fontSize: '0.8125rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                }}
-              >
-                <RotateCw size={12} />
-                <span>Click card or press Space to flip</span>
-              </div>
-            </div>
-          </div>
+          <FlashcardFlipCard
+            front={currentCard.front}
+            back={currentCard.back}
+            isFlipped={isFlipped}
+            onToggleFlip={handleToggleFlip}
+          />
 
           {/* Navigation Controls */}
           <div

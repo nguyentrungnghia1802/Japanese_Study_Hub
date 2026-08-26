@@ -161,6 +161,26 @@ Keyboard web:
 
 ---
 
+### Review due mode
+
+The Dashboard and primary navigation expose a `Review due` entry point. The
+review screen shows server-provided Due/New counts, loads at most 20 cards into
+the active session, and keeps Study All / Shuffle available through the
+Flashcards page.
+
+Review interaction:
+
+1. Show the front/prompt only.
+2. Flip the shared flashcard interaction to reveal the meaning.
+3. Enable Again, Hard, Good, and Easy only after reveal.
+4. Submit the rating to the server and advance in place without a route reload.
+
+The screen shows reviewed/remaining progress, a recoverable Retry state, and an
+explicit completion state. Only a small next-card prefetch is allowed; the
+active review array and React Query cache remain bounded and memory-only.
+
+---
+
 ## 9. Flashcard import UI
 
 Steps:

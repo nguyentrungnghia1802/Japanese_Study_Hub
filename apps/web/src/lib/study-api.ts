@@ -11,6 +11,10 @@ import {
   LiveExamAttemptDto,
   RecentLearningResponseDto,
   TagDto,
+  FlashcardReviewQueueResponseDto,
+  FlashcardReviewResponseDto,
+  FlashcardReviewSummaryDto,
+  SubmitFlashcardReviewDto,
 } from '@japanese-learning/contracts';
 import { apiClient } from './api-client';
 import { ExamListQuery, FlashcardListQuery } from './query-keys';
@@ -76,6 +80,19 @@ export const studyApi = {
 
   tags: (limit = 100, signal?: AbortSignal) =>
     apiClient<TagDto[]>(`/tags${buildQuery({ limit })}`, { signal }),
+
+  reviewSummary: (signal?: AbortSignal) =>
+    apiClient<FlashcardReviewSummaryDto>('/review/summary', { signal }),
+
+  reviewQueue: (limit = 20, signal?: AbortSignal) =>
+    apiClient<FlashcardReviewQueueResponseDto>(`/review/queue${buildQuery({ limit })}`, { signal }),
+
+  submitReview: (cardId: string, body: SubmitFlashcardReviewDto, signal?: AbortSignal) =>
+    apiClient<FlashcardReviewResponseDto>(`/review/${cardId}`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      signal,
+    }),
 
   setFlashcardTags: (setId: string, tags: string[], signal?: AbortSignal) =>
     apiClient<FlashcardSetDto>(`/flashcard-sets/${setId}/tags`, {

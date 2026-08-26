@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { usePathname } from 'next/navigation';
-import { BookOpen, FileCheck, Search, LayoutDashboard, LogOut, User } from 'lucide-react';
+import { BookOpen, FileCheck, Search, LayoutDashboard, LogOut, User, RotateCw } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { PrefetchLink } from '@/components/navigation/prefetch-link';
 
@@ -17,6 +17,7 @@ export function Navbar() {
   const navLinks = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/flashcards', label: 'Flashcards', icon: BookOpen },
+    { href: '/flashcards/review', label: 'Review', icon: RotateCw },
     { href: '/exams', label: 'Exams', icon: FileCheck },
     { href: '/search', label: 'Search', icon: Search },
   ];
