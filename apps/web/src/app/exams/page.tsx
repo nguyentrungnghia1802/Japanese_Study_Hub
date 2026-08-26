@@ -52,6 +52,35 @@ export default function ExamsPage() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const folder = params.get('folder');
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    setSelectedFolderId(folder && uuidPattern.test(folder) ? folder : null);
+    setSearch(params.get('search') || '');
+  }, []);
+
+  const updateLibraryUrl = (nextFolderId: string | null, nextSearch: string) => {
+    const params = new URLSearchParams(window.location.search);
+    if (nextFolderId) params.set('folder', nextFolderId);
+    else params.delete('folder');
+    if (nextSearch.trim()) params.set('search', nextSearch);
+    else params.delete('search');
+    const query = params.toString();
+    router.replace(`/exams${query ? `?${query}` : ''}`, { scroll: false });
+  };
+
+  const selectFolder = (folderId: string | null) => {
+    setSelectedFolderId(folderId);
+    updateLibraryUrl(folderId, search);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    updateLibraryUrl(selectedFolderId, value);
+  };
+
+  useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
     return () => clearTimeout(timer);
   }, [search]);
@@ -114,7 +143,7 @@ export default function ExamsPage() {
 
     try {
       await apiClient(`/exam-folders/${id}`, { method: 'DELETE' });
-      if (selectedFolderId === id) setSelectedFolderId(null);
+      if (selectedFolderId === id) selectFolder(null);
       await invalidateExamQueries(queryClient, undefined, true);
     } catch (err: unknown) {
       alert(`Delete failed: ${getApiErrorMessage(err, 'Unknown error')}`);
@@ -364,7 +393,7 @@ export default function ExamsPage() {
               </div>
             )}
             <button
-              onClick={() => setSelectedFolderId(null)}
+              onClick={() => selectFolder(null)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -395,7 +424,7 @@ export default function ExamsPage() {
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
                   <button
-                    onClick={() => setSelectedFolderId(root.id)}
+                    onClick={() => selectFolder(root.id)}
                     style={{
                       flex: 1,
                       display: 'flex',
@@ -481,7 +510,7 @@ export default function ExamsPage() {
                         }}
                       >
                         <button
-                          onClick={() => setSelectedFolderId(child.id)}
+                          onClick={() => selectFolder(child.id)}
                           style={{
                             flex: 1,
                             display: 'flex',
@@ -555,7 +584,7 @@ export default function ExamsPage() {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               placeholder="Search exams by title or description..."
               style={{
                 width: '100%',

@@ -36,6 +36,20 @@ export default function FlashcardsPage() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setSearch(params.get('search') || '');
+  }, []);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    const params = new URLSearchParams(window.location.search);
+    if (value.trim()) params.set('search', value);
+    else params.delete('search');
+    const query = params.toString();
+    router.replace(`/flashcards${query ? `?${query}` : ''}`, { scroll: false });
+  };
+
+  useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
     return () => clearTimeout(timer);
   }, [search]);
@@ -247,7 +261,7 @@ export default function FlashcardsPage() {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           placeholder="Search flashcard sets by title or description..."
           style={{
             width: '100%',

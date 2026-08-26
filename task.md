@@ -228,15 +228,15 @@ Commit: `perf(exams): preserve fresh live attempt state`
 
 ## TASK-215 — Eliminate unnecessary full reloads and navigation resets
 
-- [ ] Audit internal links/forms/buttons that trigger full document navigation or `window.location` unnecessarily.
-- [ ] Replace internal navigation with Next.js routing primitives.
-- [ ] Ensure mutations do not force browser reload unless required.
-- [ ] Preserve global layout/navigation across route transitions.
-- [ ] Add route-level loading UI for true cold requests.
-- [ ] Avoid blank white screens during route change.
-- [ ] Preserve appropriate scroll position on back navigation.
-- [ ] Preserve list filters/sort/search where useful when returning from detail.
-- [ ] Ensure auth redirects still work.
+- [x] Audit internal links/forms/buttons that trigger full document navigation or `window.location` unnecessarily.
+- [x] Replace internal navigation with Next.js routing primitives.
+- [x] Ensure mutations do not force browser reload unless required.
+- [x] Preserve global layout/navigation across route transitions.
+- [x] Add route-level loading UI for true cold requests.
+- [x] Avoid blank white screens during route change.
+- [x] Preserve appropriate scroll position on back navigation.
+- [x] Preserve list filters/sort/search where useful when returning from detail.
+- [x] Ensure auth redirects still work.
 
 Acceptance criteria:
 
