@@ -90,12 +90,13 @@ class FlashcardsViewModel @Inject constructor(
                 throw cancellation
             } catch (error: Throwable) {
                 _state.update {
+                    val retainedData = it.screen.data ?: current
                     it.copy(
                         screen = ScreenState(
                             isLoading = false,
-                            data = current,
+                            data = retainedData,
                             error = error.message ?: "Không tải được bộ thẻ.",
-                            isStale = it.screen.data != null,
+                            isStale = retainedData != null,
                         ),
                     )
                 }

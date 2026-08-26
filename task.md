@@ -1021,17 +1021,17 @@ Commit: `test(web): complete phase 2 e2e journeys`
 
 ## TASK-304 — Extend Android smoke/E2E path
 
-- [ ] Login/session restore.
-- [ ] Cached library startup.
-- [ ] Background refresh.
-- [ ] Flashcard study.
-- [ ] FSRS review if implemented.
-- [ ] Exam list.
-- [ ] Timed exam.
-- [ ] Result review.
-- [ ] Mistake review.
-- [ ] Offline/read-cache degraded behavior.
-- [ ] Reconnect behavior.
+- [x] Login/session restore.
+- [x] Cached library startup.
+- [x] Background refresh.
+- [x] Flashcard study.
+- [x] FSRS review if implemented.
+- [x] Exam list.
+- [x] Timed exam.
+- [x] Result review.
+- [x] Mistake review.
+- [x] Offline/read-cache degraded behavior.
+- [x] Reconnect behavior.
 
 Commit: `test(android): complete phase 2 smoke journeys`
 

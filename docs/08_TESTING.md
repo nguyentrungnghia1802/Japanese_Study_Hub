@@ -263,6 +263,11 @@ FSRS review, timed exam submission, best-score refresh, mistake practice,
 answer-leakage checks, and stale-cache refresh is recorded in
 docs/testing/phase2-web-e2e-2026-08-27.md.
 
+The Phase 2 Android emulator journey evidence for session restore, cached
+library startup, background refresh, flashcard study/FSRS review, timed exam,
+mistake Practice, offline cache retention, and reconnect is recorded in
+docs/testing/phase2-android-e2e-2026-08-27.md.
+
 ---
 
 ## 15. Mobile E2E/smoke path
