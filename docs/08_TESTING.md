@@ -258,6 +258,11 @@ docs/testing/phase2-integration-2026-08-27.md.
 Search-specific checks must also cover Japanese queries, exact-match ranking,
 debounce/cancellation, recent-query cache bounds, and safe match highlighting.
 
+The Phase 2 Web journey evidence for login, warm navigation, card editing,
+FSRS review, timed exam submission, best-score refresh, mistake practice,
+answer-leakage checks, and stale-cache refresh is recorded in
+docs/testing/phase2-web-e2e-2026-08-27.md.
+
 ---
 
 ## 15. Mobile E2E/smoke path

@@ -997,15 +997,23 @@ Commit: `test: complete phase 2 integration coverage`
 
 ## TASK-303 — Extend Web E2E critical path
 
-- [ ] Login.
-- [ ] Warm navigate Dashboard → Flashcards → detail → back without full reload.
-- [ ] Create/edit card and observe cache-consistent UI.
-- [ ] Review due flashcards if FSRS implemented.
-- [ ] Warm navigate Exam library/detail.
-- [ ] Complete exam and verify best-score cache refresh.
-- [ ] Review mistakes.
-- [ ] Verify no answer leakage.
-- [ ] Verify stale data eventually refreshes.
+- [x] Login.
+- [x] Warm navigate Dashboard → Flashcards → detail → back without full reload.
+- [x] Create/edit card and observe cache-consistent UI.
+- [x] Review due flashcards if FSRS implemented.
+- [x] Warm navigate Exam library/detail.
+- [x] Complete exam and verify best-score cache refresh.
+- [x] Review mistakes.
+- [x] Verify no answer leakage.
+- [x] Verify stale data eventually refreshes.
+
+Verification:
+
+- [x] Production Web/API local journey passed on 2026-08-27.
+- [x] The exam editor metadata route regression was fixed and covered by a
+      focused Web unit test.
+- [x] Complete journey evidence and cleanup boundary are recorded in
+      docs/testing/phase2-web-e2e-2026-08-27.md.
 
 Commit: `test(web): complete phase 2 e2e journeys`
 

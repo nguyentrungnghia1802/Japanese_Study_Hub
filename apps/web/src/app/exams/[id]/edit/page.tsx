@@ -25,6 +25,7 @@ import {
 } from '@japanese-learning/contracts';
 import { apiClient, getApiErrorMessage } from '@/lib/api-client';
 import { invalidateExamQueries } from '@/lib/query-invalidation';
+import { getExamMetadataEndpoint } from '@/lib/exam-endpoints';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
@@ -183,7 +184,7 @@ export default function ExamEditPage() {
       const timeLimitSeconds = !isNaN(mins) && mins > 0 ? mins * 60 : null;
 
       // 1. Update metadata
-      await apiClient<ExamDto>(`/exams/${id}/metadata`, {
+      await apiClient<ExamDto>(getExamMetadataEndpoint(id), {
         method: 'PATCH',
         body: JSON.stringify({
           title: title.trim(),
