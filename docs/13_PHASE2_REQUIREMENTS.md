@@ -83,6 +83,12 @@ attempt/live routes, and all non-read methods use `no-store`.
 Production text responses may use gzip/Brotli and keep-alive/HTTP2 capabilities
 provided by the deployment edge. Downloads remain byte-correct.
 
+TASK-231 enables thresholded compression for API text responses and applies a
+65-second keep-alive, 66-second header, and 120-second request timeout policy.
+The current repository has direct Docker service ports and no checked-in reverse
+proxy; an edge may add Brotli/HTTP2 later without changing the API's private
+cache boundary.
+
 ### P2-PERF-API
 
 List responses are bounded and use purpose-specific DTOs. Core Prisma queries

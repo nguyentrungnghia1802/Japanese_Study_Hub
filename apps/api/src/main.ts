@@ -1,13 +1,18 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import compression = require('compression');
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module.js';
 import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter.js';
 import { getDefaultCorsOrigins } from './common/config/env.validation.js';
+import { configureHttpServer } from './common/http-server-policy.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.getHttpAdapter().getInstance().disable('x-powered-by');
+  app.use(compression({ threshold: 1024 }));
 
   app.setGlobalPrefix('api/v1', {
     exclude: ['health'],
@@ -44,6 +49,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const port = process.env.PORT || 4000;
+  configureHttpServer(app.getHttpServer());
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
 }

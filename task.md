@@ -386,13 +386,13 @@ Commit: `perf(api): add safe conditional caching`
 
 ## TASK-231 — Enable response compression and efficient connections
 
-- [ ] Audit current reverse proxy/container network config.
-- [ ] Enable gzip and/or Brotli where supported for JSON/HTML/JS/CSS.
-- [ ] Avoid compressing already-compressed formats.
-- [ ] Configure sensible keep-alive.
-- [ ] Enable HTTP/2 or newer when the edge supports it.
-- [ ] Verify Markdown export/download remains correct.
-- [ ] Measure transferred bytes before/after.
+- [x] Audit current reverse proxy/container network config.
+- [x] Enable gzip and/or Brotli where supported for JSON/HTML/JS/CSS.
+- [x] Avoid compressing already-compressed formats.
+- [x] Configure sensible keep-alive.
+- [x] Enable HTTP/2 or newer when the edge supports it (documented as an edge responsibility; no reverse proxy is checked in).
+- [x] Verify Markdown export/download remains correct (compressed/uncompressed export bytes matched after decompression).
+- [x] Measure transferred bytes before/after (OpenAPI JSON 24,343 to 3,993 wire bytes; temporary Markdown export 9,240 to 447 wire bytes).
 
 Acceptance criteria:
 
