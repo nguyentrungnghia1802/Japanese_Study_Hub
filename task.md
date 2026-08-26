@@ -1056,13 +1056,13 @@ Commit: `docs: synchronize phase 2 requirements and decisions`
 
 ## TASK-311 — Update Architecture/API/DB/Deployment docs
 
-- [ ] Architecture reflects Web query cache and Android Room cache where implemented.
-- [ ] API docs reflect new endpoints/headers/cookie behavior.
-- [ ] DB docs reflect new tables/indexes.
-- [ ] Deployment docs reflect actual update process.
-- [ ] Security docs reflect actual auth/cookie/HTTPS behavior.
-- [ ] Testing docs include Phase 2 suites.
-- [ ] Development guide includes new commands and cache-debug guidance.
+- [x] Architecture reflects Web query cache and Android Room cache where implemented.
+- [x] API docs reflect new endpoints/headers/cookie behavior.
+- [x] DB docs reflect new tables/indexes.
+- [x] Deployment docs reflect actual update process.
+- [x] Security docs reflect actual auth/cookie/HTTPS behavior.
+- [x] Testing docs include Phase 2 suites.
+- [x] Development guide includes new commands and cache-debug guidance.
 
 Commit: `docs: synchronize phase 2 technical documentation`
 

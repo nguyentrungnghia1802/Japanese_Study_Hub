@@ -4,17 +4,22 @@
 
 - REST
 - JSON
-- HTTPS in production
+- Current owner deployment is IP-only HTTP; HTTPS is the required upgrade target
+  and must not be claimed until the documented transport gate passes.
 - OpenAPI-generated documentation
 - Version prefix: `/api/v1`
+
+The global `/api/v1` prefix applies to application routes. Public health routes
+are intentionally excluded from that prefix: `/health` and `/health/ready`.
 
 ---
 
 ## 2. Common response rules
 
-Success responses should use direct resource payloads or a consistent envelope. Choose one project-wide convention.
+The current implementation returns direct resource DTOs on success and the
+following envelope for errors:
 
-Recommended error envelope:
+Error envelope:
 
 ```json
 {
@@ -30,6 +35,16 @@ Recommended error envelope:
 ```
 
 Do not expose stack traces in production responses.
+
+### 2.1 Current request headers and transport cache policy
+
+Protected application requests send `Authorization: Bearer <accessToken>`.
+The API emits `Vary: Authorization` on responses. Authenticated normal `GET` and
+`HEAD` reads use `Cache-Control: private, no-cache` and Express ETag
+revalidation. Authentication, health, export, attempt/live responses, and all
+non-`GET`/`HEAD` methods use `Cache-Control: no-store`. There is no shared/public
+learning-data cache. CORS uses the explicitly configured origins with
+credentials enabled, but the current Web client does not use cookies.
 
 ---
 
@@ -48,8 +63,11 @@ Request:
 
 Response:
 
-- Authentication/session payload
+- `accessToken` (JWT), `expiresIn` (604800 seconds), and `user.username`
 - Never return password/hash/secrets
+
+The current Web and Android clients store/use the bearer token according to
+`docs/security/web-auth-session-audit.md`; authentication is not cookie-based.
 
 Errors:
 
@@ -59,11 +77,12 @@ Errors:
 
 ### `POST /api/v1/auth/logout`
 
-Invalidates/removes session as applicable.
+Returns `{ "success": true }`. The client removes its token and username; the
+stateless JWT is not revoked server-side.
 
 ### `GET /api/v1/auth/me`
 
-Returns minimal authenticated identity/session information.
+Returns `{ "username": "...", "authenticated": true }`.
 
 ---
 
@@ -73,10 +92,12 @@ Returns minimal authenticated identity/session information.
 
 Query:
 
-- `q`
+- `search`
 - `sort`
 - `page`
-- `pageSize`
+- `limit` (maximum 100)
+- `favorite`
+- `tag` (normalized slug)
 
 ### `POST /api/v1/flashcard-sets`
 
@@ -84,7 +105,7 @@ Creates a set.
 
 ### `GET /api/v1/flashcard-sets/{setId}`
 
-Returns set detail and optionally paginated cards.
+Returns set detail with its active cards.
 
 ### `PATCH /api/v1/flashcard-sets/{setId}`
 
@@ -93,10 +114,6 @@ Metadata update.
 ### `DELETE /api/v1/flashcard-sets/{setId}`
 
 Soft delete.
-
-### `POST /api/v1/flashcard-sets/{setId}/restore`
-
-Optional if Trash is surfaced.
 
 ### `POST /api/v1/flashcard-sets/{setId}/duplicate`
 
@@ -119,13 +136,13 @@ replaces all assignments atomically with `{ "tags": ["name", "..."] }`.
 
 ### `POST /api/v1/flashcard-sets/{setId}/cards`
 
-### `PATCH /api/v1/flashcards/{cardId}`
+### `PATCH /api/v1/flashcard-sets/{setId}/cards/{cardId}`
 
-### `DELETE /api/v1/flashcards/{cardId}`
+### `DELETE /api/v1/flashcard-sets/{setId}/cards/{cardId}`
 
-### `POST /api/v1/flashcards/{cardId}/duplicate`
+### `POST /api/v1/flashcard-sets/{setId}/cards/{cardId}/duplicate`
 
-### `PUT /api/v1/flashcard-sets/{setId}/cards/order`
+### `PUT /api/v1/flashcard-sets/{setId}/cards/reorder`
 
 Request example:
 
@@ -135,7 +152,8 @@ Request example:
 }
 ```
 
-Backend validates ownership and full order semantics.
+The API validates that the card IDs belong to the set and that the complete
+active-card order is supplied.
 
 ---
 
@@ -143,10 +161,11 @@ Backend validates ownership and full order semantics.
 
 ### `POST /api/v1/imports/flashcards/preview`
 
-Multipart upload:
+JSON body:
 
-- `.md` only
-- enforce size limit
+- `{ "content": "...markdown..." }`
+- the client accepts `.md`/`.txt` files and sends their text content
+- the server validates content and enforces configured request limits
 
 Response:
 
@@ -170,7 +189,7 @@ Request:
 ```json
 {
   "importToken": "...",
-  "duplicatePolicy": "CREATE_NEW"
+  "duplicatePolicy": "RENAME"
 }
 ```
 
@@ -224,11 +243,8 @@ Request:
 
 ### `PATCH /api/v1/exam-folders/{folderId}`
 
-Rename/move metadata.
-
-### `PUT /api/v1/exam-folders/{folderId}/move`
-
-Explicit move endpoint is recommended if hierarchy validation is complex.
+Updates name, parent, and/or position; hierarchy and cycle validation happen in
+the same endpoint.
 
 ### `DELETE /api/v1/exam-folders/{folderId}`
 
@@ -243,10 +259,12 @@ Soft delete according to non-empty rules.
 Query:
 
 - `folderId`
-- `q`
+- `search`
 - `sort`
 - `page`
-- `pageSize`
+- `limit` (maximum 100)
+- `favorite`
+- `tag` (normalized slug)
 
 ### `POST /api/v1/exams`
 
@@ -262,7 +280,7 @@ Metadata updates.
 
 ### `PUT /api/v1/exams/{examId}/content`
 
-Recommended endpoint for atomic question/option content replacement/update.
+Atomically replaces question/option content and increments `contentVersion`.
 
 Content mutation determines whether version increments.
 
@@ -356,7 +374,7 @@ Example:
 }
 ```
 
-### `GET /api/v1/exam-attempts/{attemptId}`
+### `GET /api/v1/attempts/{attemptId}`
 
 Restores current attempt state.
 
@@ -366,9 +384,10 @@ Rules:
 - If expired: server finalizes/marks appropriately.
 - If active: return questions/order without correctness.
 
-### `PUT /api/v1/exam-attempts/{attemptId}/answers`
+### `PUT /api/v1/attempts/{attemptId}/answers`
 
-Optional autosave endpoint.
+Saves in-progress answer selections and is available for refresh/reconnect
+continuity.
 
 Request:
 
@@ -380,7 +399,7 @@ Request:
 
 Autosave is recommended because refresh/reconnect should not lose all in-progress selections.
 
-### `POST /api/v1/exam-attempts/{attemptId}/submit`
+### `POST /api/v1/attempts/{attemptId}/submit`
 
 Request contains final selections or confirms server-saved answers.
 
@@ -432,13 +451,11 @@ official best result or add practice mistakes to the queue.
 
 ---
 
-## 11. Best result endpoints
+## 11. Best result representation
 
-### `GET /api/v1/exams/{examId}/best-result`
-
-Returns best result for current exam version.
-
-If none exists, return `null` result with 200 or consistent 404 policy.
+There is no standalone `/api/v1/exams/{examId}/best-result` controller route.
+The current exam list/detail DTOs and graded submit response carry the applicable
+best-score fields; submit invalidates the corresponding Web query families.
 
 ---
 
@@ -474,7 +491,9 @@ Alternatively domain list endpoints may handle search independently. Avoid dupli
 
 ### `GET /health`
 
-Returns basic process/database readiness status suitable for deployment checks.
+Public liveness check. Returns process status without authentication. The
+database-backed readiness check is `GET /health/ready` and returns 503 when the
+database is unavailable. Neither route has the `/api/v1` prefix.
 
 Do not expose secrets or unnecessary internals.
 
@@ -482,7 +501,7 @@ Do not expose secrets or unnecessary internals.
 
 ## 15. Pagination
 
-Recommended standard:
+Current collection response standard:
 
 ```json
 {
@@ -494,7 +513,8 @@ Recommended standard:
 }
 ```
 
-Set maximum `pageSize`.
+The API uses `limit` as the request parameter, clamps it to 100, and returns the
+`page`, `pageSize`, `total`, and `totalPages` fields shown above.
 
 ---
 

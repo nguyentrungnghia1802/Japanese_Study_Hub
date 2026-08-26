@@ -287,7 +287,40 @@ At minimum verify on target emulator/device:
 
 ---
 
-## 16. Definition of test completion
+## 16. Phase 2 validation suites
+
+The repeatable Phase 2 suites are:
+
+```text
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm perf:bundle
+pnpm perf:api-smoke
+RUN_API_INTEGRATION=1 pnpm --filter @japanese-learning/api test:integration
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-phase2-migrations.ps1
+```
+
+On PowerShell, set `RUN_API_INTEGRATION` with `$env:RUN_API_INTEGRATION = '1'`
+before the integration command. The API smoke command requires the API to be
+running and can receive an authenticated token through `API_SMOKE_TOKEN` for
+protected endpoints. The Android gate runs from `apps/mobile`:
+
+```text
+./gradlew testDebugUnitTest lintDebug assembleDebug assembleProduction verifyApiBaseUrls connectedDebugAndroidTest --no-daemon --console=plain
+```
+
+The dated integration, Web E2E, and Android emulator evidence is kept in
+`docs/testing/phase2-integration-2026-08-27.md`,
+`docs/testing/phase2-web-e2e-2026-08-27.md`, and
+`docs/testing/phase2-android-e2e-2026-08-27.md`. These records distinguish local
+verification from owner-controlled production gates.
+
+---
+
+## 17. Definition of test completion
 
 A task affecting behavior is not complete until:
 

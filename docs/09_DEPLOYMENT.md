@@ -72,6 +72,13 @@ both HTTP health endpoints, and prunes dangling images only. It never runs
 The default image tag remains `latest`; set `IMAGE_TAG` for a deliberate rollback
 to a previously published immutable SHA tag.
 
+The script's actual order is: validate Compose and the production env file, pull
+API/Web images, start and inspect healthy PostgreSQL, run
+`prisma migrate deploy` in the pulled API image, force-recreate only API/Web,
+poll `/health/ready` and `/`, print service status, then prune dangling images.
+On any failure it stops with inspection guidance and does not attempt a
+destructive rollback. Named database volumes are never removed.
+
 Current production differs from this recommended topology: the owner endpoint
 is IP-only HTTP on ports 3000/4000, with no checked-in TLS reverse-proxy
 configuration. The read-only 2026-08-27 audit found HTTP health/Web success and
@@ -290,6 +297,10 @@ Before production release:
 - [ ] Backup exists
 - [ ] Health endpoint passes
 - [ ] Live attempt payload inspected for no answer leakage
+
+The checklist's HTTPS, production backup, and production Android items require
+owner-controlled external evidence when the current repository cannot obtain it;
+local builds or an emulator must not be substituted for those claims.
 
 ---
 

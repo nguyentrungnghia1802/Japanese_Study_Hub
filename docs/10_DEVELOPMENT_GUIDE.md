@@ -108,6 +108,49 @@ Production and release builds default to `http://157.173.127.217:4000/api/v1`, a
 uses the local debug keystore only for owner/device validation; no signing key or
 release secret is stored in the repository.
 
+### Phase 2 validation commands
+
+From the repository root:
+
+```text
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm perf:bundle
+pnpm perf:api-smoke
+```
+
+The opt-in API integration and migration suites are:
+
+```powershell
+$env:RUN_API_INTEGRATION = '1'
+pnpm --filter @japanese-learning/api test:integration
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-phase2-migrations.ps1
+```
+
+Run Android's complete local gate from `apps/mobile`:
+
+```text
+./gradlew testDebugUnitTest lintDebug assembleDebug assembleProduction verifyApiBaseUrls connectedDebugAndroidTest --no-daemon --console=plain
+```
+
+### Cache debugging guidance
+
+Use the Web `getQueryCacheStats` helper and centralized query keys to inspect
+query count, active/stale count, search-key count, and live-attempt count in a
+development test or debugger. Verify that search keys stay at or below 30 and
+that live attempts have zero garbage-collection time. Do not log query data,
+authorization headers, tokens, answer keys, or full learning content.
+
+For Android, verify Room behavior through the bounded summary projections and
+the visible stale/offline state. Cleanup runs before reads and rows are limited
+to 100 per summary projection and seven days old. Never inspect or add active
+attempts, correctness metadata, FSRS transitions, or pending mutations to this
+read cache. Cache failures must remain best-effort and cannot replace a network
+response.
+
 ---
 
 ## 6. Validation rules

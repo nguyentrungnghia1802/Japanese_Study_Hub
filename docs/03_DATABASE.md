@@ -59,6 +59,40 @@ prevent duplicate assignments. The join foreign keys cascade on deletion. The
 API enforces a maximum of 32 Unicode code points per name, 20 tags per active
 resource, and 2,000 shared tag rows; there is intentionally no hierarchy.
 
+### 3.3 Applied Phase 2 schema
+
+The checked-in Prisma schema is the current database contract. The migration
+chain is:
+
+1. `20260826000000_init`
+2. `20260826152218_phase2_recent_learning`
+3. `20260826223000_phase2_favorites`
+4. `20260826230000_phase2_tags`
+5. `20260826234000_phase2_fsrs_schema`
+6. `20260826235000_phase2_fsrs_review_snapshots`
+7. `20260827000000_phase2_exam_review`
+
+The Phase 2 additions are `recent_learning`, `tags`, `flashcard_set_tags`,
+`exam_tags`, `flashcard_review_logs`, and `exam_mistakes`; favorite flags are on
+`flashcard_sets` and `exams`; FSRS state/snapshot fields are on `flashcards` and
+`flashcard_review_logs`; and `is_practice` is on `exam_attempts`. The applied
+unique keys and indexes include:
+
+- `recent_learning (user_key, kind, entity_id)` unique and
+  `(user_key, last_accessed_at)`;
+- `flashcard_review_logs (flashcard_id, client_request_id)` unique and
+  `(flashcard_id, reviewed_at)`;
+- `exam_mistakes (exam_id, exam_version, question_id)` unique and
+  `(exam_id, exam_version, updated_at)`;
+- `tags.slug` unique, `tags.name` indexed, and reverse `tag_id` indexes on both
+  join tables;
+- `(deleted_at, fsrs_due_at)` on `flashcards` for bounded active due-card reads;
+- `(exam_id, user_key)` on `exam_attempts` and
+  `(user_key, exam_id, exam_version)` unique on `exam_best_results`.
+
+Fresh-database and V1-to-Phase-2 migration verification is performed by
+`scripts/verify-phase2-migrations.ps1` and must continue to assert this chain.
+
 ---
 
 ## 4. `flashcard_sets`
@@ -254,24 +288,24 @@ Cardinality rules 2–6 and exactly-one-correct are enforced transactionally in 
 
 ## 11. `exam_attempts`
 
-| Column                  | Type        | Null | Notes                         |
-| ----------------------- | ----------- | ---: | ----------------------------- |
-| id                      | UUID        |   no | PK                            |
-| exam_id                 | UUID        |   no | FK exams                      |
-| exam_version            | integer     |   no | snapshot version              |
-| started_at              | timestamptz |   no | server time                   |
-| expires_at              | timestamptz |  yes | null for untimed              |
-| submitted_at            | timestamptz |  yes |                               |
-| status                  | enum        |   no | IN_PROGRESS/SUBMITTED/EXPIRED |
-| score                   | numeric     |  yes | after grading                 |
-| correct_count           | integer     |  yes | after grading                 |
-| total_questions         | integer     |   no | snapshot count                |
-| duration_seconds        | integer     |  yes | after submission              |
-| question_order_snapshot | jsonb       |  yes | IDs/order when shuffled       |
-| option_order_snapshot   | jsonb       |  yes | stable shuffled option order  |
+| Column                  | Type        | Null | Notes                                                |
+| ----------------------- | ----------- | ---: | ---------------------------------------------------- |
+| id                      | UUID        |   no | PK                                                   |
+| exam_id                 | UUID        |   no | FK exams                                             |
+| exam_version            | integer     |   no | snapshot version                                     |
+| started_at              | timestamptz |   no | server time                                          |
+| expires_at              | timestamptz |  yes | null for untimed                                     |
+| submitted_at            | timestamptz |  yes |                                                      |
+| status                  | enum        |   no | IN_PROGRESS/SUBMITTED/EXPIRED                        |
+| score                   | numeric     |  yes | after grading                                        |
+| correct_count           | integer     |  yes | after grading                                        |
+| total_questions         | integer     |   no | snapshot count                                       |
+| duration_seconds        | integer     |  yes | after submission                                     |
+| question_order_snapshot | jsonb       |  yes | IDs/order when shuffled                              |
+| option_order_snapshot   | jsonb       |  yes | stable shuffled option order                         |
 | is_practice             | boolean     |   no | default false; excludes official best/mistake writes |
-| created_at              | timestamptz |   no |                               |
-| updated_at              | timestamptz |   no |                               |
+| created_at              | timestamptz |   no |                                                      |
+| updated_at              | timestamptz |   no |                                                      |
 
 Notes:
 
@@ -284,16 +318,16 @@ Phase 2 stores one current wrong or unanswered reference per exam content
 version and question. `selected_option_id` is nullable for unanswered items;
 the source attempt id is retained for audit context without exposing answer keys.
 
-| Column             | Type        | Null | Notes |
-| ------------------ | ----------- | ---: | ----- |
-| id                 | UUID        |   no | PK |
-| exam_id            | UUID        |   no | FK exams, cascade |
-| exam_version       | integer     |   no | content version boundary |
-| question_id        | UUID        |   no | FK exam_questions, cascade |
+| Column             | Type        | Null | Notes                       |
+| ------------------ | ----------- | ---: | --------------------------- |
+| id                 | UUID        |   no | PK                          |
+| exam_id            | UUID        |   no | FK exams, cascade           |
+| exam_version       | integer     |   no | content version boundary    |
+| question_id        | UUID        |   no | FK exam_questions, cascade  |
 | source_attempt_id  | UUID        |   no | submitted attempt reference |
-| selected_option_id | UUID        |  yes | null = unanswered |
-| created_at         | timestamptz |   no | |
-| updated_at         | timestamptz |   no | |
+| selected_option_id | UUID        |  yes | null = unanswered           |
+| created_at         | timestamptz |   no |                             |
+| updated_at         | timestamptz |   no |                             |
 
 Unique key `(exam_id, exam_version, question_id)` bounds duplicate history.
 The API removes stale version rows; cascade deletion removes rows when an
@@ -374,9 +408,10 @@ Future migration:
 
 ---
 
-## 14. Optional `import_sessions`
+## 14. `import_sessions`
 
-Recommended for safe two-step preview/confirm.
+The initial migration creates `import_sessions` for the implemented two-step
+preview/confirm import flow.
 
 Columns:
 

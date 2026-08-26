@@ -19,9 +19,15 @@ Protect credentials, learning data, exam integrity, server resources, and deploy
 
 ## 3. Token/session security
 
-Implementation must choose one secure strategy and document it.
+The current implementation uses a JWT bearer strategy. `POST /auth/login`
+returns a seven-day access token and username; protected routes require
+`Authorization: Bearer <token>`. The Web client keeps the token and username in
+the documented `localStorage` keys, while Android uses its Keystore-backed
+DataStore store. The API does not use cookie authentication, and `POST /auth/logout`
+is a public acknowledgement rather than server-side revocation of the stateless
+JWT.
 
-Web preference:
+Future Web preference after the transport gate:
 
 - HttpOnly Secure SameSite cookie when architecture permits
 
@@ -56,7 +62,9 @@ Production secrets are injected through deployment environment/secret manager.
 
 ## 5. CORS
 
-Production CORS shall whitelist trusted web origin(s).
+Production CORS shall whitelist trusted web origin(s). The current API sets
+`credentials: true` while still using the bearer header; the current IP-only
+deployment value and origin are documented in `docs/09_DEPLOYMENT.md`.
 
 Do not use permissive `*` with credentialed requests.
 
@@ -167,7 +175,11 @@ Mandatory targets:
 - Import confirm
 - Large search endpoints if abuse becomes possible
 
-Personal use does not remove the need for basic resource protection.
+The current implementation applies the login limiter at 10 requests per minute
+through Nest throttling. Import payload/body limits and validation are active;
+additional import/search endpoint throttling remains a deployment hardening item
+if the threat model expands. Personal use does not remove the need for basic
+resource protection.
 
 ---
 

@@ -23,7 +23,7 @@ Primary goals:
 │      Web App        │       │     Mobile App      │
 │ Next.js / React     │       │ Kotlin/Compose      │
 └─────────┬───────────┘       └──────────┬──────────┘
-          │ HTTPS REST                    │ HTTPS REST
+          │ REST (HTTP exception; HTTPS target) │ REST (HTTP exception; HTTPS target)
           └──────────────┬────────────────┘
                          ▼
                 ┌───────────────────┐
@@ -153,6 +153,13 @@ The web app shall not:
 - Determine authoritative scoring
 - Store correct answers before submission
 
+Current Phase 2 implementation uses one application-level TanStack Query
+`QueryClient`. Dashboard, lists, details, and search use centralized keys,
+bounded stale/garbage-collection windows, abortable reads, and explicit mutation
+invalidation. Live attempts use a separate freshness-first policy with no
+long-lived persistence. The cache is in memory only; the exact values and storage
+allow-list are defined in `docs/performance/cache-storage-policy.md`.
+
 ---
 
 ## 6. Mobile architecture
@@ -169,9 +176,10 @@ Android Native Kotlin/Compose responsibilities:
 - Encrypted token persistence using Android Keystore + DataStore
 - Active-attempt restoration using DataStore
 
-V1 mobile is online-first.
-
-Do not implement a bidirectional offline sync engine in V1.
+The V1 mobile client was online-first. Phase 2 keeps that boundary and adds a
+bounded, non-authoritative Room read projection for summaries and recent/resume
+metadata. It does not add a bidirectional offline sync engine or a local write
+authority.
 
 The Android FSRS screen requests the server summary and a maximum 20-card due
 queue through `StudyRepository`. It keeps only that active batch in the
@@ -181,8 +189,9 @@ All/Shuffle remains a separate route and does not mutate FSRS state.
 
 The Android client also has a small Room read cache for list summaries,
 dashboard counts, and recent/resume metadata. It is online-first: cached data
-may render immediately with a stale notice, then server data replaces it. Live
-attempts, FSRS transitions, and pre-grading answer keys never enter this cache.
+may render immediately with a stale notice, then server data replaces it. The
+projection is capped at 100 summary rows and seven days; live attempts, FSRS
+transitions, pending mutations, and pre-grading answer keys never enter it.
 
 ---
 
@@ -264,7 +273,7 @@ another file. The existing single-file textarea/file flow remains unchanged.
 ## 10. Exam start flow
 
 ```text
-POST /exams/{id}/start
+POST /exams/{id}/attempts
         │
         ▼
 Validate exam exists/current
@@ -289,7 +298,7 @@ If shuffling is enabled, order must remain stable for that attempt.
 ```text
 Client answers
    │
-POST /exam-attempts/{id}/submit
+POST /attempts/{id}/submit
    │
    ▼
 Server checks attempt state/time
@@ -441,11 +450,12 @@ Provide `.env.example` with placeholder values only.
 
 ## 19. Observability
 
-Backend shall provide:
+The current backend provides:
 
-- Structured logs
-- Request ID/correlation ID where feasible
-- Health endpoint
+- Structured request logs containing method, route template, status, duration,
+  and request ID
+- Slow-request and safe failed-login/import/exam-submit signals
+- Public liveness at `/health` and database readiness at `/health/ready`
 - Startup configuration validation
 
 Optional future integrations:
