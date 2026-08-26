@@ -99,6 +99,9 @@ large-list rendering cost justifies it.
 TASK-232's collection DTO and pagination decisions are recorded in
 `docs/performance/api-payload-audit.md`.
 
+TASK-234's measured route bundle table and dynamic import decisions are recorded
+in `docs/performance/bundle-audit.md`.
+
 ## 3. Learning productivity requirements
 
 ### P2-LEARN-RECENT

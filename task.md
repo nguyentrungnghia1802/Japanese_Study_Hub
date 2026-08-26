@@ -444,13 +444,13 @@ Commit: `perf(db): optimize common query paths`
 
 ## TASK-234 — Optimize Web bundle loading
 
-- [ ] Measure route bundle sizes.
-- [ ] Identify heavy libraries/components.
-- [ ] Dynamically import heavy editors/import helpers only where needed.
-- [ ] Remove unused dependencies.
-- [ ] Ensure icons are tree-shaken or locally scoped.
-- [ ] Optimize fonts/Japanese glyph loading without breaking readability.
-- [ ] Optimize images/icons where useful.
+- [x] Measure route bundle sizes.
+- [x] Identify heavy libraries/components.
+- [x] Dynamically import heavy editors/import helpers only where needed.
+- [x] Remove unused dependencies (audit found no unused dependency justified for removal).
+- [x] Ensure icons are tree-shaken or locally scoped.
+- [x] Optimize fonts/Japanese glyph loading without breaking readability (system stack remains appropriate for current text UI).
+- [x] Optimize images/icons where useful (named Lucide imports retained; no oversized image asset is loaded by routes).
 
 Acceptance criteria:
 

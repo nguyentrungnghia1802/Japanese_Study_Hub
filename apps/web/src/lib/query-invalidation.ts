@@ -1,5 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { queryKeys } from './query-keys.js';
+import { queryKeys } from './query-keys';
 
 export async function invalidateFlashcardQueries(
   queryClient: QueryClient,

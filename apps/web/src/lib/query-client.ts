@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
-import { ApiError } from './api-client.js';
-import { CACHE_POLICY } from './cache-policy.js';
+import { ApiError } from './api-client';
+import { CACHE_POLICY } from './cache-policy';
 
 export function isRetryableQueryError(error: unknown): boolean {
   if (error instanceof ApiError) {

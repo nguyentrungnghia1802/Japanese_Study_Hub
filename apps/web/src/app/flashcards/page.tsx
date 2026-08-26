@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -18,12 +19,19 @@ import {
 } from 'lucide-react';
 import { FlashcardSetDto } from '@japanese-learning/contracts';
 import { API_BASE_URL, apiClient, getApiErrorMessage } from '@/lib/api-client';
-import { FlashcardImportModal } from '@/components/flashcards/flashcard-import-modal';
 import { PrefetchLink } from '@/components/navigation/prefetch-link';
 import { invalidateFlashcardQueries } from '@/lib/query-invalidation';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
 import { getUiPreference, setUiPreference, UiSortValue } from '@/lib/ui-preferences';
+
+const FlashcardImportModal = dynamic(
+  () =>
+    import('@/components/flashcards/flashcard-import-modal').then(
+      (module) => module.FlashcardImportModal,
+    ),
+  { ssr: false },
+);
 
 export default function FlashcardsPage() {
   const [search, setSearch] = useState('');

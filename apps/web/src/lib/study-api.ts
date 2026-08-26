@@ -10,8 +10,8 @@ import {
   SearchResultsDto,
   LiveExamAttemptDto,
 } from '@japanese-learning/contracts';
-import { apiClient } from './api-client.js';
-import { ExamListQuery, FlashcardListQuery } from './query-keys.js';
+import { apiClient } from './api-client';
+import { ExamListQuery, FlashcardListQuery } from './query-keys';
 
 function buildQuery(params: Record<string, string | number | boolean | null | undefined>): string {
   const searchParams = new URLSearchParams();

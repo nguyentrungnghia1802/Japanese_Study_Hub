@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BookOpen,
@@ -17,11 +18,21 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { getApiErrorMessage } from '@/lib/api-client';
-import { FlashcardImportModal } from '@/components/flashcards/flashcard-import-modal';
-import { ExamImportModal } from '@/components/exams/exam-import-modal';
 import { SkeletonBlock } from '@/components/ui/skeleton';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
+
+const FlashcardImportModal = dynamic(
+  () =>
+    import('@/components/flashcards/flashcard-import-modal').then(
+      (module) => module.FlashcardImportModal,
+    ),
+  { ssr: false },
+);
+const ExamImportModal = dynamic(
+  () => import('@/components/exams/exam-import-modal').then((module) => module.ExamImportModal),
+  { ssr: false },
+);
 
 export default function DashboardPage() {
   const { user } = useAuth();
