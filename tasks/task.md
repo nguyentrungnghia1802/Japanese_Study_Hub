@@ -891,18 +891,18 @@ Owner requirement:
 
 Rules to encode:
 
-- [ ] Scope retention by logical user + exam + exam content version.
-- [ ] Count only official submitted exam attempts.
-- [ ] Do not count Phase 2 practice/incorrect-only sessions.
-- [ ] Retain detailed wrong/unanswered review data for the newest 3 official attempts.
-- [ ] On the 4th official attempt, prune detailed review data for the oldest retained attempt in the same scope.
-- [ ] Keep best-score summary independent from this retention window.
-- [ ] Keep overall attempt count/summary metadata if already part of product behavior.
-- [ ] Do not mix old and current exam content versions.
-- [ ] Treat unanswered questions as reviewable mistakes.
-- [ ] Define ordering by server `submitted_at`.
-- [ ] Define exact snapshot fields needed for historically correct review.
-- [ ] Decide/document whether old-version last-3 data stays accessible historically or only current version is surfaced.
+- [x] Scope retention by logical user + exam + exam content version.
+- [x] Count only official submitted exam attempts.
+- [x] Do not count Phase 2 practice/incorrect-only sessions.
+- [x] Retain detailed wrong/unanswered review data for the newest 3 official attempts.
+- [x] On the 4th official attempt, prune detailed review data for the oldest retained attempt in the same scope.
+- [x] Keep best-score summary independent from this retention window.
+- [x] Keep overall attempt count/summary metadata if already part of product behavior.
+- [x] Do not mix old and current exam content versions.
+- [x] Treat unanswered questions as reviewable mistakes.
+- [x] Define ordering by server `submitted_at`.
+- [x] Define exact snapshot fields needed for historically correct review.
+- [x] Decide/document whether old-version last-3 data stays accessible historically or only current version is surfaced.
 
 Acceptance criteria:
 
@@ -910,6 +910,13 @@ Acceptance criteria:
 - Best-result semantics remain unchanged.
 
 Commit: `docs(exams): define last three mistake retention`
+
+Verification (2026-08-27): ADR-035 and the database documentation define one
+deterministic policy: server `submitted_at` desc/id desc, official submitted
+attempts only, scoped by logical user/exam/content version, with wrong and
+unanswered snapshots for exactly the newest three. Best results and attempt
+counts remain independent; older versions are isolated and not surfaced by the
+current-version review UI.
 
 ---
 

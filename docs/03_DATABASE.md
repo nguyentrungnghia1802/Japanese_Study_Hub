@@ -335,25 +335,44 @@ Notes:
 
 ## 11.1 `exam_mistakes`
 
-Phase 2 stores one current wrong or unanswered reference per exam content
-version and question. `selected_option_id` is nullable for unanswered items;
-the source attempt id is retained for audit context without exposing answer keys.
+Phase 3 extends the Phase 2 table rather than creating a parallel review model.
+Each row is one wrong or unanswered question from one official submitted
+attempt. Detailed rows are retained only for the three newest official
+attempts in the same `(user_key, exam_id, exam_version)` scope. Practice
+attempts never create rows and best-result summaries are independent.
 
 | Column             | Type        | Null | Notes                       |
 | ------------------ | ----------- | ---: | --------------------------- |
 | id                 | UUID        |   no | PK                          |
-| exam_id            | UUID        |   no | FK exams, cascade           |
-| exam_version       | integer     |   no | content version boundary    |
-| question_id        | UUID        |   no | FK exam_questions, cascade  |
-| source_attempt_id  | UUID        |   no | submitted attempt reference |
-| selected_option_id | UUID        |  yes | null = unanswered           |
-| created_at         | timestamptz |   no |                             |
-| updated_at         | timestamptz |   no |                             |
+| user_key           | varchar(255) | no | logical-user retention scope |
+| exam_id            | UUID         | no | FK exams                     |
+| exam_version       | integer      | no | content version boundary     |
+| question_id        | UUID         | no | stable question identifier   |
+| source_attempt_id  | UUID         | no | FK submitted attempt         |
+| question_type      | enum         | no | type snapshot                |
+| question_content   | text         | no | prompt snapshot              |
+| option_snapshot    | JSONB        | no | ordered options for review   |
+| question_position  | integer      | no | historical display order     |
+| selected_option_id | UUID         | yes | null = unanswered            |
+| correct_option_id  | UUID         | yes | graded answer snapshot       |
+| is_correct         | boolean      | no | always false for retained row |
+| is_unanswered      | boolean      | no | explicit unanswered state    |
+| submitted_at       | timestamptz  | no | source server submit time    |
+| created_at         | timestamptz  | no |                              |
+| updated_at         | timestamptz  | no |                              |
 
-Unique key `(exam_id, exam_version, question_id)` bounds duplicate history.
-The API removes stale version rows; cascade deletion removes rows when an
-exam/question is deleted. Practice snapshots contain correctness flags only on
-the server and live responses remain sanitized.
+Unique key `(source_attempt_id, question_id)` makes duplicate finalization
+idempotent while allowing the same question to appear in multiple retained
+attempts. Indexes cover `(user_key, exam_id, exam_version, submitted_at)` and
+`source_attempt_id`. The question foreign key is restrictive so a hard delete
+cannot silently destroy a retained snapshot; content is rendered from the
+snapshot. Normal API history surfaces only the current exam content version;
+older-version rows remain isolated and are never mixed into current review.
+
+The API queue projects the newest retained row per current-version question,
+while the Last-3 API returns rows for one selected official attempt. All
+snapshot data is created in the official finalization transaction and rows
+outside the newest three submitted attempts are deleted in that same scope.
 
 ---
 
