@@ -359,3 +359,22 @@ backend adapter boundary.
 **Reason:** The personal learning product benefits from a small, dependable
 lookup workflow and bounded storage; broad language tooling would add cost and
 security/privacy surface without an approved requirement.
+
+## ADR-037 — Provider failures are bounded and attribution is explicit
+
+**Decision:** Keep provider calls behind one API-owned HTTP boundary with strict
+timeout/body limits, at most one transient retry, no retry for rate limits, and
+a small per-provider failure cooldown. Map upstream status/headers to stable
+safe project errors, cap retry hints, and preserve source URL/license/
+attribution in normalized result DTOs. Provider URLs remain replaceable source
+configuration rather than client-side integrations.
+
+**Reason:** Public dictionary services are untrusted and can be slow,
+malformed, unavailable, or rate limited. A bounded circuit prevents repeated
+failure from consuming request resources, while explicit attribution lets the
+owner audit or replace a provider without persisting raw payloads.
+
+**Compatibility:** Lookup history/favorites, Web, Android, exam integrity,
+server-authoritative timer, and the existing bearer-auth boundary remain
+unchanged. No provider credential or raw response is added to client or
+persistent storage.

@@ -241,6 +241,13 @@ RUN_API_INTEGRATION=1 pnpm --filter @japanese-learning/api test:integration.
 The dated result is recorded in
 docs/testing/phase2-integration-2026-08-27.md.
 
+The Phase 3 migration chain has ten entries, including the dictionary history,
+dictionary favorites, and bounded exam-mistake-retention migrations. The same
+verifier checks both a fresh database and a disposable V1 database upgraded
+through the complete Phase 2/3 chain. `RUN_API_INTEGRATION=1` runs the real
+Nest HTTP integration files under `apps/api/test`, including authenticated
+Lookup/history/favorites and PostgreSQL-backed last-three retention coverage.
+
 ---
 
 ## 14. Web E2E critical path
@@ -262,6 +269,13 @@ docs/testing/phase2-integration-2026-08-27.md.
 
 Search-specific checks must also cover Japanese queries, exact-match ranking,
 debounce/cancellation, recent-query cache bounds, and safe match highlighting.
+
+The Phase 3 Web journey additionally covers Lookup direction/fallback, kanji
+and optional-example degradation, favorite/history actions, Lookup-to-card
+creation, active-exam blocking, submitted-review return state, and bounded
+mistake retention. The Phase 3 Android journey covers the equivalent Lookup,
+review, continuity, provider-failure, and mistake-card paths. These are
+device/browser checks and are not inferred from unit or API integration tests.
 
 The Phase 2 Web journey evidence for login, warm navigation, card editing,
 FSRS review, timed exam submission, best-score refresh, mistake practice,
@@ -292,9 +306,9 @@ At minimum verify on target emulator/device:
 
 ---
 
-## 16. Phase 2 validation suites
+## 16. Phase 2 and Phase 3 validation suites
 
-The repeatable Phase 2 suites are:
+The repeatable Phase 2/3 suites are:
 
 ```text
 pnpm install --frozen-lockfile

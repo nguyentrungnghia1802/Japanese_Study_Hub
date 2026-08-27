@@ -1352,17 +1352,25 @@ Commit: `test(android): complete phase 3 smoke flow`
 
 ## TASK-520 — Synchronize technical docs
 
-- [ ] Update API docs for Lookup/history/favorites/mistakes.
-- [ ] Update DB docs for new persistence.
-- [ ] Update Architecture for provider adapters/cache/continuity.
-- [ ] Update Security for external provider trust boundary.
-- [ ] Update Testing docs.
-- [ ] Update Development Guide.
-- [ ] Update Deployment docs for new env vars if any.
-- [ ] Update UI/UX docs.
-- [ ] Update Decisions.
-- [ ] Update Traceability.
-- [ ] Ensure no undocumented provider API is used.
+- [x] Update API docs for Lookup/history/favorites/mistakes.
+- [x] Update DB docs for new persistence.
+- [x] Update Architecture for provider adapters/cache/continuity.
+- [x] Update Security for external provider trust boundary.
+- [x] Update Testing docs.
+- [x] Update Development Guide.
+- [x] Update Deployment docs for new env vars if any.
+- [x] Update UI/UX docs.
+- [x] Update Decisions.
+- [x] Update Traceability.
+- [x] Ensure no undocumented provider API is used.
+
+Verification (2026-08-27): Updated the API, database, architecture, security,
+testing, development, deployment, UI/UX, decisions, and traceability documents
+for the Phase 3 dictionary, continuity, and retained-mistake implementation.
+The provider URL audit found only the documented production endpoints in the
+API adapters, the per-sentence Tatoeba attribution link, and test fixtures;
+Web and Android do not call external dictionary services directly. Prettier
+and `git diff --check` passed for the updated documentation.
 
 Commit: `docs: synchronize phase 3 technical documentation`
 

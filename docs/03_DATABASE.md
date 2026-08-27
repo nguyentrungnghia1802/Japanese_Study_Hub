@@ -76,10 +76,12 @@ chain is:
 7. `20260827000000_phase2_exam_review`
 8. `20260827010000_phase3_dictionary_history`
 9. `20260827011000_phase3_dictionary_favorites`
+10. `20260827120000_phase3_exam_mistake_retention`
 
 The Phase 2 additions are `recent_learning`, `tags`, `flashcard_set_tags`,
 `exam_tags`, `flashcard_review_logs`, and `exam_mistakes`; Phase 3 adds
-`dictionary_lookup_history` and `dictionary_favorites`; favorite flags are on
+`dictionary_lookup_history` and `dictionary_favorites`, and extends
+`exam_mistakes` with immutable retention snapshots; favorite flags are on
 `flashcard_sets` and `exams`; FSRS state/snapshot fields are on `flashcards` and
 `flashcard_review_logs`; and `is_practice` is on `exam_attempts`. The applied
 unique keys and indexes include:
@@ -88,8 +90,9 @@ unique keys and indexes include:
   `(user_key, last_accessed_at)`;
 - `flashcard_review_logs (flashcard_id, client_request_id)` unique and
   `(flashcard_id, reviewed_at)`;
-- `exam_mistakes (exam_id, exam_version, question_id)` unique and
-  `(exam_id, exam_version, updated_at)`;
+- `exam_mistakes (source_attempt_id, question_id)` unique,
+  `(user_key, exam_id, exam_version, submitted_at)`, and
+  `(source_attempt_id, question_position)`;
 - `tags.slug` unique, `tags.name` indexed, and reverse `tag_id` indexes on both
   join tables;
 - `(deleted_at, fsrs_due_at)` on `flashcards` for bounded active due-card reads;

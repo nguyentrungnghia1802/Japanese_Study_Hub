@@ -74,6 +74,16 @@
   requests, and use bounded memory-only recent-query caches. Prefer exact/prefix
   result relevance before recency, and highlight matches as escaped UI text
   rather than injecting HTML.
+- Dictionary features must call only the project API. Provider adapters own
+  timeout, bounded response validation, typed errors, attribution, and the
+  process-local cache; raw provider payloads must not enter client DTOs,
+  history, favorites, logs, or Room.
+- Treat Lookup as unavailable during an in-progress official exam. Submitted
+  review may open Lookup with only a bounded same-origin return path; graded
+  data is reloaded from the server on return.
+- Official mistake snapshots are written only during finalization and retained
+  for the newest three user/exam/version attempts. Practice submissions do not
+  affect best results or the retention window.
 
 From the repository root, mobile checks are run with:
 
@@ -108,7 +118,7 @@ Production and release builds default to `http://157.173.127.217:4000/api/v1`, a
 uses the local debug keystore only for owner/device validation; no signing key or
 release secret is stored in the repository.
 
-### Phase 2 validation commands
+### Phase 2 and Phase 3 validation commands
 
 From the repository root:
 
@@ -120,6 +130,7 @@ pnpm test
 pnpm build
 pnpm perf:bundle
 pnpm perf:api-smoke
+pnpm perf:api-cache
 ```
 
 The opt-in API integration and migration suites are:

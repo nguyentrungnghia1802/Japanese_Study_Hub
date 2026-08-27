@@ -183,6 +183,19 @@ Deployment order:
 
 If migration cannot be backward compatible, document maintenance expectations.
 
+Phase 3 extends this sequence to ten checked-in Prisma migrations. The final
+dictionary-history, dictionary-favorites, and exam-mistake-retention migrations
+must be applied through `prisma migrate deploy`; run
+`scripts/verify-phase2-migrations.ps1` against disposable fresh and V1-upgrade
+databases before a release. Take and verify an owner-controlled production
+backup before applying the migration chain.
+
+Phase 3 adds no provider credentials or public client environment variables.
+Provider URLs and attribution are API source constants. The existing
+`DATABASE_URL`, auth, CORS, and Web build-time API URL remain the deployment
+configuration surface; external provider availability is handled by the
+bounded adapter timeout/error policy.
+
 ---
 
 ## 8. Backup

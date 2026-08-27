@@ -502,3 +502,25 @@ navigation and a direct route renders an integrity explanation without making
 lookup actions. After submission, graded review exposes bounded All/Wrong/
 Unanswered filters and preserves the selected review question while the user
 visits Lookup and returns.
+
+## 24. Phase 3 Lookup on Web and continuity
+
+Web exposes `/lookup` for authenticated Japanese↔Vietnamese lookup, bounded
+suggestions, single-kanji detail, optional examples, history, favorites, and
+editable Flashcard creation. Results show compact provider attribution and
+graceful typed error/empty states; the UI never renders raw provider payloads.
+
+Lookup is disabled by the active-attempt marker while an official exam is
+`IN_PROGRESS`. The marker is only an in-app integrity gate and does not replace
+the server timer or attempt state. After submission, the graded review page
+offers All/Wrong/Unanswered filters and opens Lookup with a bounded same-origin
+`returnTo` path containing only the attempt, filter, and question identifiers.
+Browser Back returns through normal history, and the review reloads graded data
+from the server after return.
+
+Flashcard Study stores only bounded per-tab continuity metadata: ordered card
+IDs, current index/card, Front/Back state, progress, shuffle mode, expiry, and a
+safe return path. If cards are added, deleted, or otherwise no longer match,
+the saved order is discarded and the current server order is used. Neither
+Flashcard nor Exam continuity storage contains card text, answers, or provider
+responses.

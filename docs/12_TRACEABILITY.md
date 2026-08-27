@@ -213,6 +213,30 @@ Phase 3 is approved after the `v2.0.0` Phase 2 release. The active plan is
 | Best score, attempt count, practice isolation, and duplicate submit semantics remain independent | TASK-471..473                               | TASK-513, TASK-530                |
 | Flashcard creation reuses safe API, sanitizes Markdown, and invalidates targeted caches          | TASK-440, TASK-490                          | TASK-511, TASK-514..515, TASK-530 |
 
+### Phase 3 local verification evidence (2026-08-27)
+
+The checked implementation and local evidence currently include:
+
+- `TASK-501`: API/Web/Android storage bounds and no-cookie-payload audit,
+  recorded in `docs/performance/cache-storage-policy.md`.
+- `TASK-510`: dictionary/cache/provider unit coverage, including bounded cache,
+  malformed/timeout/rate-limit/circuit handling, and Unicode direction rules.
+- `TASK-511`: authenticated Nest HTTP and PostgreSQL integration for lookup,
+  fallback, suggestions, kanji/examples degradation, history/favorites, safe
+  provider errors, and attribution.
+- `TASK-512`: Web/Android continuity regression coverage for bounded return
+  state, active-exam lookup blocking, submitted-review filter restoration, and
+  changed/deleted-card fallback.
+- `TASK-513`: service and PostgreSQL retention coverage for the newest three
+  official attempts, practice/score/count isolation, duplicate submit, and
+  immutable snapshots.
+- `50b4ad9`: production bootstrap regression fix proving the provider HTTP
+  client receives its default options through an explicit Nest module token.
+
+Web authenticated E2E, Android device smoke, production backup/health/provider
+smoke, and release deployment evidence remain separate gates. They must not be
+inferred from the local unit, integration, or build checks below.
+
 ### Phase 3 release audit
 
 Before TASK-530, review every Phase 3 requirement row and run the full

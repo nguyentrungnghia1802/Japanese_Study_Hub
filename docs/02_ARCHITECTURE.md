@@ -499,6 +499,14 @@ timeouts and lightweight transient retry, then discard unnecessary fields. A
 provider failure may remove optional kanji/examples enrichment without failing a
 valid core lookup.
 
+The shared provider HTTP client enforces a 2.5-second timeout, a 256 KiB
+response limit, at most one transient retry, no retry for HTTP 429, and a
+bounded per-provider failure circuit (three consecutive timeout/availability
+failures open a five-second cooldown). Retry-After and X-RateLimit-Reset are
+bounded before they reach the typed response. Nest receives default client
+options through an explicit module token so production bootstrap and injected
+test clients use the same boundary.
+
 Lookup history and favorites are compact PostgreSQL records scoped to the
 logical user. History is capped at 100 entries and is separate from the
 response cache. The response cache is bounded by entry count and TTL; failures
@@ -521,6 +529,12 @@ attempt may open Lookup from graded review and return to the same review
 question/filter. This is a client navigation rule and does not alter the
 server-authoritative timer, attempt restoration, scoring, or live answer
 sanitization.
+
+On Android, leaving Flashcard Study keeps the ViewModel/SavedStateHandle order,
+index, Front/Back side, and shuffle mode on the navigation back stack; the
+Lookup route receives only a bounded initial query. Submitted exam review uses
+the same back-stack return pattern and never places graded payloads in the
+Lookup route arguments.
 
 ## 23. Phase 3 mistake retention
 

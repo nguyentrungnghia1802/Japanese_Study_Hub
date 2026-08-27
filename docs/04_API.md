@@ -480,6 +480,25 @@ The returned live attempt is marked `isPractice: true` and remains sanitized.
 Submitting it uses server grading for feedback but does not create/update an
 official best result or add practice mistakes to the queue.
 
+### `GET /api/v1/exam-review/exams/{examId}/mistake-attempts`
+
+Returns at most the three newest submitted, non-practice attempt summaries for
+the current exam content version. This is a bounded history index; it does not
+return full question content.
+
+### `GET /api/v1/exam-review/attempts/{attemptId}/mistakes`
+
+Returns wrong and unanswered items for one retained official attempt. The
+response is rendered from the immutable question/option snapshots captured at
+submission, so later exam edits cannot rewrite historical review. Correctness
+fields are available only on this post-submission route.
+
+### `GET /api/v1/exam-review/exams/{examId}/frequent-mistakes`
+
+Returns a bounded repeated-mistake summary over the retained official attempt
+window for the current exam version. Practice attempts and older content
+versions are excluded.
+
 ---
 
 ## 11. Best result representation

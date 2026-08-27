@@ -181,6 +181,25 @@ additional import/search endpoint throttling remains a deployment hardening item
 if the threat model expands. Personal use does not remove the need for basic
 resource protection.
 
+### Phase 3 provider trust boundary
+
+All dictionary/example traffic is API-owned. Provider adapters validate the
+URL response status, response size, JSON shape, Unicode/text bounds, and
+direction before returning normalized project DTOs. The shared client applies
+a strict 2.5-second timeout, a 256 KiB body limit, one transient retry at most,
+no retry for 429, and a bounded short provider-failure circuit. Retry-After and
+X-RateLimit-Reset values are capped before mapping to a safe `RATE_LIMITED`
+response. Provider URLs are fixed source constants; Phase 3 introduces no
+provider credentials in Web, Android, or public environment variables.
+
+Provider definitions, examples, kanji metadata, and Wiktionary text are
+untrusted text. They are normalized/sanitized before rendering, raw payloads
+are not logged or returned to clients, and history/favorites store only compact
+reopen metadata plus attribution. Optional kanji/examples failures never
+expose provider internals or invalidate a valid core lookup. The active-exam
+Lookup gate remains client-side navigation protection layered on top of the
+unchanged server-authoritative timer, submission, and no-answer-leakage rules.
+
 ---
 
 ## 13. CSRF
