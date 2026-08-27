@@ -17,6 +17,7 @@ import type { ResolvedDictionaryDirection } from './dictionary-providers.js';
 import { DictionaryProviderError } from './dictionary-errors.js';
 import { KanjiApiProvider } from './kanjiapi.provider.js';
 import { MinhqndDictionaryProvider } from './minhqnd.provider.js';
+import { TatoebaProvider } from './tatoeba.provider.js';
 import { VietnameseWiktionaryProvider } from './wiktionary.provider.js';
 
 const JAPANESE_SCRIPT_PATTERN =
@@ -32,6 +33,13 @@ export class DictionaryLookupCache extends TtlLruCache<DictionaryLookupResponseD
 }
 
 @Injectable()
+export class DictionaryExampleCache extends TtlLruCache<DictionaryLookupResponseDto['examples']> {
+  constructor() {
+    super(DICTIONARY_CACHE_POLICY.maxEntries);
+  }
+}
+
+@Injectable()
 export class DictionaryLookupService {
   private readonly logger = new Logger(DictionaryLookupService.name);
 
@@ -40,6 +48,8 @@ export class DictionaryLookupService {
     private readonly vietnameseFallback: VietnameseWiktionaryProvider,
     private readonly cache: DictionaryLookupCache,
     private readonly kanjiProvider: KanjiApiProvider,
+    private readonly exampleCache: DictionaryExampleCache,
+    private readonly exampleProvider: TatoebaProvider,
   ) {}
 
   async lookup(request: DictionaryLookupRequestDto): Promise<DictionaryLookupResponseDto> {
@@ -51,6 +61,7 @@ export class DictionaryLookupService {
       query,
       direction,
       limit,
+      includeExamples: request.includeExamples ?? false,
     });
     const cached = this.cache.get(cacheKey);
     if (cached) {
@@ -66,12 +77,15 @@ export class DictionaryLookupService {
 
     const rankedResults = rankDictionaryResults(results, query).slice(0, limit);
     const kanji = await this.enrichSingleKanji(query, direction, rankedResults);
+    const examples = request.includeExamples
+      ? await this.loadExamples(query, direction, rankedResults)
+      : [];
     const response: DictionaryLookupResponseDto = {
       query,
       direction,
       results: rankedResults,
       kanji,
-      examples: [],
+      examples,
       sources: uniqueSources(rankedResults, kanji),
     };
     this.cache.set(
@@ -84,6 +98,42 @@ export class DictionaryLookupService {
     if (response.results.length === 0 && response.kanji === null)
       throw new DictionaryDomainError(DictionaryErrorCode.NO_RESULT);
     return response;
+  }
+
+  private async loadExamples(
+    query: string,
+    direction: ResolvedDictionaryDirection,
+    results: DictionaryWordResultDto[],
+  ): Promise<DictionaryLookupResponseDto['examples']> {
+    const exampleQuery =
+      direction === DictionaryLookupDirection.JA_TO_VI ? query : results[0]?.writtenForm;
+    if (!exampleQuery) return [];
+
+    const cacheKey = createDictionaryCacheKey({
+      kind: 'examples',
+      query: exampleQuery,
+      direction: DictionaryLookupDirection.JA_TO_VI,
+      limit: DICTIONARY_LIMITS.maxExamples,
+    });
+    const cached = this.exampleCache.get(cacheKey);
+    if (cached) return cached;
+
+    try {
+      const examples = (
+        await this.exampleProvider.examples(exampleQuery, DICTIONARY_LIMITS.maxExamples)
+      ).slice(0, DICTIONARY_LIMITS.maxExamples);
+      this.exampleCache.set(
+        cacheKey,
+        examples,
+        examples.length > 0
+          ? DICTIONARY_CACHE_POLICY.examplesSuccessTtlMs
+          : DICTIONARY_CACHE_POLICY.noResultTtlMs,
+      );
+      return examples;
+    } catch (error) {
+      this.logEnrichmentFailure(error, 'examples');
+      return [];
+    }
   }
 
   private async enrichSingleKanji(

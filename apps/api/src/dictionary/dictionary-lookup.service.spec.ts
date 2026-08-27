@@ -7,14 +7,21 @@ import {
 import { DictionaryDomainError } from './dictionary-domain-error.js';
 import {
   DictionaryLookupCache,
+  DictionaryExampleCache,
   DictionaryLookupService,
   isSingleKanji,
   resolveLookupDirection,
 } from './dictionary-lookup.service.js';
 import { KanjiApiProvider } from './kanjiapi.provider.js';
 import { MinhqndDictionaryProvider } from './minhqnd.provider.js';
+import { TatoebaProvider } from './tatoeba.provider.js';
 import { VietnameseWiktionaryProvider } from './wiktionary.provider.js';
-import { KANJIAPI_SOURCE, MINHQND_SOURCE, VI_WIKTIONARY_SOURCE } from './provider-sources.js';
+import {
+  KANJIAPI_SOURCE,
+  MINHQND_SOURCE,
+  TATOEBA_SOURCE,
+  VI_WIKTIONARY_SOURCE,
+} from './provider-sources.js';
 
 function word(writtenForm: string, source = MINHQND_SOURCE) {
   return {
@@ -32,6 +39,7 @@ function serviceWith(
   primaryResults: ReturnType<typeof word>[],
   fallbackResults: ReturnType<typeof word>[] = [],
   kanjiResult: DictionaryKanjiResultDto | null = null,
+  examples: DictionaryLookupServiceExample[] = [],
 ) {
   const primary = {
     lookup: vi.fn().mockResolvedValue(primaryResults),
@@ -43,14 +51,25 @@ function serviceWith(
     enrich: vi.fn().mockResolvedValue(kanjiResult),
     relatedWords: vi.fn().mockResolvedValue(kanjiResult?.relatedWords ?? []),
   } as unknown as KanjiApiProvider;
+  const exampleProvider = {
+    examples: vi.fn().mockResolvedValue(examples),
+  } as unknown as TatoebaProvider;
   const service = new DictionaryLookupService(
     primary,
     fallback,
     new DictionaryLookupCache(),
     kanji,
+    new DictionaryExampleCache(),
+    exampleProvider,
   );
-  return { service, primary, fallback, kanji };
+  return { service, primary, fallback, kanji, exampleProvider };
 }
+
+type DictionaryLookupServiceExample = {
+  japaneseSentence: string;
+  vietnameseTranslation: string;
+  source: typeof TATOEBA_SOURCE;
+};
 
 describe('DictionaryLookupService (TASK-411)', () => {
   it('resolves Japanese script to JA_TO_VI and Latin/diacritic input to VI_TO_JA', () => {
@@ -159,6 +178,42 @@ describe('DictionaryLookupService (TASK-411)', () => {
     });
     expect(result.results).toHaveLength(1);
     expect(result.kanji).toBeNull();
+  });
+
+  it('adds optional examples without blocking lookup and reuses the separate example cache', async () => {
+    const examples: DictionaryLookupServiceExample[] = [
+      {
+        japaneseSentence: '日本語を話します。',
+        vietnameseTranslation: 'Tôi nói tiếng Nhật.',
+        source: TATOEBA_SOURCE,
+      },
+    ];
+    const { service, exampleProvider } = serviceWith([word('日本語')], [], null, examples);
+    const first = await service.lookup({
+      query: '日本語',
+      direction: DictionaryLookupDirection.JA_TO_VI,
+      includeExamples: true,
+    });
+    const second = await service.lookup({
+      query: '日本語',
+      direction: DictionaryLookupDirection.JA_TO_VI,
+      includeExamples: true,
+    });
+    expect(first.examples).toEqual(examples);
+    expect(second.examples).toEqual(examples);
+    expect(exampleProvider.examples).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps primary lookup usable when optional examples fail', async () => {
+    const { service, exampleProvider } = serviceWith([word('日本語')]);
+    vi.mocked(exampleProvider.examples).mockRejectedValueOnce(new Error('Tatoeba unavailable'));
+    const result = await service.lookup({
+      query: '日本語',
+      direction: DictionaryLookupDirection.JA_TO_VI,
+      includeExamples: true,
+    });
+    expect(result.results).toHaveLength(1);
+    expect(result.examples).toEqual([]);
   });
 
   it('rejects empty, non-language, and oversized input with a stable code', async () => {

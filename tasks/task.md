@@ -331,19 +331,30 @@ Commit: `feat(dictionary): add kanji enrichment`
 
 ## TASK-413 — Add optional Japanese/Vietnamese examples
 
-- [ ] Integrate official Tatoeba API v1 or approved equivalent.
-- [ ] Search examples relevant to the term.
-- [ ] Prefer Japanese sentences with Vietnamese translations.
-- [ ] Return at most 3–5 examples.
-- [ ] Do not block primary lookup if examples are slow/unavailable.
-- [ ] Add bounded cache.
-- [ ] Add source attribution.
-- [ ] Sanitize rendered text.
-- [ ] Add timeout/fallback tests.
+- [x] Integrate official Tatoeba API v1 or approved equivalent.
+- [x] Search examples relevant to the term.
+- [x] Prefer Japanese sentences with Vietnamese translations.
+- [x] Return at most 3–5 examples.
+- [x] Do not block primary lookup if examples are slow/unavailable.
+- [x] Add bounded cache.
+- [x] Add source attribution.
+- [x] Sanitize rendered text.
+- [x] Add timeout/fallback tests.
 
 Acceptance criteria:
 
 - Examples improve Lookup but cannot break core lookup.
+
+Verification (2026-08-27):
+
+- [x] `TatoebaProvider` uses official v1 Japanese→Vietnamese translation
+      filters and returns at most five normalized pairs.
+- [x] Provider text is sanitized and bounded before entering normalized DTOs;
+      source URL, contributor, and sentence-level license are preserved.
+- [x] Examples use a separate bounded cache with success/no-result TTLs and do
+      not block or fail primary lookup when provider access fails.
+- [x] Adapter/service tests cover relevant pairs, HTML/script sanitization,
+      attribution, cache reuse, and graceful optional-enrichment failure.
 
 Commit: `feat(dictionary): add example sentences`
 

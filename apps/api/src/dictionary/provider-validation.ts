@@ -1,4 +1,5 @@
 import { DictionaryErrorCode } from '@japanese-learning/contracts';
+import sanitizeHtml from 'sanitize-html';
 import { DictionaryProviderError } from './dictionary-errors.js';
 
 export function requireRecord(value: unknown, provider: string): Record<string, unknown> {
@@ -58,9 +59,22 @@ export function optionalInteger(record: Record<string, unknown>, field: string):
 export function uniqueNonEmpty(values: string[], limit: number): string[] {
   const unique = new Set<string>();
   for (const value of values) {
-    const normalized = value.normalize('NFKC').trim();
+    const normalized = sanitizeProviderText(value);
     if (normalized) unique.add(normalized);
     if (unique.size >= limit) break;
   }
   return [...unique];
+}
+
+export function sanitizeProviderText(value: string, maxCodePoints = 1_000): string {
+  const withoutMarkup = sanitizeHtml(value, {
+    allowedTags: [],
+    allowedAttributes: {},
+    disallowedTagsMode: 'discard',
+  });
+  const withoutControls = withoutMarkup.replace(
+    /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/gu,
+    '',
+  );
+  return Array.from(withoutControls.normalize('NFKC').trim()).slice(0, maxCodePoints).join('');
 }

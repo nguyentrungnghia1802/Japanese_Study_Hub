@@ -15,6 +15,7 @@ import {
   requireArray,
   requireRecord,
   requireString,
+  sanitizeProviderText,
   uniqueNonEmpty,
 } from './provider-validation.js';
 
@@ -67,8 +68,11 @@ export class KanjiApiProvider implements KanjiEnrichmentProvider {
         requireRecord(variant, PROVIDER),
       );
       for (const variant of variants) {
-        const writtenForm = optionalString(variant, 'written');
-        const reading = optionalString(variant, 'pronounced');
+        const writtenFormValue = optionalString(variant, 'written');
+        const readingValue = optionalString(variant, 'pronounced');
+        if (!writtenFormValue) continue;
+        const writtenForm = sanitizeProviderText(writtenFormValue, 120);
+        const reading = readingValue ? sanitizeProviderText(readingValue, 120) : null;
         if (!writtenForm) continue;
         related.push({ writtenForm, reading, meaning: null });
         if (related.length >= limit) return deduplicateRelatedWords(related, limit);

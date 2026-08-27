@@ -4,7 +4,11 @@ import { MinhqndDictionaryProvider } from './minhqnd.provider.js';
 import { ProviderHttpClient } from './provider-http-client.js';
 import { TatoebaProvider } from './tatoeba.provider.js';
 import { VietnameseWiktionaryProvider } from './wiktionary.provider.js';
-import { DictionaryLookupCache, DictionaryLookupService } from './dictionary-lookup.service.js';
+import {
+  DictionaryExampleCache,
+  DictionaryLookupCache,
+  DictionaryLookupService,
+} from './dictionary-lookup.service.js';
 
 @Module({
   providers: [
@@ -14,6 +18,7 @@ import { DictionaryLookupCache, DictionaryLookupService } from './dictionary-loo
     KanjiApiProvider,
     TatoebaProvider,
     DictionaryLookupCache,
+    DictionaryExampleCache,
     DictionaryLookupService,
   ],
   exports: [
@@ -23,6 +28,7 @@ import { DictionaryLookupCache, DictionaryLookupService } from './dictionary-loo
     KanjiApiProvider,
     TatoebaProvider,
     DictionaryLookupCache,
+    DictionaryExampleCache,
     DictionaryLookupService,
   ],
 })

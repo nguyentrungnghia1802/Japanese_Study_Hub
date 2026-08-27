@@ -140,11 +140,11 @@ describe('dictionary provider adapters', () => {
           data: [
             {
               id: 123,
-              text: '猫が嫌い。',
+              text: '<b>猫が嫌い。</b>',
               license: 'CC BY 2.0 FR',
               owner: 'small_snow',
               translations: [
-                { id: 456, text: 'Tôi ghét mèo.', lang: 'vie' },
+                { id: 456, text: '<script>alert(1)</script>Tôi ghét mèo.', lang: 'vie' },
                 { id: 789, text: 'I hate cats.', lang: 'eng' },
               ],
             },

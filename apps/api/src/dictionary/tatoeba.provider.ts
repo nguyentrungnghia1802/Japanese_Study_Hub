@@ -8,6 +8,7 @@ import {
   optionalString,
   requireArray,
   requireRecord,
+  sanitizeProviderText,
 } from './provider-validation.js';
 
 const PROVIDER = 'TATOEBA';
@@ -35,16 +36,20 @@ export class TatoebaProvider implements DictionaryExampleProvider {
     const examples: DictionaryExampleResultDto[] = [];
     for (const value of sentences.slice(0, 20)) {
       const sentence = requireRecord(value, PROVIDER);
-      const japaneseSentence = optionalString(sentence, 'text');
+      const japaneseSentenceValue = optionalString(sentence, 'text');
       const sentenceId = identifierString(sentence.id);
       const license = optionalString(sentence, 'license');
       const owner = optionalString(sentence, 'owner');
-      if (!japaneseSentence || !sentenceId) continue;
+      if (!japaneseSentenceValue || !sentenceId) continue;
+      const japaneseSentence = sanitizeProviderText(japaneseSentenceValue, 500);
+      if (!japaneseSentence) continue;
 
       for (const translationValue of optionalArray(sentence, 'translations', PROVIDER)) {
         const translation = requireRecord(translationValue, PROVIDER);
         if (optionalString(translation, 'lang') !== 'vie') continue;
-        const vietnameseTranslation = optionalString(translation, 'text');
+        const vietnameseTranslationValue = optionalString(translation, 'text');
+        if (!vietnameseTranslationValue) continue;
+        const vietnameseTranslation = sanitizeProviderText(vietnameseTranslationValue, 500);
         if (!vietnameseTranslation) continue;
         examples.push({
           japaneseSentence,

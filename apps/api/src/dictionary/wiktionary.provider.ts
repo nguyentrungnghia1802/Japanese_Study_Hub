@@ -3,7 +3,12 @@ import { DictionaryLookupDirection, DictionaryWordResultDto } from '@japanese-le
 import { ProviderHttpClient } from './provider-http-client.js';
 import type { DictionaryLookupProvider } from './dictionary-providers.js';
 import { VI_WIKTIONARY_SOURCE } from './provider-sources.js';
-import { requireRecord, requireString, uniqueNonEmpty } from './provider-validation.js';
+import {
+  requireRecord,
+  requireString,
+  sanitizeProviderText,
+  uniqueNonEmpty,
+} from './provider-validation.js';
 
 const PROVIDER = 'VI_WIKTIONARY';
 const API_URL = 'https://vi.wiktionary.org/w/api.php';
@@ -37,7 +42,7 @@ export class VietnameseWiktionaryProvider implements DictionaryLookupProvider {
     return translations.map((writtenForm) => ({
       writtenForm,
       reading: null,
-      meanings: [query],
+      meanings: [sanitizeProviderText(query, 120)],
       partOfSpeech: [],
       common: null,
       frequencyRank: null,
