@@ -17,6 +17,7 @@ import { TagModule } from './common/tag.module.js';
 import { ReviewModule } from './review/review.module.js';
 import { ExamReviewModule } from './exam-review/exam-review.module.js';
 import { RequestObservabilityInterceptor } from './common/observability/request-observability.interceptor.js';
+import { DictionaryModule } from './dictionary/dictionary.module.js';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { RequestObservabilityInterceptor } from './common/observability/request-
     TagModule,
     ReviewModule,
     ExamReviewModule,
+    DictionaryModule,
   ],
   providers: [
     {

@@ -224,20 +224,33 @@ Commit: `docs(dictionary): define cache and retention`
 
 ## TASK-410 — Implement provider abstraction
 
-- [ ] Add backend dictionary/lookup module.
-- [ ] Define interfaces for lookup, suggestions, kanji enrichment, and examples.
-- [ ] Add strict request timeout.
-- [ ] Add safe transient retry behavior.
-- [ ] Do not aggressively retry rate limits.
-- [ ] Normalize provider responses.
-- [ ] Validate all external JSON at the boundary.
-- [ ] Add safe error mapping.
-- [ ] Add safe structured logs without huge payloads.
-- [ ] Add unit tests with mocked providers.
+- [x] Add backend dictionary/lookup module.
+- [x] Define interfaces for lookup, suggestions, kanji enrichment, and examples.
+- [x] Add strict request timeout.
+- [x] Add safe transient retry behavior.
+- [x] Do not aggressively retry rate limits.
+- [x] Normalize provider responses.
+- [x] Validate all external JSON at the boundary.
+- [x] Add safe error mapping.
+- [x] Add safe structured logs without huge payloads.
+- [x] Add unit tests with mocked providers.
 
 Acceptance criteria:
 
 - Web/Android never call external dictionary APIs directly.
+
+Verification (2026-08-27):
+
+- [x] `DictionaryModule` is API-owned and is the only registered boundary for
+      dictionary, Wiktionary, kanji, and Tatoeba providers.
+- [x] `ProviderHttpClient` enforces a 2.5-second timeout, 256 KiB body bound,
+      one transient retry, and no retry for 429/other non-transient 4xx.
+- [x] Adapter tests cover normalized JA→VI/VI→JA data, explicit Wiktionary
+      fallback templates, kanji metadata without English-as-Vietnamese leaks,
+      Tatoeba attribution, malformed/oversized bodies, timeout, 5xx retry, and
+      429 mapping.
+- [x] Logs contain provider/code/attempt metadata only; query text, payloads,
+      authorization material, and provider URLs with query values are not logged.
 
 Commit: `feat(dictionary): add provider abstraction`
 
