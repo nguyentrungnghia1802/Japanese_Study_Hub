@@ -174,13 +174,20 @@ integration('Phase 2 service integration against PostgreSQL', () => {
     });
     expect(practiceResult.isPractice).toBe(true);
     expect(practiceResult.isNewBest).toBe(false);
+    const bestAfterPractice = await prisma.examBestResult.findFirst({ where: { examId } });
+    expect(Number(bestAfterPractice?.bestScore)).toBe(0);
+    expect(bestAfterPractice?.attemptCount).toBe(1);
 
+    const officialSelections = [correctOptionId, wrongOptionId, wrongOptionId, wrongOptionId];
     for (let index = 0; index < 4; index += 1) {
       const nextAttempt = await attempts.startAttempt(examId);
       const nextResult = await attempts.submitAttempt(nextAttempt.attemptId, {
-        answers: [{ questionId, selectedOptionId: wrongOptionId }],
+        answers: [{ questionId, selectedOptionId: officialSelections[index] }],
       });
       submittedAttemptIds.push(nextResult.attemptId);
+      expect(
+        (await examReview.getMistakeAttempts(examId)).attempts.map((item) => item.attemptId),
+      ).toEqual(submittedAttemptIds.slice(-Math.min(submittedAttemptIds.length, 3)).reverse());
     }
 
     const retainedHistory = await examReview.getMistakeAttempts(examId);
@@ -192,6 +199,7 @@ integration('Phase 2 service integration against PostgreSQL', () => {
     await expect(prisma.examMistake.count({ where: { examId } })).resolves.toBe(3);
     const bestResult = await prisma.examBestResult.findFirst({ where: { examId } });
     expect(bestResult?.attemptCount).toBe(5);
+    expect(Number(bestResult?.bestScore)).toBe(100);
     await expect(prisma.examBestResult.count({ where: { examId } })).resolves.toBe(1);
     expect(correctOptionId).not.toBe(wrongOptionId);
   });

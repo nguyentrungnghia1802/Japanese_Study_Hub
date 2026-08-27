@@ -1279,19 +1279,28 @@ Commit: `test(ux): cover lookup continuity`
 
 ## TASK-513 — Last-3 retention test completion
 
-- [ ] First three official attempts retained.
-- [ ] Fourth prunes first detailed review.
-- [ ] Fifth prunes second detailed review.
-- [ ] Best score remains correct.
-- [ ] Attempt count remains correct.
-- [ ] Practice attempt excluded.
-- [ ] Duplicate submit safe.
-- [ ] Exam isolation.
-- [ ] Version isolation.
-- [ ] Unanswered retained as mistake.
-- [ ] Snapshot review remains accurate.
-- [ ] Fresh migration passes.
-- [ ] Phase 2 → Phase 3 migration passes.
+- [x] First three official attempts retained.
+- [x] Fourth prunes first detailed review.
+- [x] Fifth prunes second detailed review.
+- [x] Best score remains correct.
+- [x] Attempt count remains correct.
+- [x] Practice attempt excluded.
+- [x] Duplicate submit safe.
+- [x] Exam isolation.
+- [x] Version isolation.
+- [x] Unanswered retained as mistake.
+- [x] Snapshot review remains accurate.
+- [x] Fresh migration passes.
+- [x] Phase 2 → Phase 3 migration passes.
+
+Verification (2026-08-27): Attempts unit coverage passed for official/practice
+separation, duplicate-submit claiming, unanswered snapshots, score/best-result
+accounting, scoped pruning, and immutable review snapshots. PostgreSQL
+integration passed through five official submissions and one practice
+submission, asserting retained history after each submission, fourth/fifth
+pruning, best score 100%, official attempt count 5, practice exclusion, and
+three final mistake rows. The migration harness passed both fresh and V1 to
+Phase 2/3 upgrade paths.
 
 Commit: `test(exams): cover recent mistake retention`
 
