@@ -473,20 +473,31 @@ Commit: `feat(dictionary): add lookup favorites`
 
 ## TASK-430 — Add Lookup as primary Web navigation
 
-- [ ] Add `Tra cứu` / `Lookup` beside Dashboard, Flashcards, Exams, Search.
-- [ ] Create dedicated Lookup route.
-- [ ] Keep App Router navigation; no full document reload.
-- [ ] Add query input.
-- [ ] Add AUTO/JA→VI/VI→JA direction control.
-- [ ] Add debounced suggestions.
-- [ ] Add loading/no-result/provider-error/retry states.
-- [ ] Add attribution.
-- [ ] Optimize for repeated keyboard use.
-- [ ] Verify Japanese/Vietnamese typography.
+- [x] Add `Tra cứu` / `Lookup` beside Dashboard, Flashcards, Exams, Search.
+- [x] Create dedicated Lookup route.
+- [x] Keep App Router navigation; no full document reload.
+- [x] Add query input.
+- [x] Add AUTO/JA→VI/VI→JA direction control.
+- [x] Add debounced suggestions.
+- [x] Add loading/no-result/provider-error/retry states.
+- [x] Add attribution.
+- [x] Optimize for repeated keyboard use.
+- [x] Verify Japanese/Vietnamese typography.
 
 Acceptance criteria:
 
 - Lookup is a first-class module, not an external redirect.
+
+Verification (2026-08-27):
+
+- [x] `/lookup` is an App Router client route and `Tra cứu` is a protected
+      Navbar link using the existing `PrefetchLink`; no external dictionary
+      provider is called by Web.
+- [x] The route persists query/direction in the URL, supports AUTO/JA→VI/VI→JA,
+      debounces bounded suggestions, supports Enter/Escape, and renders
+      loading, no-result, provider-error, retry, and attribution states.
+- [x] Web typecheck, lint, API-client/Lookup route tests passed; the shared API
+      client builds bounded Lookup, suggestion, history, and favorite requests.
 
 Commit: `feat(web): add lookup module`
 

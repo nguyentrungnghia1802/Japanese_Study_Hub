@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { apiClient, ApiError, DEFAULT_API_BASE_URL, resolveApiBaseUrl } from './api-client.js';
 import { studyApi } from './study-api.js';
+import { DictionaryLookupDirection } from '@japanese-learning/contracts';
 
 describe('apiClient (TASK-021)', () => {
   beforeEach(() => {
@@ -71,6 +72,47 @@ describe('apiClient (TASK-021)', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       `${DEFAULT_API_BASE_URL}/search?q=%E9%A3%9F%E3%81%B9%E3%82%8B&limit=30`,
       expect.objectContaining({ signal: controller.signal }),
+    );
+  });
+
+  it('builds authenticated dictionary lookup, history, and favorite requests', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ items: [], total: 0 }),
+    });
+    global.fetch = fetchMock;
+
+    await studyApi.dictionaryLookup(' 日本語 ', DictionaryLookupDirection.JA_TO_VI, 5, true);
+    await studyApi.dictionaryHistory(10);
+    await studyApi.saveDictionaryFavorite({
+      term: '日本語',
+      reading: 'にほんご',
+      meaningSummary: 'ngôn ngữ Nhật Bản',
+      direction: DictionaryLookupDirection.JA_TO_VI,
+      source: {
+        provider: 'MINHQND',
+        name: 'MinhQND',
+        url: 'https://dict.minhqnd.com/',
+        license: null,
+        attribution: 'MinhQND',
+      },
+    });
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      `${DEFAULT_API_BASE_URL}/lookup?q=%E6%97%A5%E6%9C%AC%E8%AA%9E&direction=JA_TO_VI&limit=5&includeExamples=true`,
+      expect.objectContaining({ headers: expect.any(Object) }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      `${DEFAULT_API_BASE_URL}/lookup/history?limit=10`,
+      expect.objectContaining({ headers: expect.any(Object) }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      `${DEFAULT_API_BASE_URL}/lookup/favorites`,
+      expect.objectContaining({ method: 'POST' }),
     );
   });
 });

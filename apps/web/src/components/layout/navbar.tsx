@@ -11,6 +11,7 @@ import {
   User,
   RotateCw,
   TriangleAlert,
+  Languages,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { PrefetchLink } from '@/components/navigation/prefetch-link';
@@ -30,6 +31,7 @@ export function Navbar() {
     { href: '/exams/mistakes', label: 'Mistakes', icon: TriangleAlert },
     { href: '/exams', label: 'Exams', icon: FileCheck },
     { href: '/search', label: 'Search', icon: Search },
+    { href: '/lookup', label: 'Tra cứu', icon: Languages },
   ];
 
   return (

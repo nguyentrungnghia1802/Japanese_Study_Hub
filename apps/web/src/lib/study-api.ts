@@ -17,6 +17,13 @@ import {
   SubmitFlashcardReviewDto,
   StartMistakePracticeDto,
   WrongAnswerReviewQueueDto,
+  CreateDictionaryFavoriteDto,
+  DictionaryFavoriteDto,
+  DictionaryFavoriteListResponseDto,
+  DictionaryLookupDirection,
+  DictionaryLookupHistoryResponseDto,
+  DictionaryLookupResponseDto,
+  DictionarySuggestionResponseDto,
 } from '@japanese-learning/contracts';
 import { apiClient } from './api-client';
 import { ExamListQuery, FlashcardListQuery } from './query-keys';
@@ -169,6 +176,56 @@ export const studyApi = {
 
   search: (query: string, limit = 30, signal?: AbortSignal) =>
     apiClient<SearchResultsDto>(`/search${buildQuery({ q: query.trim(), limit })}`, { signal }),
+
+  dictionaryLookup: (
+    query: string,
+    direction: DictionaryLookupDirection = DictionaryLookupDirection.AUTO,
+    limit = 20,
+    includeExamples = false,
+    signal?: AbortSignal,
+  ) =>
+    apiClient<DictionaryLookupResponseDto>(
+      `/lookup${buildQuery({ q: query.trim(), direction, limit, includeExamples })}`,
+      { signal },
+    ),
+
+  dictionarySuggestions: (
+    query: string,
+    direction: DictionaryLookupDirection = DictionaryLookupDirection.AUTO,
+    limit = 10,
+    signal?: AbortSignal,
+  ) =>
+    apiClient<DictionarySuggestionResponseDto>(
+      `/lookup/suggest${buildQuery({ q: query.trim(), direction, limit })}`,
+      { signal },
+    ),
+
+  dictionaryHistory: (limit = 10, signal?: AbortSignal) =>
+    apiClient<DictionaryLookupHistoryResponseDto>(`/lookup/history${buildQuery({ limit })}`, {
+      signal,
+    }),
+
+  clearDictionaryHistory: (signal?: AbortSignal) =>
+    apiClient<{ deleted: number }>('/lookup/history', { method: 'DELETE', signal }),
+
+  dictionaryFavorites: (limit = 20, offset = 0, signal?: AbortSignal) =>
+    apiClient<DictionaryFavoriteListResponseDto>(
+      `/lookup/favorites${buildQuery({ limit, offset })}`,
+      { signal },
+    ),
+
+  saveDictionaryFavorite: (body: CreateDictionaryFavoriteDto, signal?: AbortSignal) =>
+    apiClient<DictionaryFavoriteDto>('/lookup/favorites', {
+      method: 'POST',
+      body: JSON.stringify(body),
+      signal,
+    }),
+
+  removeDictionaryFavorite: (favoriteId: string, signal?: AbortSignal) =>
+    apiClient<{ success: true; id: string }>(`/lookup/favorites/${favoriteId}`, {
+      method: 'DELETE',
+      signal,
+    }),
 
   liveAttempt: (attemptId: string, signal?: AbortSignal) =>
     apiClient<LiveExamAttemptDto>(`/attempts/${attemptId}`, { signal }).then(

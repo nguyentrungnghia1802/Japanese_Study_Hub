@@ -40,4 +40,12 @@ export const queryKeys = {
   reviewSummary: () => [...root, 'review', 'summary'] as const,
   mistakesRoot: () => [...root, 'exam-mistakes'] as const,
   mistakes: (limit = 20) => [...root, 'exam-mistakes', { limit }] as const,
+  dictionaryRoot: () => [...root, 'dictionary'] as const,
+  dictionaryLookup: (query: string, direction: string, limit = 20, includeExamples = false) =>
+    [...root, 'dictionary', 'lookup', { query, direction, limit, includeExamples }] as const,
+  dictionarySuggestions: (query: string, direction: string, limit = 10) =>
+    [...root, 'dictionary', 'suggestions', { query, direction, limit }] as const,
+  dictionaryHistory: (limit = 10) => [...root, 'dictionary', 'history', { limit }] as const,
+  dictionaryFavorites: (limit = 20, offset = 0) =>
+    [...root, 'dictionary', 'favorites', { limit, offset }] as const,
 };
