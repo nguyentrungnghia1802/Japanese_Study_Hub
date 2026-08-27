@@ -538,3 +538,26 @@ bounded process-local TTL/LRU described in
 [`docs/dictionary/cache-policy.md`](dictionary/cache-policy.md). The cache is
 not authoritative, is separate from history/favorites, and is never used for
 live exam state or answer-bearing data.
+
+## 24. Phase 3 cross-page continuity
+
+Web Flashcard study continuity is a per-tab `sessionStorage` record keyed by
+set ID. It contains only a session ID, a bounded ordered list of card IDs, the
+current index/card ID, Front/Back state, completion/progress, shuffle mode, a
+safe return path, and timestamps. The record is capped at 500 card IDs and
+expires after 30 minutes. On return, the current server/query-cache set is
+projected onto the saved order only when the complete card ID set still
+matches; otherwise the record is cleared and the current set order is used.
+
+Submitted exam review continuity is keyed by attempt ID and contains only
+exam/version, current question ID, filter, scroll position, safe return path,
+and timestamps. It never stores question content, selected answers, or correct
+answers. The review route reloads the immutable graded result from
+`GET /attempts/{attemptId}/result`; missing or non-submitted attempts render a
+safe unavailable state.
+
+The active exam Lookup gate is a bounded, per-tab marker. A pending start
+marker expires after two minutes and an active attempt marker is cleared when
+the server reports finalization. This marker controls only in-app navigation;
+it does not claim to block other browser tabs/sites and does not modify the
+server timer or attempt state.

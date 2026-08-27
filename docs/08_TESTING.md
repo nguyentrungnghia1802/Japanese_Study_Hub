@@ -336,3 +336,17 @@ A task affecting behavior is not complete until:
 - New regression tests are added for new logic/bug fixes
 - Typecheck/lint pass
 - No skipped critical tests remain without written reason
+
+## Phase 3 continuity checks
+
+The Web suite covers compact Flashcard metadata for normal and shuffled order,
+Front/Back state, expiry, and changed/deleted-card fallback. It also covers
+active-attempt marker cleanup and the submitted-result route contract. Manual
+browser verification must confirm:
+
+1. `Flashcard study → Lookup → Back` restores card ID, side, shuffle order, and
+   progress without persisting card text.
+2. Lookup navigation and Quick Lookup are disabled while an in-progress exam
+   marker exists, while refresh still restores the server-backed attempt.
+3. Submitted review can filter wrong/unanswered questions, open Lookup, and
+   return to the same filter/question using graded server data.
