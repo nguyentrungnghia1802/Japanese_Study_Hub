@@ -92,20 +92,20 @@ Rules:
 
 Checklist:
 
-- [ ] Test Japanese kanji word → Vietnamese meaning.
-- [ ] Test kana word → Vietnamese meaning.
-- [ ] Test common Japanese compound → Vietnamese meaning.
-- [ ] Test Vietnamese word → Japanese result.
-- [ ] Test suggestion/autocomplete behavior.
-- [ ] Verify timeout/rate-limit behavior.
-- [ ] Verify licensing and attribution requirements.
-- [ ] Test single-kanji detail through `kanjiapi.dev`.
-- [ ] Verify on-yomi, kun-yomi, stroke count, JLPT/grade/frequency availability.
-- [ ] Test Tatoeba API v1 for Japanese sentences with Vietnamese translations.
-- [ ] Verify Tatoeba attribution/license requirements.
-- [ ] Define provider fallback behavior.
-- [ ] If Vietnamese → Japanese quality is insufficient, choose the least-complex documented/licensed fallback through the backend provider abstraction; do not fake reverse translation.
-- [ ] Document selected providers and exact usage.
+- [x] Test Japanese kanji word → Vietnamese meaning.
+- [x] Test kana word → Vietnamese meaning.
+- [x] Test common Japanese compound → Vietnamese meaning.
+- [x] Test Vietnamese word → Japanese result.
+- [x] Test suggestion/autocomplete behavior.
+- [x] Verify timeout/rate-limit behavior policy at the provider boundary; live throttling was not induced against public services.
+- [x] Verify licensing and attribution requirements.
+- [x] Test single-kanji detail through `kanjiapi.dev`.
+- [x] Verify on-yomi, kun-yomi, stroke count, JLPT/grade/frequency availability.
+- [x] Test Tatoeba API v1 for Japanese sentences with Vietnamese translations.
+- [x] Verify Tatoeba attribution/license requirements.
+- [x] Define provider fallback behavior.
+- [x] If Vietnamese → Japanese quality is insufficient, choose the least-complex documented/licensed fallback through the backend provider abstraction; do not fake reverse translation.
+- [x] Document selected providers and exact usage.
 
 Acceptance criteria:
 
@@ -113,6 +113,23 @@ Acceptance criteria:
 - Kanji detail has a verified path.
 - Optional examples have a verified path.
 - Provider/license risks are documented.
+
+Verification (2026-08-27):
+
+- [x] Real smoke results and exact requests are recorded in
+      `docs/dictionary/provider-evaluation-2026-08-27.md`.
+- [x] `dict.minhqnd.com` verified JA → VI, VI → JA samples, and suggestions;
+      documented coverage gaps map to `NO_RESULT`.
+- [x] `kanjiapi.dev` verified single-kanji readings, stroke count, grade/JLPT,
+      and frequency fields; English glosses are not relabeled as Vietnamese.
+- [x] Tatoeba v1 returned Japanese/Vietnamese pairs and per-item license/owner
+      metadata; examples remain optional enrichment.
+- [x] The documented Vietnamese Wiktionary API fallback is limited to explicit
+      Japanese translation templates and is selected only when the primary
+      provider has no usable VI → JA result.
+- [x] Strict timeout, 429 no-retry, transient retry, response-size, and
+      boundary-test requirements are recorded for TASK-410; no public-provider
+      flood was used to manufacture a rate-limit response.
 
 Commit: `research(dictionary): select lookup providers`
 
