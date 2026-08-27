@@ -62,29 +62,56 @@ Reverse Proxy / Platform Edge
 
 PostgreSQL should not be directly public unless platform architecture requires controlled exposure.
 
-The checked-in one-command update workflow is `bash docker/production-update.sh`.
-It requires a VPS `.env.production` file containing the GHCR image owner/tag,
-database URL/credentials, auth secrets, CORS origin, and optional host ports.
-The script validates Compose, pulls API/Web images, starts PostgreSQL, runs
-`prisma migrate deploy` in the pulled API image, recreates only API/Web, checks
-both HTTP health endpoints, and prunes dangling images only. It never runs
-`down -v`, removes named volumes, or performs an automatic destructive rollback.
-The default image tag remains `latest`; set `IMAGE_TAG` for a deliberate rollback
-to a previously published immutable SHA tag.
+The owner-provided VPS contract for this repository is:
 
-The script's actual order is: validate Compose and the production env file, pull
-API/Web images, start and inspect healthy PostgreSQL, run
-`prisma migrate deploy` in the pulled API image, force-recreate only API/Web,
-poll `/health/ready` and `/`, print service status, then prune dangling images.
-On any failure it stops with inspection guidance and does not attempt a
-destructive rollback. Named database volumes are never removed.
+- Runtime directory: `/opt/japanese-learning-runtime`.
+- Web/API are currently directly reachable on HTTP ports `3000`/`4000`.
+- PostgreSQL has no host port in the production Compose file and uses the named
+  volume `japanese_study_hub_postgres_data`.
+- `.env.production` stays on the VPS and is never synchronized from GitHub.
+- No Japanese Study Hub domain, TLS certificate, or reverse-proxy virtual host is
+  assumed by this repository. Existing Hanaya Shop and SmartQueue Nginx hosts
+  are not modified.
 
-Current production remains an IP-only HTTP deployment on ports 3000/4000, with
-no checked-in TLS reverse-proxy configuration. The owner has run the guarded
-update with the published Phase 2 image; the 2026-08-27 read-only recheck found
-HTTP 200 for `/health`, `/health/ready`, and the Web root. HTTPS remains an
-explicit accepted-risk exception until the owner supplies a domain/certificate;
-see docs/security/production-transport-audit.md.
+The actual production pipeline is implemented in `.github/workflows/ci.yml` and
+`docker/production-update.sh`:
+
+```text
+push/merge main
+  -> static policy + ShellCheck + Compose validation
+  -> Node lint/typecheck/unit tests/dependency audit/production build
+  -> PostgreSQL integration tests
+  -> fresh and V1-to-current migration checks
+  -> Android lint/unit/build/API URL checks
+  -> build and push API/Web images to GHCR (:latest and :<commit-sha>)
+  -> SSH-only artifact sync and immutable SHA deployment
+  -> backup + disposable restore verification
+  -> prisma migrate deploy
+  -> API/Web recreate and health/readiness/Web checks
+```
+
+Pull requests run the validation jobs but do not publish or deploy. Only a
+green `main` push can reach the GHCR and production jobs. The application build
+is produced once by CI and uploaded as an artifact; Docker image stages package
+that artifact and do not install dependencies at container startup. Production
+always receives `IMAGE_TAG=<40-character-commit-sha>`, never `latest`.
+
+The deployment script takes a project-scoped lock, pulls the two images, starts
+only PostgreSQL, creates and verifies an off-volume backup, applies migrations
+from the API image, recreates only API/Web, and polls the API liveness endpoint,
+database-backed readiness endpoint, and Web root. A failed backup aborts before
+migration. If migration has succeeded but application health fails, it attempts
+an application-only rollback to the previous successful SHA when one is
+recorded and healthy. It never rolls back database migrations and never runs
+`docker compose down -v`, removes the PostgreSQL volume, or runs
+`docker system prune --volumes`.
+
+The current direct IP/HTTP topology remains an explicit owner-controlled
+transport boundary. When an approved domain and HTTPS edge exist, set
+`BIND_ADDRESS=127.0.0.1` and configure a new, project-specific Nginx/Caddy
+server block that proxies to the existing local ports. Rebuild Web with the
+approved HTTPS API URL and update `CORS_ORIGINS` at that time; do not invent a
+domain or edit the other projects' virtual hosts.
 
 ---
 
@@ -104,7 +131,25 @@ UPLOAD_MAX_BYTES
 LOG_LEVEL
 ```
 
-Web:
+Production Compose/deployment configuration:
+
+```text
+GHCR_OWNER
+POSTGRES_USER
+POSTGRES_PASSWORD
+POSTGRES_DB
+POSTGRES_VOLUME_NAME=japanese_study_hub_postgres_data
+DATABASE_URL=postgresql://<user>:<url-encoded-password>@postgres:5432/<db>?schema=public
+BIND_ADDRESS=0.0.0.0
+API_PORT=4000
+WEB_PORT=3000
+```
+
+`IMAGE_TAG` is supplied by the deployment workflow. It may be placed in the
+VPS env file for an operator-run dry run, but a real release must pass a
+published immutable commit SHA explicitly.
+
+Web build configuration:
 
 ```text
 NEXT_PUBLIC_API_BASE_URL
@@ -119,9 +164,10 @@ BuildConfig.API_BASE_URL
 Never expose backend secrets through public-prefixed client variables.
 
 `NEXT_PUBLIC_API_BASE_URL` is embedded into the Next.js browser bundle during
-`next build`. The Web production image therefore requires this value as a
-Docker build argument; changing only the running container environment cannot
-change the already-built browser bundle.
+the single CI `next build`. Changing only the running container environment
+cannot change the already-built browser bundle. The current workflow embeds the
+owner-provided API URL `http://157.173.127.217:4000/api/v1`; a future domain
+change requires a new green build and image publication.
 
 The Android API value is embedded into the native binary at Gradle build time. The
 debug variant defaults to `http://localhost:4000/api/v1` for local development, while
@@ -149,8 +195,9 @@ The Android production/release builds use the same production API URL by default
 Production API CORS must allow `http://157.173.127.217:3000` for the Web client;
 Android native requests do not send a browser Origin header.
 
-The GHCR publish workflow passes the production Web value to the Docker build.
-When `CORS_ORIGINS` is omitted, the API defaults to the four explicit local
+The CI application-build job embeds the production Web API value before the
+Docker packaging job runs; the Web Dockerfile does not rebuild it. When
+`CORS_ORIGINS` is omitted, the API defaults to the four explicit local
 development origins (`localhost` and `127.0.0.1` on ports 3000 and 3001)
 outside production and to `http://157.173.127.217:3000` in production. An
 explicit `CORS_ORIGINS` value remains authoritative and must include the exact
@@ -177,21 +224,35 @@ No real production values.
 
 ## 7. Database migrations
 
-Deployment order:
+The immutable production deployment order is:
 
-1. Backup if migration is risky/destructive.
-2. Apply Prisma migrations.
-3. Start/roll application.
-4. Run health/smoke checks.
+1. Acquire the shared deployment/backup lock and validate the exact production
+   Compose volume declaration.
+2. Pull the API/Web images for the requested commit SHA.
+3. Start PostgreSQL and wait for its Compose healthcheck.
+4. Run `docker/backup.sh`, then restore that archive into a disposable
+   PostgreSQL container with `docker/verify-backup-restore.sh`.
+5. Run `prisma migrate deploy` from the pulled API image.
+6. Force-recreate only API/Web and wait for container health, `/health`,
+   `/health/ready`, and Web HTTP success.
+7. Persist `current_sha`, `previous_successful_sha`, and a bounded deployment
+   history, then remove only old SHA-tagged images from this project's two GHCR
+   repositories.
 
-If migration cannot be backward compatible, document maintenance expectations.
+If backup or backup verification fails, migration is not attempted. If migration
+fails, the old application containers are left in place and the database is
+not rolled back. If application health fails after a successful migration, the
+script tries the previous application SHA only; database state remains
+forward-only. If the migration is not backward-compatible with the old image,
+use a forward fix rather than forcing an unsafe image rollback.
 
 Phase 3 extends this sequence to ten checked-in Prisma migrations. The final
 dictionary-history, dictionary-favorites, and exam-mistake-retention migrations
 must be applied through `prisma migrate deploy`; run
-`scripts/verify-phase2-migrations.ps1` against disposable fresh and V1-upgrade
-databases before a release. Take and verify an owner-controlled production
-backup before applying the migration chain.
+`scripts/verify-migrations.sh` against disposable fresh and V1-to-current
+databases before a release. The older PowerShell verifier remains the Phase 2
+local-only harness. Take and verify an owner-controlled production backup
+before applying the migration chain.
 
 Phase 3 adds no provider credentials or public client environment variables.
 Provider URLs and attribution are API source constants. The existing
@@ -210,12 +271,24 @@ Minimum production policy:
 - At least one backup copy outside live DB volume
 - Periodic restore verification
 
-The repository implementation is bash docker/backup.sh; it writes to a host
-BACKUP_DIR outside the named PostgreSQL volume, retains 14 files by default,
-and refuses a backup path that resolves inside the inspected live volume.
-Use an owner-controlled daily scheduler on the VPS. The cron example and the
-2026-08-27 isolated restore result are recorded in
-docs/operations/backup-restore-2026-08-27.md.
+The repository implementation is `bash docker/backup.sh`; it uses the
+PostgreSQL container's own `POSTGRES_USER`/`POSTGRES_DB`, writes atomically to a
+host `BACKUP_DIR` outside the named volume, verifies gzip integrity, and retains
+14 project archives by default. The production wrapper
+`docker/backup-and-verify.sh` shares the deployment lock, requires the current
+successful SHA, and runs disposable restore verification against the current
+baseline schema and any later forward migrations. The one-time
+`docker/bootstrap-vps.sh` installs an idempotent daily `/etc/cron.d` entry at
+02:17 by default. The schedule is project-scoped and does not inspect or prune
+other Docker projects; it starts/checks only this project's PostgreSQL service
+before taking the backup.
+
+Before the first successful managed deployment the scheduled wrapper fails
+closed because no current SHA exists; this does not touch PostgreSQL data. After
+the workflow syncs the wrapper and a deployment records `state/current_sha`, the
+schedule can run normally. Keep a second copy of important archives outside the
+VPS according to the owner's recovery policy. The existing isolated restore
+record is in `docs/operations/backup-restore-2026-08-27.md`.
 
 Recommended restore test:
 
@@ -224,9 +297,12 @@ Recommended restore test:
 3. Apply any required migrations.
 4. Run smoke queries/application health.
 
-For a Docker-based isolated target, run bash docker/verify-backup-restore.sh
-<backup.sql.gz>. Live restore requires the explicit ALLOW_LIVE_RESTORE=1
-environment variable and is intentionally not used for verification.
+For a Docker-based isolated target, run
+`bash docker/verify-backup-restore.sh <backup.sql.gz>`. Live restore requires
+the explicit `ALLOW_LIVE_RESTORE=1` environment variable, a healthy PostgreSQL
+service, and operator review. It uses one transaction and never deletes the
+named volume. Stop API/Web first if the restored rows must not race with live
+writes; then recreate the current application SHA.
 
 ---
 
@@ -269,29 +345,24 @@ Do not make health payload expose sensitive infrastructure details.
 ## 11. CI/CD recommended stages
 
 ```text
-install
+static policy / ShellCheck / Compose config
   ↓
-lint
+Node lint + typecheck + unit tests + dependency audit + production artifact build
   ↓
-typecheck
+API PostgreSQL integration tests + fresh/V1 migration compatibility
   ↓
-unit tests
+Android lint + unit tests + debug/production/release APK build
   ↓
-integration tests
+Docker package/push (:latest + :<commit-sha>) [main only]
   ↓
-build web/api
+SSH artifact sync + immutable VPS deployment [main only]
   ↓
-migration validation
-  ↓
-container build
-  ↓
-deploy
-  ↓
-smoke test
+backup/restore verification + migration + application/health smoke checks
 ```
 
-Android mobile Gradle build/lint/unit-test gates may run as a separate workflow or
-as an independent job in the project CI.
+Android is an independent job in the same workflow and is a required dependency
+of image publication; it is never deployed as Web/API. The Docker job consumes
+the already-built Web/API artifact from the Node job.
 
 ---
 
@@ -300,6 +371,11 @@ as an independent job in the project CI.
 Before production release:
 
 - [ ] All task acceptance criteria complete
+- [ ] The `main` workflow is green through all required validation jobs
+- [ ] GHCR contains both `latest` and the exact deployed commit SHA
+- [ ] Required GitHub production secrets/environment are configured
+- [ ] VPS bootstrap, runtime `.env.production`, GHCR read login, and backup
+      schedule have been verified by the owner
 - [ ] Lint passes
 - [ ] Typecheck passes
 - [ ] Unit tests pass
@@ -314,8 +390,8 @@ Before production release:
 - [ ] Health endpoint passes
 - [ ] Live attempt payload inspected for no answer leakage
 
-The checklist's HTTPS, production backup, and production Android items require
-owner-controlled external evidence when the current repository cannot obtain it;
+The checklist's deployed image, VPS backup/restore, production health/provider,
+HTTPS, and physical Android/signing items require owner-controlled evidence;
 local builds or an emulator must not be substituted for those claims.
 
 ---
@@ -324,14 +400,20 @@ local builds or an emulator must not be substituted for those claims.
 
 Application rollback:
 
-- Retain prior deployable image/build.
+- Record the current SHA before any manual rollback.
+- Rerun `production-update.sh` with that exact 40-character SHA only after
+  confirming the newer migration is backward-compatible with the old image.
+- The automatic path may restore API/Web to the previous successful SHA after a
+  post-migration application health failure; it does not undo database changes.
 
 Database rollback:
 
 - Prefer forward-fix migrations.
 - For destructive incidents, restore from verified backup.
 
-Never improvise destructive rollback against production data without a backup.
+Never improvise destructive rollback against production data without a verified
+backup. Exact operator commands are maintained in
+`docs/operations/production-cicd-2026-08-27.md`.
 
 ---
 

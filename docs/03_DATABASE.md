@@ -101,8 +101,9 @@ unique keys and indexes include:
 - `(user_key, query, direction)` unique on `dictionary_lookup_history` and
   `(user_key, term, direction, reading)` unique on `dictionary_favorites`.
 
-Fresh-database and V1-to-Phase-2/3 migration verification is performed by
-`scripts/verify-phase2-migrations.ps1` and must continue to assert this chain.
+Fresh-database and V1-to-Phase-2/3 migration verification is performed by the
+PowerShell Phase 2 harness and the Linux CI harness
+`scripts/verify-migrations.sh`; both must continue to assert this chain.
 
 ### 3.4 Phase 3 dictionary retention
 

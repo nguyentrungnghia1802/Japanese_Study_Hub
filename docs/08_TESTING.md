@@ -325,6 +325,23 @@ RUN_API_INTEGRATION=1 pnpm --filter @japanese-learning/api test:integration
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-phase2-migrations.ps1
 ```
 
+The Linux CI migration job additionally runs `bash scripts/verify-migrations.sh`
+against disposable fresh and V1-to-current PostgreSQL databases. It requires an
+admin connection URL and a database URL template containing `%DB%`; neither
+value is committed. The production artifact policy gate also runs:
+
+```text
+bash docker/validate-production-artifacts.sh
+shellcheck --severity=warning docker/*.sh scripts/verify-migrations.sh
+docker compose -f docker-compose.prod.yml config --quiet
+```
+
+`pnpm build` produces the Next.js standalone output consumed by the Docker image.
+On Windows, Next.js may require Developer Mode or equivalent symlink privileges
+when copying traced dependencies; the Ubuntu CI runner is the authoritative
+production artifact environment. A Windows `EPERM` symlink error is an
+environment limitation, not a reason to skip the CI build gate.
+
 On PowerShell, set `RUN_API_INTEGRATION` with `$env:RUN_API_INTEGRATION = '1'`
 before the integration command. The API smoke command requires the API to be
 running and can receive an authenticated token through `API_SMOKE_TOKEN` for

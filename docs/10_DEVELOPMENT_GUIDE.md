@@ -133,6 +133,19 @@ pnpm perf:api-smoke
 pnpm perf:api-cache
 ```
 
+Production artifact policy and shell checks run without starting production
+services:
+
+```bash
+bash docker/validate-production-artifacts.sh
+shellcheck --severity=warning docker/*.sh scripts/verify-migrations.sh
+docker compose -f docker-compose.prod.yml config --quiet
+```
+
+The production deployment runbook, GitHub Secrets list, one-time VPS bootstrap,
+immutable SHA release flow, rollback, and restore commands are in
+`docs/operations/production-cicd-2026-08-27.md`.
+
 The opt-in API integration and migration suites are:
 
 ```powershell

@@ -378,3 +378,42 @@ owner audit or replace a provider without persisting raw payloads.
 server-authoritative timer, and the existing bearer-auth boundary remain
 unchanged. No provider credential or raw response is added to client or
 persistent storage.
+
+## ADR-038 — CI is the only publisher and production consumes immutable images
+
+**Decision:** Use one GitHub Actions workflow in which static, Node, PostgreSQL
+integration, migration-compatibility, dependency-audit, and Android jobs are
+required before the `main`-only Docker job. Build the API and Web application
+artifacts once in the Node job, upload them as a short-retention artifact, and
+package those artifacts into API/Web images tagged with both `latest` and the
+full commit SHA. The VPS deployment accepts only the immutable SHA.
+
+**Reason:** A single dependency graph prevents a green-looking image publish
+from bypassing tests, avoids compiling the application a second time inside a
+Docker build, and makes the deployed source/image identity auditable.
+
+**Security:** The workflow uses the ephemeral `GITHUB_TOKEN` only for GHCR
+publishing. The VPS receives a separate read-only GHCR credential through
+GitHub Actions Secrets; no server environment value or application secret is
+copied into the image or repository.
+
+## ADR-039 — Production deployment is project-scoped, forward-only, and backup-gated
+
+**Decision:** Keep the VPS runtime at `/opt/japanese-learning-runtime`, sync only
+the production Compose file and operational scripts, and retain `.env.production`
+on the server. A shared file lock serializes deployment and scheduled backup.
+Before `prisma migrate deploy`, the deployment creates a compressed `pg_dump`
+outside `japanese_study_hub_postgres_data` and verifies it in a disposable
+PostgreSQL container. Only API/Web are recreated. The script persists current
+and previous successful SHAs, checks container/API/Web readiness, and removes
+only old SHA-tagged images from this project's repositories.
+
+**Failure policy:** Backup failure aborts before migration. Migration failure
+does not trigger a database rollback. A post-migration application health
+failure may roll API/Web back to the previous SHA when that rollback is known
+to be compatible; database state remains forward-only. No command may remove
+the named PostgreSQL volume or run `docker system prune --volumes`.
+
+**Reason:** This preserves PostgreSQL and the prior application release as the
+authoritative recovery boundary without adding an orchestration platform or
+touching unrelated Hanaya Shop/SmartQueue Docker/Nginx projects.
