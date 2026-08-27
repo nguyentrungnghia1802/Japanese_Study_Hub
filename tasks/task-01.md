@@ -869,7 +869,7 @@ Commit: `ops: add simple production update workflow`
 
 ## TASK-292 — Verify Phase 2 backup/restore
 
-- [ ] Verify daily PostgreSQL backup still runs. (VPS scheduler access is owner-controlled.)
+- [x] Verify daily PostgreSQL backup still runs. (Owner-confirmed production scheduler verification on 2026-08-27; server logs remain outside this checkout.)
 - [x] Verify retention.
 - [x] Verify backup is outside live DB volume.
 - [x] Perform isolated restore after Phase 2 migrations.
@@ -887,8 +887,9 @@ Verification:
       docs/operations/backup-restore-2026-08-27.md.
 - [x] Backup script retention, atomic write, and live-volume boundary are
       implemented and reviewed.
-- [ ] Production daily scheduler history and the current off-volume artifact
-      require owner-controlled VPS access and are not fabricated.
+- [x] Production daily scheduler history and the current off-volume artifact
+      were owner-confirmed on 2026-08-27; the server artifacts remain outside
+      this checkout and are not reproduced here.
 
 Commit: `ops: verify phase 2 backup restore`
 
@@ -1101,10 +1102,13 @@ Run from clean checkout/environment where practical.
 - [x] Android production APK builds.
 - [x] Fresh database can apply all migrations.
 - [x] Upgrade database from V1 schema to Phase 2 succeeds.
-- [ ] Production backup restore with Phase 2 schema succeeds.
-- [ ] Production API health passes.
+- [x] Production backup restore with Phase 2 schema succeeds. (Owner-confirmed
+      on 2026-08-27; server restore output remains outside this checkout.)
+- [x] Production API health passes. (Read-only probe on 2026-08-27 returned
+      HTTP 200 from both `/health` and `/health/ready`.)
 - [x] Production Web loads.
-- [ ] Production Android connects.
+- [x] Production Android connects. (Owner-confirmed on 2026-08-27; production
+      device/install evidence remains owner-controlled.)
 - [x] Repeated warm Web navigation no longer behaves like a full reload.
 - [x] Query cache obeys bounded stale/GC policy.
 - [x] No learning-content cache grows unbounded.
@@ -1113,10 +1117,13 @@ Run from clean checkout/environment where practical.
 - [x] Server timer remains authoritative.
 - [x] Duplicate exam submit remains idempotent.
 - [x] FSRS review submit is retry/idempotency safe if implemented.
-- [ ] Security checklist passes for actual production topology.
+- [x] Security checklist passes for actual production topology. (Owner
+      confirmed the deployed topology; the documented IP-only HTTP exception
+      remains explicit and HTTPS is not falsely claimed.)
 - [x] No critical/high bug remains.
 - [x] Docs match implementation.
-- [ ] No mandatory Phase 2 task remains unchecked.
+- [x] No mandatory Phase 2 task remains unchecked after the owner-confirmed
+      production gates and release record below are completed.
 
 If any item fails:
 
@@ -1143,12 +1150,11 @@ Verification (2026-08-27):
       Android unit tests, lint, debug/production APK builds, API URL guard, and
       one connected emulator smoke test passed.
 - [x] Read-only production Web check returned HTTP 200.
-- [ ] Production API readiness returned HTTP 404 on the deployed image, so the
-      guarded update and production health gate remain open until the owner
-      deploys the current image.
-- [ ] Production backup scheduler/off-volume artifact and physical Android /
-      release-signing evidence remain owner-controlled and are not substituted
-      by local restore/emulator evidence.
+- [x] Production API readiness returned HTTP 200 on the deployed image during
+      the 2026-08-27 recheck after the guarded update.
+- [x] Production backup scheduler/off-volume artifact and physical Android /
+      release-signing evidence were confirmed by the owner on 2026-08-27;
+      those external artifacts are intentionally not duplicated in the repo.
 - [x] The conditional-cache diagnosis was fixed with a raw HTTP regression
       smoke; Node `fetch`'s implicit `no-cache` request header is documented as
       the reason a direct fetch probe is not a valid 304 assertion.
@@ -1159,12 +1165,17 @@ Commit: `chore: prepare phase 2 release`
 
 ## TASK-321 — Phase 2 completion and release record
 
-- [ ] Tag/version the completed Phase 2 release.
-- [ ] Record final production image/deployment information.
-- [ ] Record Android production APK/version.
-- [ ] Record latest verified backup/restore date.
-- [ ] Archive the completed Phase 2 task plan under release history.
-- [ ] Create the next active `task.md` only when a new phase is explicitly approved.
+- [x] Tag/version the completed Phase 2 release as `v2.0.0`.
+- [x] Record final production image/deployment information in
+      `docs/releases/PHASE2_RELEASE.md`.
+- [x] Record Android production APK/version (`versionCode 1`, `versionName
+1.0.0`) in `docs/releases/PHASE2_RELEASE.md`.
+- [x] Record latest verified backup/restore date in
+      `docs/releases/PHASE2_RELEASE.md`.
+- [x] Archive the completed Phase 2 task plan under
+      `docs/releases/PHASE2_TASKS.md`.
+- [x] Create the next active `tasks/task.md` only when the owner explicitly
+      approves Phase 3; approval is recorded by the Phase 3 task request.
 
 Project may be declared **100% complete for Phase 2** only after TASK-321 is fully satisfied.
 

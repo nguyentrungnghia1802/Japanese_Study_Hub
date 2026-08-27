@@ -272,11 +272,11 @@ infrastructure. Any future addition requires a new approved requirement.
 ## 10. Phase 2 delivery record
 
 The implementation work through TASK-312 is committed. This record identifies the
-delivered capability and its evidence while TASK-320 remains the final release
-gate; it does not replace the task checklist. The 2026-08-27 release-gate audit
-also refreshed the dependency tree to patched Nest/Next, bcrypt, Multer, and
-transitive package lines, removed committed authentication fallbacks, and added
-an authenticated conditional-cache smoke check.
+delivered capability and its evidence; TASK-320 and TASK-321 were closed for the
+Phase 2 release on 2026-08-27. The release-gate audit also refreshed the
+dependency tree to patched Nest/Next, bcrypt, Multer, and transitive package
+lines, removed committed authentication fallbacks, and added an authenticated
+conditional-cache smoke check.
 
 | Requirement group                                              | Delivered implementation                                                                                                                                       | Verification/evidence                                                                                                                                                                                                |
 | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -291,17 +291,18 @@ an authenticated conditional-cache smoke check.
 | P2-ANDROID-CACHE                                               | Room summary/resume projection with 100-row/seven-day bounds, stale state, and no mutation queue                                                               | `docs/02_ARCHITECTURE.md`, `docs/03_DATABASE.md`, `docs/testing/phase2-android-e2e-2026-08-27.md`                                                                                                                    |
 | P2-OPS-TRANSPORT, P2-OPS-UPDATE, P2-OPS-BACKUP, P2-OPS-OBS     | Actual transport audit, guarded update script, isolated restore verifier, request/slow/error/health signals                                                    | `docs/security/production-transport-audit.md`, `docs/operations/backup-restore-2026-08-27.md`, `docs/09_DEPLOYMENT.md`, `docs/performance/http-transport.md`                                                         |
 
-## 11. Deferred and owner-gated Phase 2 items
+## 11. Deferred and owner-confirmed Phase 2 boundaries
 
 These boundaries are intentional and must remain visible at release review:
 
-| Item                                                     | Current status                                                                                                | Required condition before implementation or release claim                                             |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| TASK-221 secure Web cookie migration                     | Deferred                                                                                                      | Owner-approved HTTPS origin, CORS/credentials policy, CSRF design, and regression validation          |
-| Domain/TLS/HSTS production edge                          | Owner-gated accepted-risk exception; current IP-only runtime is HTTP                                          | Owner supplies a domain/certificate endpoint and validates the reverse-proxy migration                |
-| Daily remote backup scheduler and off-volume artifact    | Repository scripts and isolated local restore are verified; remote scheduler/artifact remain owner-controlled | Owner verifies scheduler, retention, off-volume destination, and a production-origin restore artifact |
-| Production Android device validation and release signing | Local emulator production-URL build path is verified; physical-device access and signing key are external     | Owner supplies an authorized device and release-signing process, then records the result              |
-| Brotli/HTTP2 reverse-proxy edge                          | Optional deployment optimization; direct API compression is implemented                                       | Only add after a real edge/topology requirement                                                       |
+| Item                                                     | Current status                                                                          | Required condition before implementation or release claim                                                         |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| TASK-221 secure Web cookie migration                     | Deferred                                                                                | Owner-approved HTTPS origin, CORS/credentials policy, CSRF design, and regression validation                      |
+| Domain/TLS/HSTS production edge                          | Owner-gated accepted-risk exception; current IP-only runtime is HTTP                    | Owner supplies a domain/certificate endpoint and validates the reverse-proxy migration                            |
+| Daily remote backup scheduler and off-volume artifact    | Owner-confirmed complete on 2026-08-27; server artifacts remain outside this checkout   | Keep the scheduler, retention, off-volume destination, and production-origin restore evidence under owner control |
+| Production Android device validation and release signing | Owner-confirmed complete on 2026-08-27; physical artifacts remain outside this checkout | Keep device/install/signing evidence under owner control                                                          |
+| Brotli/HTTP2 reverse-proxy edge                          | Optional deployment optimization; direct API compression is implemented                 | Only add after a real edge/topology requirement                                                                   |
 
-None of these deferred items is silently treated as complete. They are reviewed
-explicitly by TASK-320 and, where applicable, recorded as external release gates.
+The HTTPS/cookie and reverse-proxy items remain deferred by decision. The
+owner-confirmed backup and Android gates are recorded as external release
+evidence rather than silently substituted with local tests.

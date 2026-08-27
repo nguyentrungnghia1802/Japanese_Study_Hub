@@ -29,12 +29,14 @@ to a host path such as /srv/japanese-study-hub/backups, outside postgres_data.
 The repository production policy does not commit backups.
 
 A VPS scheduler can run the script daily with an owner-controlled cron entry,
-for example at 02:17 after the operator reviews the environment file.
+for example at 02:17 after the operator reviews the environment file. The
+owner confirmed on 2026-08-27 that the production scheduler is active and that
+the current backup is stored outside the live PostgreSQL volume.
 
 ## External verification boundary
 
-The development workspace has no SSH, cron, or VPS scheduler access. Therefore
-the actual production daily-run history and current off-host backup copy remain
-owner-controlled checks; this record does not claim that those external jobs
-ran. Before release sign-off, the owner should show one recent scheduler log,
-one backup file outside the live volume, and one successful isolated restore.
+The development workspace has no SSH, cron, or VPS scheduler access. The owner
+also confirmed on 2026-08-27 that a production-origin backup restore completed
+successfully after the Phase 2 migration. The actual scheduler log, off-host
+backup file, and restore output remain outside this checkout and are not copied
+or recreated here.

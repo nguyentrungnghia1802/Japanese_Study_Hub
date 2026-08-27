@@ -79,15 +79,12 @@ poll `/health/ready` and `/`, print service status, then prune dangling images.
 On any failure it stops with inspection guidance and does not attempt a
 destructive rollback. Named database volumes are never removed.
 
-Current production differs from this recommended topology: the owner endpoint
-is IP-only HTTP on ports 3000/4000, with no checked-in TLS reverse-proxy
-configuration. The read-only 2026-08-27 audit found HTTP health/Web success and
-HTTPS handshake failure; a same-day readiness recheck returned 404 for
-`/health/ready` on the deployed image. Treat the missing readiness route and
-transport posture as an explicit production update gate until the owner runs the
-guarded workflow with the current API image and supplies a domain/certificate;
-see
-docs/security/production-transport-audit.md.
+Current production remains an IP-only HTTP deployment on ports 3000/4000, with
+no checked-in TLS reverse-proxy configuration. The owner has run the guarded
+update with the published Phase 2 image; the 2026-08-27 read-only recheck found
+HTTP 200 for `/health`, `/health/ready`, and the Web root. HTTPS remains an
+explicit accepted-risk exception until the owner supplies a domain/certificate;
+see docs/security/production-transport-audit.md.
 
 ---
 

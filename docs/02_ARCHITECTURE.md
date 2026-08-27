@@ -59,7 +59,9 @@ japanese-learning/
 ├── docs/
 ├── docker/
 ├── Agent.md
-├── task.md
+├── tasks/
+│   ├── task-01.md
+│   └── task.md
 ├── package.json
 ├── pnpm-workspace.yaml
 └── turbo.json

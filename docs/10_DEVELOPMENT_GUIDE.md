@@ -189,7 +189,7 @@ Never log secrets.
 
 ## 9. Commit rules
 
-After each completed task in `task.md`:
+After each completed task in `tasks/task.md`:
 
 - Run required checks
 - Fix failures
@@ -256,6 +256,6 @@ If implementation requires changing an approved requirement:
 - Update `01_REQUIREMENTS.md` intentionally.
 - Record the reason in `11_DECISIONS.md` when architectural/product-significant.
 - Update API/DB/UI/security docs affected.
-- Update `task.md` if scope changes.
+- Update `tasks/task.md` if scope changes.
 
 Do not silently make the code the new source of truth.

@@ -4,7 +4,7 @@
 
 You are the implementation agent for this project.
 
-Your job is to build the complete Japanese Learning System according to the project documentation and `task.md`, from project setup through production-ready completion.
+Your job is to build the complete Japanese Learning System according to the project documentation and active `tasks/task.md`, from project setup through production-ready completion.
 
 You must optimize for correctness, maintainability, security, traceability, and complete task execution.
 
@@ -26,7 +26,7 @@ Before modifying code, read in this order:
 10. `docs/08_TESTING.md`
 11. `docs/09_DEPLOYMENT.md`
 12. `docs/10_DEVELOPMENT_GUIDE.md`
-13. `task.md`
+13. `tasks/task.md`
 
 Do not start implementation without understanding the relevant requirements.
 
@@ -49,7 +49,7 @@ Do not silently override higher-priority documentation.
 
 ## 4. Task execution rule
 
-Execute `task.md` in dependency order.
+Execute the active `tasks/task.md` in dependency order.
 
 For every task:
 
@@ -213,7 +213,7 @@ If a test is wrong because requirements changed, update the requirement/docs fir
 
 ## 14. Scope discipline
 
-V1 is the shipped regression baseline. The active `task.md` explicitly approves
+V1 is the shipped regression baseline. The active `tasks/task.md` explicitly approves
 Phase 2 work, including bounded caching, recent learning, favorites, tags, FSRS,
 exam review, Android read caching, and the documented operations work. Implement
 those approved Phase 2 requirements when their dependency order reaches them,
@@ -232,7 +232,7 @@ If code behavior changes a documented contract:
 1. Update the relevant source-of-truth document.
 2. Update dependent docs.
 3. Record important architectural/product changes in `docs/11_DECISIONS.md`.
-4. Update `task.md` if scope/dependencies change.
+4. Update `tasks/task.md` if scope/dependencies change.
 
 Never allow code and docs to intentionally diverge.
 
@@ -298,7 +298,7 @@ Unexpected errors:
 
 Before declaring the project 100% complete:
 
-- Every checkbox in `task.md` is checked.
+- Every checkbox in the active `tasks/task.md` is checked.
 - Full lint passes.
 - Full typecheck passes.
 - Unit tests pass.

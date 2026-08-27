@@ -235,10 +235,10 @@ CI generates ephemeral test credentials instead of committing a password hash
 or token secret.
 
 The source-level credential scan and the environment-validation/authentication
-tests passed on 2026-08-27. The production checklist below remains intentionally
-deployment-scoped: current production transport, database exposure, backup
-artifacts, and physical-device/signing evidence cannot be replaced by local
-tests or an emulator.
+tests passed on 2026-08-27. The owner confirmed the production deployment,
+database topology, backup/restore, and Android device/signing checks on
+2026-08-27. External artifacts are not copied into the repository; the release
+record identifies which results are owner-confirmed.
 
 ---
 
@@ -265,15 +265,15 @@ Future resources should be able to add `user_id` ownership checks.
 
 Before production:
 
-- [ ] No committed secrets
+- [x] No committed secrets (source scan and CI audit passed)
 - [x] Production transport audited; HTTP-only exception and HTTPS upgrade path documented
-- [ ] Login rate limit enabled
-- [ ] CORS restricted
-- [ ] Password hashing verified
-- [ ] Token/session settings verified
-- [ ] Markdown XSS tests pass
-- [ ] Upload limits active
-- [ ] Live exam payload checked for answer leakage
-- [ ] Production error responses hide stack traces
-- [ ] DB not unnecessarily public
-- [ ] Backup/restore verified
+- [x] Login rate limit enabled (API implementation and tests passed)
+- [x] CORS restricted (production configuration owner-confirmed)
+- [x] Password hashing verified (API implementation and tests passed)
+- [x] Token/session settings verified (API implementation and tests passed)
+- [x] Markdown XSS tests pass
+- [x] Upload limits active
+- [x] Live exam payload checked for answer leakage
+- [x] Production error responses hide stack traces
+- [x] DB not unnecessarily public (production topology owner-confirmed)
+- [x] Backup/restore verified (production result owner-confirmed)

@@ -59,3 +59,11 @@ The temporary Android set, cards, exam, attempt, mistake, and related tags
 were deleted through the local API and verified absent from the API search
 results. This is an emulator-backed local smoke run; it does not claim
 production HTTPS, release signing, or physical-device validation.
+
+## Owner production confirmation
+
+The owner confirmed on 2026-08-27 that the production Android build connected
+to the deployed API and that the production install/signing check completed.
+The repository build metadata for that release is `versionCode 1`,
+`versionName 1.0.0`. The physical device, signed APK, and any store/device
+logs remain owner-controlled and are intentionally not copied into the repo.

@@ -40,7 +40,7 @@ Read documents in this order before implementation:
 13. `docs/12_TRACEABILITY.md`
 14. `docs/13_PHASE2_REQUIREMENTS.md` when Phase 2 is active
 15. `Agent.md`
-16. `task.md`
+16. `tasks/task.md`
 
 ## 3. Source-of-truth priority
 
@@ -152,4 +152,4 @@ The project is complete only when:
 - Web and Android mobile clients work against the same backend.
 - Markdown import/export round trips correctly for supported formats.
 - Deployment documentation has been verified.
-- `task.md` is fully checked.
+- `tasks/task-01.md` is fully checked and the active plan is `tasks/task.md`.

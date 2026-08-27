@@ -158,14 +158,14 @@ does not make an earlier task complete by itself.
 Before TASK-320 is checked, perform this audit in order:
 
 1. Confirm the checkout and branch, preserve unrelated work, and ensure the
-   unapproved `task-02.md` is not staged as a Phase 3 change.
-2. Review every requirement row above and the corresponding `task.md` section;
+   unapproved Phase 3 work is not staged before the Phase 2 release.
+2. Review every requirement row above and the corresponding `tasks/task-01.md` section;
    an unchecked mandatory implementation or verification item reopens its task.
 3. Search critical paths for TODO/FIXME/skipped tests and investigate every hit;
    no placeholder may stand in for implementation.
 4. Run the root install, lint, typecheck, unit, integration, Web E2E/build,
    response-size/bundle, API build, migration, and Android gates listed in
-   `task.md` and `docs/08_TESTING.md`.
+   `tasks/task-01.md` and `docs/08_TESTING.md`.
 5. Inspect cache/storage behavior: query stale/GC and search-key limits,
    targeted invalidation, no content persistence, minimal auth storage, live
    attempt freshness, Room row/age cleanup, and no correctness metadata.
