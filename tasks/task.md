@@ -22,35 +22,55 @@
 
 ## TASK-400 — Verify Phase 2 completion
 
-- [ ] Confirm all mandatory `tasks/task-01.md` checkboxes are complete.
-- [ ] Confirm TASK-320 passed.
-- [ ] Confirm TASK-321 passed.
-- [ ] Confirm Phase 2 release/tag/commit is recorded.
-- [ ] Confirm production Web/API/PostgreSQL/Android are healthy.
-- [ ] Confirm latest backup/restore verification succeeded.
-- [ ] Confirm no critical/high bug remains.
-- [ ] If any item fails, STOP and return to `tasks/task-01.md`; do not start TASK-401+.
+- [x] Confirm all mandatory `tasks/task-01.md` checkboxes are complete.
+- [x] Confirm TASK-320 passed.
+- [x] Confirm TASK-321 passed.
+- [x] Confirm Phase 2 release/tag/commit is recorded (`v2.0.0`, commit `81b4d2e`).
+- [x] Confirm production Web/API/PostgreSQL/Android are healthy (production
+      owner confirmation plus live Web/API health probes).
+- [x] Confirm latest backup/restore verification succeeded (production owner
+      confirmation plus the recorded local isolated restore).
+- [x] Confirm no critical/high bug remains (local gates and pushed CI passed).
+- [x] If any item fails, STOP and return to `tasks/task-01.md`; do not start TASK-401+.
 
 Acceptance criteria:
 
 - Phase 3 starts only from a fully released Phase 2 baseline.
 
+Verification (2026-08-27):
+
+- [x] `tasks/task-01.md` contains no unchecked Phase 2 item.
+- [x] Phase 2 release commit `81b4d2e` and annotated tag `v2.0.0` exist locally
+      and on `origin`.
+- [x] Production probes returned HTTP 200 for API `/health`, API
+      `/health/ready` with database `ok`, and the Web root.
+- [x] Production backup/restore and Android production validation were
+      owner-confirmed; external logs, backup artifacts, and signed APK evidence
+      remain outside the repository.
+
 ---
 
 ## TASK-401 — Establish Phase 3 source of truth
 
-- [ ] Add approved Phase 3 requirements to project documentation.
-- [ ] Add requirement groups for Lookup, history/favorites, continuity, last-3 mistakes, and Flashcard creation from Lookup/mistakes.
-- [ ] Update `docs/11_DECISIONS.md`.
-- [ ] Update `docs/02_ARCHITECTURE.md`.
-- [ ] Update `docs/12_TRACEABILITY.md`.
-- [ ] Update `Agent.md` only if required to permit approved Phase 3 features.
-- [ ] Preserve all V1/Phase 2 security and server-authority invariants.
-- [ ] Explicitly document that Phase 3 does not introduce a full offline dictionary, AI translation, OCR, handwriting recognition, or exam cheating assistance.
+- [x] Add approved Phase 3 requirements to `docs/14_PHASE3_REQUIREMENTS.md`.
+- [x] Add requirement groups for Lookup, history/favorites, continuity, last-3 mistakes, and Flashcard creation from Lookup/mistakes.
+- [x] Update `docs/11_DECISIONS.md`.
+- [x] Update `docs/02_ARCHITECTURE.md`.
+- [x] Update `docs/12_TRACEABILITY.md`.
+- [x] Update `Agent.md` to permit the approved Phase 3 scope.
+- [x] Preserve all V1/Phase 2 security and server-authority invariants.
+- [x] Explicitly document that Phase 3 does not introduce a full offline dictionary, AI translation, OCR, handwriting recognition, or exam cheating assistance.
 
 Acceptance criteria:
 
 - No Phase 3 behavior is implemented without a documented requirement/decision.
+
+Verification (2026-08-27):
+
+- [x] `docs/14_PHASE3_REQUIREMENTS.md` defines the approved scope, requirement
+      IDs, exclusions, security/storage boundaries, and delivery mapping.
+- [x] Decisions, architecture, traceability, README, and Agent scope are
+      synchronized with the active Phase 3 plan.
 
 Commit: `docs: establish phase 3 requirements`
 

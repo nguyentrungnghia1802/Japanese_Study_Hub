@@ -214,14 +214,17 @@ If a test is wrong because requirements changed, update the requirement/docs fir
 ## 14. Scope discipline
 
 V1 is the shipped regression baseline. The active `tasks/task.md` explicitly approves
-Phase 2 work, including bounded caching, recent learning, favorites, tags, FSRS,
-exam review, Android read caching, and the documented operations work. Implement
-those approved Phase 2 requirements when their dependency order reaches them,
-while preserving every V1 invariant and the same bug/security/commit rules.
+Phase 3 work, including the backend-owned Japanese/Vietnamese Lookup module,
+bounded history/favorites, learning continuity, last-three official mistake
+retention, and Flashcard creation from Lookup/mistakes. Phase 2 remains the
+released baseline in `tasks/task-01.md`. Implement approved Phase 3 requirements
+when their dependency order reaches them, while preserving every V1/Phase 2
+invariant and the same bug/security/commit rules.
 
 Do not implement features outside the active approved task plan. Unapproved
 additions remain out of scope: social features, complex analytics, microservices,
-GraphQL, full offline sync, AI generation, and reading/listening UI.
+GraphQL, full offline sync, AI translation/generation, OCR, handwriting
+recognition, exam-cheating assistance, and reading/listening UI.
 
 ---
 

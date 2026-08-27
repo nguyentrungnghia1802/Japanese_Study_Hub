@@ -16,10 +16,12 @@ The V1 release focused on two learning domains:
 2. Exams / quizzes
 
 The system remains intentionally simple while preserving clean extension points for
-reading, listening, media, multiple users, and richer analytics. Phase 2 is the
-approved follow-up release and adds bounded responsiveness, learning productivity,
-server-authoritative FSRS review, exam remediation, and native Android read caching
-without changing the V1 integrity boundary.
+reading, listening, media, multiple users, and richer analytics. Phase 2 shipped the
+bounded responsiveness, learning productivity, server-authoritative FSRS review,
+exam remediation, and native Android read caching baseline. Phase 3 is now the
+approved active follow-up and adds the backend-owned Japanese ↔ Vietnamese Lookup
+module, bounded continuity/history/favorites, and recent mistake remediation without
+changing the V1/Phase 2 integrity boundary.
 
 ## 2. Documentation order
 
@@ -38,9 +40,10 @@ Read documents in this order before implementation:
 11. `docs/09_DEPLOYMENT.md`
 12. `docs/10_DEVELOPMENT_GUIDE.md`
 13. `docs/12_TRACEABILITY.md`
-14. `docs/13_PHASE2_REQUIREMENTS.md` when Phase 2 is active
-15. `Agent.md`
-16. `tasks/task.md`
+14. `docs/13_PHASE2_REQUIREMENTS.md`
+15. `docs/14_PHASE3_REQUIREMENTS.md` when Phase 3 is active
+16. `Agent.md`
+17. `tasks/task.md`
 
 ## 3. Source-of-truth priority
 
@@ -85,8 +88,9 @@ Phase 2 keeps PostgreSQL and the API authoritative. The delivered scope includes
 - Guarded production update, backup/restore, transport-audit, and safe request
   observability procedures documented under `docs/`.
 
-The complete Phase 2 requirements and its deferred boundary are in
-`docs/13_PHASE2_REQUIREMENTS.md`.
+The complete Phase 2 requirements and its release boundary are in
+`docs/13_PHASE2_REQUIREMENTS.md`. Phase 3 requirements are in
+`docs/14_PHASE3_REQUIREMENTS.md`.
 
 ## 6. V1 regression baseline
 
@@ -138,10 +142,10 @@ owner/device validation; no signing key or release secret is stored in the repos
 
 ## 8. Definition of project completion
 
-V1 was completed and released before the current Phase 2 task plan. Phase 2 is
-now the active development scope and must preserve the V1 behavior baseline. The
-project may be declared Phase 2-complete only after every mandatory item through
-TASK-321 is verified, documented, and committed.
+V1 and Phase 2 were completed and released before the current Phase 3 task plan.
+Phase 3 is now the active development scope and must preserve the V1/Phase 2
+behavior baseline. Phase 2 completion is recorded in `v2.0.0` and
+`docs/releases/PHASE2_RELEASE.md`.
 
 The project is complete only when:
 
@@ -152,4 +156,5 @@ The project is complete only when:
 - Web and Android mobile clients work against the same backend.
 - Markdown import/export round trips correctly for supported formats.
 - Deployment documentation has been verified.
-- `tasks/task-01.md` is fully checked and the active plan is `tasks/task.md`.
+- `tasks/task-01.md` is the fully checked Phase 2 history and `tasks/task.md` is
+  the active Phase 3 plan.

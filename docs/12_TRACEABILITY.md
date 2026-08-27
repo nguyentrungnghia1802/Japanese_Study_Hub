@@ -182,3 +182,42 @@ Before TASK-320 is checked, perform this audit in order:
 9. Only after all mandatory rows are green update TASK-320 and create the
    release record required by TASK-321. If a gate fails, stop, fix the root
    cause, add regression coverage where applicable, and repeat the full audit.
+
+## 8. Phase 3 traceability
+
+Phase 3 is approved after the `v2.0.0` Phase 2 release. The active plan is
+`tasks/task.md`; Phase 2 remains archived in `tasks/task-01.md` and
+`docs/releases/PHASE2_TASKS.md`.
+
+| Phase 3 requirement group                                    | Implementation tasks                   | Verification tasks                          |
+| ------------------------------------------------------------ | -------------------------------------- | ------------------------------------------- |
+| P3-LOOKUP-001..008 provider-owned normalized Lookup          | TASK-402..414                          | TASK-410..414, TASK-510..511, TASK-514..515 |
+| P3-PROVIDER-001..005 timeout, validation, cache, attribution | TASK-402..413, TASK-500..501           | TASK-510..511, TASK-514..515, TASK-530      |
+| P3-HISTORY-001..003 bounded shared history                   | TASK-420, TASK-430, TASK-432, TASK-461 | TASK-511, TASK-514..515, TASK-530           |
+| P3-FAVORITES-001..002 compact dictionary favorites           | TASK-421, TASK-431..432, TASK-461      | TASK-511, TASK-514..515, TASK-530           |
+| P3-CONTINUITY-001..004 compact return state                  | TASK-450..453, TASK-462..463           | TASK-512, TASK-514..515, TASK-530           |
+| P3-EXAM-001..003 active-attempt restriction and integrity    | TASK-452..453, TASK-463                | TASK-512, TASK-514..515, TASK-530           |
+| P3-MISTAKE-001..006 bounded official last-three snapshots    | TASK-470..473, TASK-480..482           | TASK-513..515, TASK-530                     |
+| P3-FLASHCARD-001..004 Lookup/mistake card creation           | TASK-440, TASK-490                     | TASK-511, TASK-514..515, TASK-530           |
+
+### Phase 3 invariants
+
+| Invariant                                                                                        | Implementation                              | Verification                      |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------- | --------------------------------- |
+| Web/Android call only the project API; raw provider data stays internal                          | TASK-410, TASK-414, TASK-460                | TASK-511, TASK-515, TASK-530      |
+| Provider timeouts, validation, safe errors, attribution, and bounded cache are enforced          | TASK-402..414, TASK-500..501                | TASK-510..511, TASK-530           |
+| Lookup history/favorites/cache/browser/Room storage remain bounded and non-authoritative         | TASK-404, TASK-420..421, TASK-461, TASK-501 | TASK-511, TASK-514..515, TASK-530 |
+| Active exam navigation cannot open Lookup; timer and answer secrecy remain unchanged             | TASK-452, TASK-463                          | TASK-512, TASK-514..515, TASK-530 |
+| Submitted review uses graded server data and returns to exact compact context                    | TASK-450, TASK-453, TASK-463                | TASK-512, TASK-514..515, TASK-530 |
+| Detailed mistakes retain exactly three newest official attempts per user/exam/version            | TASK-470..473                               | TASK-513, TASK-514..515, TASK-530 |
+| Best score, attempt count, practice isolation, and duplicate submit semantics remain independent | TASK-471..473                               | TASK-513, TASK-530                |
+| Flashcard creation reuses safe API, sanitizes Markdown, and invalidates targeted caches          | TASK-440, TASK-490                          | TASK-511, TASK-514..515, TASK-530 |
+
+### Phase 3 release audit
+
+Before TASK-530, review every Phase 3 requirement row and run the full
+provider, storage-bound, continuity, exam-integrity, migration, Web, Android,
+and release checks in `tasks/task.md`. Production provider/backup/device
+evidence must be recorded separately from local tests. Do not check TASK-530 or
+TASK-531 while any requirement, migration, attribution, security, or production
+gate remains unverified.

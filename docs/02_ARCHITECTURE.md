@@ -482,3 +482,51 @@ Do not introduce without a demonstrated requirement:
 - Complex message broker
 
 A modular monolith is the preferred V1 backend.
+
+---
+
+## 21. Phase 3 Lookup architecture
+
+Lookup remains inside the API modular monolith. A `dictionary` module owns the
+project contracts, request validation, provider interfaces, adapters, bounded
+TTL cache, attribution, safe error mapping, and rate limiting. External
+dictionary/example services are never called by Web or Android and their raw
+payloads never cross the module boundary.
+
+The API returns normalized word, kanji, example, suggestion, history, and
+favorite DTOs. Provider adapters validate response shape and size, apply strict
+timeouts and lightweight transient retry, then discard unnecessary fields. A
+provider failure may remove optional kanji/examples enrichment without failing a
+valid core lookup.
+
+Lookup history and favorites are compact PostgreSQL records scoped to the
+logical user. History is capped at 100 entries and is separate from the
+response cache. The response cache is bounded by entry count and TTL; failures
+are not retained long-term. Android may cache only the small active project
+responses permitted by the existing Room policy and never mirrors a provider
+dictionary.
+
+## 22. Phase 3 continuity and exam boundary
+
+Web and Android preserve only compact navigation metadata when leaving a
+Flashcard study session or submitted Exam review. URL parameters identify the
+return context; bounded in-memory/session state carries order, current item,
+side, filter, and progress. The server/query cache remains authoritative for
+content and graded data. Missing/deleted resources clear invalid state and fall
+back to a safe list/detail screen.
+
+The active exam state is checked before exposing Lookup navigation or Quick
+Lookup. An `IN_PROGRESS` attempt blocks normal in-app Lookup; a submitted
+attempt may open Lookup from graded review and return to the same review
+question/filter. This is a client navigation rule and does not alter the
+server-authoritative timer, attempt restoration, scoring, or live answer
+sanitization.
+
+## 23. Phase 3 mistake retention
+
+Official finalization writes version-bound wrong/unanswered snapshots and
+transactionally prunes detailed snapshots outside the newest three attempts in
+the same user/exam/version scope. Practice attempts never enter the window.
+Snapshots contain only the fields needed for submitted review, including
+question/option context, selected/correct state, and position. Best-score
+summary rows and overall attempt metadata are not pruned by this policy.

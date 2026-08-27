@@ -303,3 +303,59 @@ approval and deployment validation.
 **Reason:** A self-signed or invented certificate would not give the personal
 deployment a trustworthy client transport. Runtime documentation must describe
 what is actually reachable.
+
+## ADR-032 — Lookup uses backend-owned provider adapters
+
+**Decision:** Add Lookup as a backend module with interfaces for word lookup,
+suggestions, single-kanji enrichment, and optional examples. Web and Android
+call only the project API. Each external provider is isolated behind an adapter
+that validates and normalizes untrusted responses into project contracts.
+
+**Reason:** Provider response formats, availability, and licensing can change.
+Keeping the boundary in the API prevents client coupling, protects provider
+credentials/configuration, and preserves one place for timeout, retry, rate
+limit, attribution, and error policy.
+
+## ADR-033 — Lookup cache, history, and favorites stay compact and bounded
+
+**Decision:** Use a small bounded in-process TTL cache for normalized provider
+responses, with Unicode-normalized keys and separate TTLs for successes,
+examples, kanji, and no-result outcomes. Persist only compact history and
+favorite metadata, cap history at 100 items per logical user, and never persist
+raw provider payloads.
+
+**Reason:** Lookup should be fast for personal repeated use without adding
+Redis or turning browser/Android storage into a dictionary database.
+
+## ADR-034 — Lookup navigation is gated by learning state
+
+**Decision:** Normal in-app Lookup and Quick Lookup are disabled during an
+`IN_PROGRESS` exam attempt. Lookup is allowed from submitted, graded review.
+Flashcard and submitted-review continuity uses URL state plus bounded session
+metadata; content is re-read from the server/query cache.
+
+**Reason:** Lookup is a learning aid, not an exam-time escape hatch. The rule
+preserves exam integrity while allowing useful post-submit investigation and
+exact return to the prior study/review context.
+
+## ADR-035 — Detailed exam mistakes retain the latest three official attempts
+
+**Decision:** Retain detailed wrong/unanswered snapshots for the three newest
+official submitted attempts scoped by logical user, exam, and content version,
+ordered by server `submitted_at`. Prune older detail transactionally while
+keeping best-score and overall attempt metadata independent.
+
+**Reason:** The owner needs recent longitudinal remediation without unbounded
+growth or mixing unrelated exams/content versions. Snapshots remain accurate
+after later content edits.
+
+## ADR-036 — Phase 3 remains a focused lookup extension
+
+**Decision:** Phase 3 excludes a full offline dictionary, AI translation, OCR,
+handwriting recognition, reading/listening UI, social features, and exam
+cheating assistance. External data is attributed and replaceable through the
+backend adapter boundary.
+
+**Reason:** The personal learning product benefits from a small, dependable
+lookup workflow and bounded storage; broad language tooling would add cost and
+security/privacy surface without an approved requirement.
