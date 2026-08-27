@@ -2,8 +2,9 @@
 # Show recent safe API/Web warning and error signals from normal container logs.
 set -Eeuo pipefail
 
-COMPOSE_FILE="${COMPOSE_FILE:-./docker-compose.prod.yml}"
-COMPOSE_ENV_FILE="${COMPOSE_ENV_FILE:-}"
+RUNTIME_DIR="${RUNTIME_DIR:-/opt/japanese-learning-runtime}"
+COMPOSE_FILE="${COMPOSE_FILE:-${RUNTIME_DIR}/docker-compose.prod.yml}"
+COMPOSE_ENV_FILE="${COMPOSE_ENV_FILE:-${RUNTIME_DIR}/.env.production}"
 SINCE="${SINCE:-1h}"
 TAIL="${TAIL:-300}"
 

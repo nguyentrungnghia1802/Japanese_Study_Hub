@@ -1,4 +1,9 @@
 FROM node:22-alpine AS base
+
+ARG VCS_REF=unknown
+LABEL org.opencontainers.image.source="https://github.com/nguyentrungnghia1802/Japanese_Study_Hub" \
+  org.opencontainers.image.revision="$VCS_REF"
+
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -7,20 +12,18 @@ FROM base AS builder
 WORKDIR /app
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter @japanese-learning/api prisma:generate
-RUN pnpm --filter @japanese-learning/contracts build
-RUN pnpm --filter @japanese-learning/shared build
-RUN pnpm --filter @japanese-learning/api build
+RUN pnpm --config.inject-workspace-packages=true --filter @japanese-learning/api deploy --prod /out
+# Generate Prisma Client inside the isolated production dependency tree that
+# will be copied into the runtime image.
+RUN pnpm --dir /out exec prisma generate --schema /out/prisma/schema.prisma
 
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/apps/api ./apps/api
-COPY --from=builder /app/node_modules ./node_modules
-
+COPY --from=builder /out/package.json ./package.json
+COPY --from=builder /out/node_modules ./node_modules
+COPY --from=builder /app/apps/api/prisma ./prisma
+COPY --from=builder /app/apps/api/dist ./dist
+USER node
 EXPOSE 4000
-CMD ["node", "apps/api/dist/main.js"]
+CMD ["node", "dist/main.js"]

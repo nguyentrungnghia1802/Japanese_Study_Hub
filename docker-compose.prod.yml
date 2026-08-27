@@ -20,8 +20,10 @@ services:
       start_period: 10s
 
   api:
-    image: ghcr.io/${GHCR_OWNER:-nguyentrungnghia1802}/japanese-study-hub-api:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER:?GHCR_OWNER_is_required}/japanese-study-hub-api:${IMAGE_TAG:?IMAGE_TAG_is_required}
     restart: unless-stopped
+    init: true
+    working_dir: /app
     environment:
       NODE_ENV: production
       PORT: 4000
@@ -33,7 +35,7 @@ services:
       UPLOAD_MAX_BYTES: ${UPLOAD_MAX_BYTES:-10485760}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     ports:
-      - '${API_PORT:-4000}:4000'
+      - '${BIND_ADDRESS:-0.0.0.0}:${API_PORT:-4000}:4000'
     depends_on:
       postgres:
         condition: service_healthy
@@ -45,10 +47,11 @@ services:
       start_period: 15s
 
   web:
-    image: ghcr.io/${GHCR_OWNER:-nguyentrungnghia1802}/japanese-study-hub-web:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER:?GHCR_OWNER_is_required}/japanese-study-hub-web:${IMAGE_TAG:?IMAGE_TAG_is_required}
     restart: unless-stopped
+    init: true
     ports:
-      - '${WEB_PORT:-3000}:3000'
+      - '${BIND_ADDRESS:-0.0.0.0}:${WEB_PORT:-3000}:3000'
     depends_on:
       api:
         condition: service_healthy

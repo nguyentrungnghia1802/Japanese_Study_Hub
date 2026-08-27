@@ -9,6 +9,15 @@ node_modules
 **/.next
 dist
 **/dist
+# CI downloads these production artifacts before the image build.
+!apps/web/.next/
+!apps/web/.next/**
+!apps/api/dist/
+!apps/api/dist/**
+!packages/contracts/dist/
+!packages/contracts/dist/**
+!packages/shared/dist/
+!packages/shared/dist/**
 coverage
 **/coverage
 .env
