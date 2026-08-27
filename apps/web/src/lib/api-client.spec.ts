@@ -115,4 +115,20 @@ describe('apiClient (TASK-021)', () => {
       expect.objectContaining({ method: 'POST' }),
     );
   });
+
+  it('reuses the existing flashcard create endpoint for Lookup drafts', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 'card-1', setId: 'set-1', front: '日本語', back: 'ngôn ngữ Nhật' }),
+    });
+    global.fetch = fetchMock;
+
+    await studyApi.createFlashcard('set-1', { front: '日本語\nにほんご', back: 'ngôn ngữ Nhật' });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${DEFAULT_API_BASE_URL}/flashcard-sets/set-1/cards`,
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
 });

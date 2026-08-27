@@ -599,21 +599,33 @@ Commit: `feat(web): add quick lookup shortcut`
 
 ## TASK-440 — Add “Add to Flashcard” from Lookup
 
-- [ ] Let user select target Flashcard Set.
-- [ ] Prefill sensible content.
-- [ ] Default Front: Japanese written form + reading.
-- [ ] Default Back: Vietnamese meaning + optional short example.
-- [ ] For VI→JA lookup, keep Japanese as the learnable side by default.
-- [ ] Allow editing before save.
-- [ ] Do not silently create a new set.
-- [ ] Reuse existing Flashcard create API.
-- [ ] Preserve Markdown safety.
-- [ ] Invalidate/update Phase 2 caches correctly.
-- [ ] Add tests.
+- [x] Let user select target Flashcard Set.
+- [x] Prefill sensible content.
+- [x] Default Front: Japanese written form + reading.
+- [x] Default Back: Vietnamese meaning + optional short example.
+- [x] For VI→JA lookup, keep Japanese as the learnable side by default.
+- [x] Allow editing before save.
+- [x] Do not silently create a new set.
+- [x] Reuse existing Flashcard create API.
+- [x] Preserve Markdown safety.
+- [x] Invalidate/update Phase 2 caches correctly.
+- [x] Add tests.
 
 Acceptance criteria:
 
 - Useful dictionary result can become a Flashcard without manual copy/paste.
+
+Verification (2026-08-27):
+
+- [x] Lookup opens an accessible dialog that loads at most 100 existing sets,
+      requires an explicit target, and offers editable Front/Back fields.
+- [x] The default projection keeps Japanese written form/reading on Front and
+      Vietnamese meaning plus one optional example on Back for either lookup
+      direction; React textareas render as text, not HTML.
+- [x] Save reuses `POST /flashcard-sets/:setId/cards`, invalidates the affected
+      Phase 2 flashcard/dashboard/search/tag queries, and never creates a set.
+- [x] Draft/API client tests passed as part of the 36-test Web suite; Web
+      typecheck, lint, and production build passed.
 
 Commit: `feat(flashcards): create cards from lookup`
 
