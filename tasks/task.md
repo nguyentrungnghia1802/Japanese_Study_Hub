@@ -540,13 +540,29 @@ Commit: `feat(web): build lookup results`
 
 ## TASK-432 — Add Web history/favorites
 
-- [ ] Show recent history.
-- [ ] Limit initial visible entries.
-- [ ] Add clear-history confirmation.
-- [ ] Show favorites.
-- [ ] Clicking history/favorite reruns/reopens Lookup.
-- [ ] Handle stale/obsolete results gracefully.
-- [ ] Avoid loading large history payloads on every page.
+- [x] Show recent history.
+- [x] Limit initial visible entries.
+- [x] Add clear-history confirmation.
+- [x] Show favorites.
+- [x] Clicking history/favorite reruns/reopens Lookup.
+- [x] Handle stale/obsolete results gracefully.
+- [x] Avoid loading large history payloads on every page.
+
+Acceptance criteria:
+
+- History/favorites are useful without becoming a second dictionary database.
+
+Verification (2026-08-27):
+
+- [x] `LookupSavedItems` loads only the Lookup route's bounded history/favorite
+      pages, renders at most 8 initial entries per panel, and never mirrors
+      provider responses in browser state.
+- [x] History clear requires confirmation; history/favorite selection updates
+      the App Router URL and reruns the authenticated lookup; favorite removal
+      and lookup saves update the bounded React Query page optimistically.
+- [x] Stale/obsolete entries remain safe text projections and provider/query
+      failures are shown without breaking the current route.
+- [x] Web typecheck, lint, and full 34-test suite passed.
 
 Commit: `feat(web): add lookup history and favorites`
 

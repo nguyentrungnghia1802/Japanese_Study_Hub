@@ -1,10 +1,15 @@
 'use client';
 
 import React, { FormEvent, useEffect, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Languages, RotateCw, Search, Sparkles } from 'lucide-react';
-import { DictionaryLookupDirection, DictionaryLookupResponseDto } from '@japanese-learning/contracts';
+import {
+  DictionaryFavoriteListResponseDto,
+  DictionaryLookupDirection,
+  DictionaryLookupHistoryResponseDto,
+  DictionaryLookupResponseDto,
+} from '@japanese-learning/contracts';
 import { getApiErrorMessage, ApiError } from '@/lib/api-client';
 import { CACHE_POLICY } from '@/lib/cache-policy';
 import { queryKeys } from '@/lib/query-keys';
@@ -13,6 +18,7 @@ import { hasDictionaryResult, parseLookupDirection } from '@/lib/lookup-helpers'
 import LookupFlashcardDialog from '@/components/lookup/lookup-flashcard-dialog';
 import { getLookupPrimaryCard } from '@/components/lookup/lookup-results';
 import LookupResults from '@/components/lookup/lookup-results';
+import LookupSavedItems from '@/components/lookup/lookup-saved-items';
 
 const LOOKUP_LIMIT = 20;
 const SUGGESTION_LIMIT = 10;
@@ -41,6 +47,7 @@ function updateLookupUrl(
 
 export default function LookupPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
@@ -105,6 +112,19 @@ export default function LookupPage() {
     gcTime: CACHE_POLICY.search.gcTime,
   });
 
+  const historyQuery = useQuery<DictionaryLookupHistoryResponseDto>({
+    queryKey: queryKeys.dictionaryHistory(10),
+    queryFn: ({ signal }) => studyApi.dictionaryHistory(10, signal),
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+  });
+  const favoritesQuery = useQuery<DictionaryFavoriteListResponseDto>({
+    queryKey: queryKeys.dictionaryFavorites(20, 0),
+    queryFn: ({ signal }) => studyApi.dictionaryFavorites(20, 0, signal),
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
+  });
+
   const submitLookup = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextQuery = query.trim();
@@ -128,6 +148,22 @@ export default function LookupPage() {
     lookupQuery.error instanceof ApiError && lookupQuery.error.code === 'NO_RESULT';
   const hasResult = hasDictionaryResult(lookupQuery.data);
   const suggestions = suggestionsQuery.data?.suggestions ?? [];
+  const lookupCard = lookupQuery.data ? getLookupPrimaryCard(lookupQuery.data) : null;
+  const matchingFavorite =
+    lookupQuery.data && lookupCard
+      ? favoritesQuery.data?.items.find(
+          (item) =>
+            item.term === lookupCard.japanese &&
+            item.reading === lookupCard.reading &&
+            item.direction === lookupQuery.data?.direction,
+        )
+      : undefined;
+  const activeFavoriteId = favoriteId ?? matchingFavorite?.id ?? null;
+
+  useEffect(() => {
+    if (!lookupQuery.data) return;
+    void queryClient.invalidateQueries({ queryKey: queryKeys.dictionaryHistory(10) });
+  }, [lookupQuery.data, queryClient]);
 
   useEffect(() => {
     setFavoriteId(null);
@@ -148,9 +184,20 @@ export default function LookupPage() {
     setFavoriteMessage(null);
     setFavoriteError(null);
     try {
-      if (favoriteId) {
-        await studyApi.removeDictionaryFavorite(favoriteId);
+      if (activeFavoriteId) {
+        await studyApi.removeDictionaryFavorite(activeFavoriteId);
         setFavoriteId(null);
+        queryClient.setQueryData<DictionaryFavoriteListResponseDto>(
+          queryKeys.dictionaryFavorites(20, 0),
+          (current) =>
+            current
+              ? {
+                  ...current,
+                  items: current.items.filter((item) => item.id !== activeFavoriteId),
+                  total: Math.max(0, current.total - 1),
+                }
+              : current,
+        );
         setFavoriteMessage('Đã bỏ khỏi yêu thích.');
       } else {
         const saved = await studyApi.saveDictionaryFavorite({
@@ -161,6 +208,17 @@ export default function LookupPage() {
           source,
         });
         setFavoriteId(saved.id);
+        queryClient.setQueryData<DictionaryFavoriteListResponseDto>(
+          queryKeys.dictionaryFavorites(20, 0),
+          (current) =>
+            current
+              ? {
+                  ...current,
+                  items: [saved, ...current.items.filter((item) => item.id !== saved.id)].slice(0, 20),
+                  total: current.total + 1,
+                }
+              : current,
+        );
         setFavoriteMessage('Đã lưu vào yêu thích.');
       }
     } catch (error: unknown) {
@@ -179,6 +237,51 @@ export default function LookupPage() {
         ? `${lookupQuery.data.examples[0].japaneseSentence}\n${lookupQuery.data.examples[0].vietnameseTranslation}`
         : null,
     });
+  };
+
+  const selectSavedLookup = (nextQuery: string, nextDirection: DictionaryLookupDirection) => {
+    setQuery(nextQuery);
+    setSubmittedQuery(nextQuery);
+    setDirection(nextDirection);
+    setSuggestionsOpen(false);
+    updateLookupUrl(router, nextQuery, nextDirection);
+  };
+
+  const clearHistory = () => {
+    if (!window.confirm('Xóa toàn bộ lịch sử tra cứu?')) return;
+    void (async () => {
+      try {
+        await studyApi.clearDictionaryHistory();
+        queryClient.setQueryData<DictionaryLookupHistoryResponseDto>(
+          queryKeys.dictionaryHistory(10),
+          { items: [], total: 0 },
+        );
+      } catch (error: unknown) {
+        setFavoriteError(getApiErrorMessage(error, 'Không thể xóa lịch sử tra cứu.'));
+      }
+    })();
+  };
+
+  const removeFavorite = (id: string) => {
+    void (async () => {
+      try {
+        await studyApi.removeDictionaryFavorite(id);
+        queryClient.setQueryData<DictionaryFavoriteListResponseDto>(
+          queryKeys.dictionaryFavorites(20, 0),
+          (current) =>
+            current
+              ? {
+                  ...current,
+                  items: current.items.filter((item) => item.id !== id),
+                  total: Math.max(0, current.total - 1),
+                }
+              : current,
+        );
+        if (activeFavoriteId === id) setFavoriteId(null);
+      } catch (error: unknown) {
+        setFavoriteError(getApiErrorMessage(error, 'Không thể bỏ yêu thích.'));
+      }
+    })();
   };
 
   return (
@@ -369,6 +472,21 @@ export default function LookupPage() {
         </form>
       </section>
 
+      <LookupSavedItems
+        history={historyQuery.data}
+        favorites={favoritesQuery.data}
+        isLoading={historyQuery.isLoading || favoritesQuery.isLoading}
+        error={
+          historyQuery.error || favoritesQuery.error
+            ? getApiErrorMessage(historyQuery.error ?? favoritesQuery.error, 'Không thể tải mục đã lưu.')
+            : null
+        }
+        onHistorySelect={selectSavedLookup}
+        onFavoriteSelect={selectSavedLookup}
+        onClearHistory={clearHistory}
+        onRemoveFavorite={removeFavorite}
+      />
+
       {submittedQuery.length === 0 && (
         <section className="glass-panel" style={{ padding: '2.4rem 1.5rem', textAlign: 'center' }}>
           <Sparkles size={30} style={{ color: 'var(--accent-purple)', marginBottom: '0.8rem' }} />
@@ -423,7 +541,7 @@ export default function LookupPage() {
       {lookupQuery.data && hasResult && (
         <LookupResults
           result={lookupQuery.data}
-          isFavorite={favoriteId !== null}
+          isFavorite={activeFavoriteId !== null}
           favoriteBusy={favoriteBusy}
           favoriteMessage={favoriteMessage}
           favoriteError={favoriteError}
