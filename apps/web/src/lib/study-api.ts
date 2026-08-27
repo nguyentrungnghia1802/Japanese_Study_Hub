@@ -253,4 +253,7 @@ export const studyApi = {
       body: JSON.stringify(body),
       signal,
     }),
+
+  submittedAttemptResult: (attemptId: string, signal?: AbortSignal) =>
+    apiClient<ExamAttemptResultDto>(`/attempts/${attemptId}/result`, { signal }),
 };

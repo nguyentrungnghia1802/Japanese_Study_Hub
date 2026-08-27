@@ -43,6 +43,15 @@ export class AttemptsController {
     return this.attemptsService.getAttempt(attemptId);
   }
 
+  @Get('attempts/:attemptId/result')
+  @ApiOperation({ summary: 'Get the immutable graded result for a submitted attempt' })
+  @ApiResponse({ status: 200, description: 'Graded result for an already submitted attempt' })
+  @ApiResponse({ status: 400, description: 'Attempt is not finalized' })
+  @ApiResponse({ status: 404, description: 'Attempt not found' })
+  async getSubmittedResult(@Param('attemptId', ParseUUIDPipe) attemptId: string) {
+    return this.attemptsService.getSubmittedResult(attemptId);
+  }
+
   @Put('attempts/:attemptId/answers')
   @ApiOperation({ summary: 'Save in-progress answer selections' })
   @ApiResponse({ status: 200, description: 'Answers saved' })

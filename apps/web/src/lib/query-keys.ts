@@ -35,6 +35,7 @@ export const queryKeys = {
   searchRoot: () => [...root, 'search'] as const,
   search: (query: string, limit = 30) => [...root, 'search', { query, limit }] as const,
   liveAttempt: (attemptId: string) => [...root, 'live-attempt', attemptId] as const,
+  submittedAttemptResult: (attemptId: string) => [...root, 'submitted-attempt-result', attemptId] as const,
   reviewRoot: () => [...root, 'review'] as const,
   reviewQueue: (limit = 20) => [...root, 'review', 'queue', { limit }] as const,
   reviewSummary: () => [...root, 'review', 'summary'] as const,

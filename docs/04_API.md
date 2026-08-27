@@ -448,6 +448,14 @@ Response:
 
 Submission must be idempotent.
 
+### `GET /api/v1/attempts/{attemptId}/result`
+
+Returns the immutable graded result for an already `SUBMITTED` attempt. This
+route is used by the submitted-review continuity screen after returning from
+Lookup. It returns graded question/options only after finalization; an
+in-progress attempt receives a state error and the live attempt route remains
+sanitized.
+
 ### `GET /api/v1/exam-review/mistakes?limit=20&examId={examId}`
 
 Returns at most 20 incorrect or unanswered items from submitted normal
@@ -594,3 +602,10 @@ The authenticated Lookup API uses the normalized contracts documented in
 [`docs/dictionary/contracts.md`](./dictionary/contracts.md). Clients never
 receive raw provider payloads and use the stable direction/error enums from
 `packages/contracts/src/dictionary.dto.ts`.
+
+## Phase 3 review boundary
+
+`GET /api/v1/attempts/{attemptId}/result` is the only continuity read used for
+submitted exam review. The client stores no graded payload in browser
+continuity metadata. Lookup links carry only a bounded same-origin return path;
+the server remains authoritative for attempt state and graded data.

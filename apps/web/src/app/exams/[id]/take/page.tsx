@@ -516,6 +516,25 @@ export default function ExamTakePage() {
               <Languages size={16} />
               <span>Open Review Workspace</span>
             </Link>
+            <Link
+              href={`/lookup?returnTo=${encodeURIComponent(`/exams/review/${result.attemptId}`)}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.625rem 1.5rem',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(56, 189, 248, 0.1)',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                color: 'var(--accent-cyan)',
+                fontWeight: '600',
+                fontSize: '0.875rem',
+                textDecoration: 'none',
+              }}
+            >
+              <Languages size={16} />
+              <span>Lookup</span>
+            </Link>
             <button
               onClick={() => {
                 cancelAutosaves();

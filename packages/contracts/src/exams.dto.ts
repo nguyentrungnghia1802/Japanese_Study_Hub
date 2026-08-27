@@ -179,6 +179,8 @@ export interface ExamAttemptResultDto {
   isPractice?: boolean;
 }
 
+export type ExamReviewFilter = 'ALL' | 'WRONG' | 'UNANSWERED';
+
 export interface ExamBestResultDto {
   id: string;
   examId: string;

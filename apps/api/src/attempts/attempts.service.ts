@@ -191,6 +191,23 @@ export class AttemptsService {
     };
   }
 
+  async getSubmittedResult(attemptId: string): Promise<ExamAttemptResultDto> {
+    const attempt = await this.prisma.examAttempt.findUnique({
+      where: { id: attemptId },
+      include: { answers: true },
+    });
+
+    if (!attempt) {
+      throw new NotFoundException(`Attempt with ID '${attemptId}' not found`);
+    }
+    if (attempt.status !== AttemptStatus.SUBMITTED) {
+      throw new BadRequestException('Only submitted attempts have a graded review');
+    }
+
+    const snapshot = attempt.questionOrderSnapshot as unknown as AttemptSnapshot;
+    return this.buildGradedResult(attempt, snapshot);
+  }
+
   async saveAnswers(attemptId: string, dto: SaveAnswersBodyDto): Promise<{ success: boolean }> {
     const attempt = await this.prisma.examAttempt.findUnique({
       where: { id: attemptId },

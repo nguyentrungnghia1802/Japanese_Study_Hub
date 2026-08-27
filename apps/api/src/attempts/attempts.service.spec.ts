@@ -190,6 +190,38 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
   });
 
   describe('TASK-062 & TASK-063 — Submission, scoring, and best results', () => {
+    it('returns a submitted graded result without exposing a live-attempt payload path', async () => {
+      prismaMock.examAttempt.findUnique.mockResolvedValueOnce({
+        id: 'attempt-1',
+        examId: 'exam-1',
+        examVersion: 1,
+        isPractice: false,
+        status: AttemptStatus.SUBMITTED,
+        score: 50,
+        durationSeconds: 120,
+        startedAt: sampleDate,
+        submittedAt: new Date(sampleDate.getTime() + 120_000),
+        questionOrderSnapshot: {
+          examId: 'exam-1',
+          examTitle: 'JLPT N3 Grammar Mock',
+          examVersion: 1,
+          timeLimitSeconds: 1800,
+          questions: sampleExam.questions,
+        },
+        answers: [{ questionId: 'q-1', selectedOptionId: 'opt-2' }],
+      });
+
+      const result = await service.getSubmittedResult('attempt-1');
+
+      expect(result.status).toBe(AttemptStatus.SUBMITTED);
+      expect(result.questions[0].correctOptionId).toBe('opt-1');
+      expect(result.questions[0].options[0].isCorrect).toBe(true);
+    });
+
+    it('rejects submitted-review reads for an in-progress attempt', async () => {
+      await expect(service.getSubmittedResult('attempt-1')).rejects.toThrow(BadRequestException);
+    });
+
     it('derives wrong and unanswered questions into the bounded review source', async () => {
       prismaMock.examAttemptAnswer.findMany.mockResolvedValueOnce([
         { questionId: 'q-1', selectedOptionId: 'opt-2' },
