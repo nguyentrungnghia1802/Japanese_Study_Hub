@@ -12,6 +12,8 @@ import {
   DictionarySuggestionCache,
 } from './dictionary-lookup.service.js';
 import { DictionaryController } from './dictionary.controller.js';
+import { DictionaryFavoritesService } from './dictionary-favorites.service.js';
+import { DictionaryHistoryService } from './dictionary-history.service.js';
 
 @Module({
   imports: [ThrottlerModule.forRoot([{ ttl: 60_000, limit: 20 }])],
@@ -25,6 +27,8 @@ import { DictionaryController } from './dictionary.controller.js';
     DictionaryLookupCache,
     DictionaryExampleCache,
     DictionarySuggestionCache,
+    DictionaryHistoryService,
+    DictionaryFavoritesService,
     DictionaryLookupService,
   ],
   exports: [
@@ -36,6 +40,8 @@ import { DictionaryController } from './dictionary.controller.js';
     DictionaryLookupCache,
     DictionaryExampleCache,
     DictionarySuggestionCache,
+    DictionaryHistoryService,
+    DictionaryFavoritesService,
     DictionaryLookupService,
   ],
 })

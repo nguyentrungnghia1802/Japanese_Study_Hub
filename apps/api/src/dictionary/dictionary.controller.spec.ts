@@ -7,9 +7,14 @@ import { DictionaryDomainError } from './dictionary-domain-error.js';
 import { DictionaryProviderError } from './dictionary-errors.js';
 import { DictionaryController } from './dictionary.controller.js';
 import {
+  DictionaryFavoriteBodyDto,
+  DictionaryFavoriteListQueryDto,
+  DictionaryHistoryQueryDto,
   DictionaryLookupQueryDto,
   DictionarySuggestionQueryDto,
 } from './dto/dictionary-query.dto.js';
+import { DictionaryFavoritesService } from './dictionary-favorites.service.js';
+import { DictionaryHistoryService } from './dictionary-history.service.js';
 
 describe('DictionaryController (TASK-414)', () => {
   it('delegates normalized lookup request without exposing provider details', async () => {
@@ -31,6 +36,65 @@ describe('DictionaryController (TASK-414)', () => {
       direction: DictionaryLookupDirection.JA_TO_VI,
       limit: 5,
       includeExamples: true,
+    });
+  });
+
+  it('records only the normalized lookup projection and exposes bounded history/favorite routes', async () => {
+    const result = {
+      query: '日本語',
+      direction: DictionaryLookupDirection.JA_TO_VI,
+      results: [{ writtenForm: '日本語' }],
+      kanji: null,
+    };
+    const service = { lookup: vi.fn().mockResolvedValue(result), suggest: vi.fn() };
+    const history = {
+      record: vi.fn().mockResolvedValue(undefined),
+      list: vi.fn().mockResolvedValue({ items: [], total: 0 }),
+      clear: vi.fn().mockResolvedValue({ deleted: 0 }),
+    };
+    const favorites = {
+      save: vi.fn().mockResolvedValue({ id: 'favorite-1' }),
+      list: vi.fn().mockResolvedValue({ items: [], total: 0, limit: 20, offset: 0 }),
+      remove: vi.fn().mockResolvedValue({ success: true, id: 'favorite-1' }),
+    };
+    const controller = new DictionaryController(
+      service as never,
+      history as unknown as DictionaryHistoryService,
+      favorites as unknown as DictionaryFavoritesService,
+    );
+
+    await controller.lookup(Object.assign(new DictionaryLookupQueryDto(), { q: '日本語' }));
+    expect(history.record).toHaveBeenCalledWith({
+      query: '日本語',
+      direction: DictionaryLookupDirection.JA_TO_VI,
+      primaryLabel: '日本語',
+    });
+
+    await expect(
+      controller.history(Object.assign(new DictionaryHistoryQueryDto(), { limit: 10 })),
+    ).resolves.toEqual({ items: [], total: 0 });
+    await expect(controller.clearHistory()).resolves.toEqual({ deleted: 0 });
+
+    const body = Object.assign(new DictionaryFavoriteBodyDto(), {
+      term: '日本語',
+      reading: 'にほんご',
+      meaningSummary: 'ngôn ngữ Nhật Bản',
+      direction: DictionaryLookupDirection.JA_TO_VI,
+      sourceProvider: 'MINHQND',
+      sourceName: 'MinhQND',
+      sourceUrl: 'https://dict.minhqnd.com/',
+      sourceAttribution: 'MinhQND',
+    });
+    await controller.saveFavorite(body);
+    expect(favorites.save).toHaveBeenCalledWith(
+      expect.objectContaining({ term: '日本語', reading: 'にほんご' }),
+    );
+    await expect(
+      controller.favorites(Object.assign(new DictionaryFavoriteListQueryDto(), { limit: 20 })),
+    ).resolves.toMatchObject({ total: 0 });
+    await expect(controller.removeFavorite('favorite-1')).resolves.toEqual({
+      success: true,
+      id: 'favorite-1',
     });
   });
 

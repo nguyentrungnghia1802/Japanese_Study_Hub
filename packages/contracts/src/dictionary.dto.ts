@@ -101,3 +101,41 @@ export interface DictionarySuggestionResponseDto {
   suggestions: DictionarySuggestionDto[];
   source: DictionarySourceAttributionDto;
 }
+
+export type ResolvedDictionaryLookupDirection =
+  | DictionaryLookupDirection.JA_TO_VI
+  | DictionaryLookupDirection.VI_TO_JA;
+
+export interface DictionaryLookupHistoryItemDto {
+  id: string;
+  query: string;
+  direction: ResolvedDictionaryLookupDirection;
+  primaryLabel: string | null;
+  createdAt: string;
+}
+
+export interface DictionaryLookupHistoryResponseDto {
+  items: DictionaryLookupHistoryItemDto[];
+  total: number;
+}
+
+export interface CreateDictionaryFavoriteDto {
+  term: string;
+  reading: string | null;
+  meaningSummary: string;
+  direction: ResolvedDictionaryLookupDirection;
+  source: DictionarySourceAttributionDto;
+}
+
+export interface DictionaryFavoriteDto extends CreateDictionaryFavoriteDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DictionaryFavoriteListResponseDto {
+  items: DictionaryFavoriteDto[];
+  total: number;
+  limit: number;
+  offset: number;
+}

@@ -404,20 +404,34 @@ Commit: `feat(api): expose dictionary lookup`
 
 ## TASK-420 — Add bounded lookup history
 
-- [ ] Persist history server-side so Web/Android share it.
-- [ ] Store only compact metadata: query, direction, selected primary label if useful, timestamp.
-- [ ] Do not store full provider responses.
-- [ ] Limit to 100 recent items per logical user.
-- [ ] Automatically prune older entries.
-- [ ] Deduplicate repeated adjacent/same-query entries where sensible.
-- [ ] Add history list API.
-- [ ] Add clear-history API.
-- [ ] Add migration if needed.
-- [ ] Add retention tests.
+- [x] Persist history server-side so Web/Android share it.
+- [x] Store only compact metadata: query, direction, selected primary label if useful, timestamp.
+- [x] Do not store full provider responses.
+- [x] Limit to 100 recent items per logical user.
+- [x] Automatically prune older entries.
+- [x] Deduplicate repeated adjacent/same-query entries where sensible.
+- [x] Add history list API.
+- [x] Add clear-history API.
+- [x] Add migration if needed.
+- [x] Add retention tests.
 
 Acceptance criteria:
 
 - History is cross-device and predictably bounded.
+
+Verification (2026-08-27):
+
+- [x] `DictionaryHistoryService` normalizes Unicode queries, upserts on the
+      `(user_key, query, direction)` key, prunes rows after the 100th item, and
+      returns compact bounded DTOs.
+- [x] Authenticated `GET /lookup/history` and `DELETE /lookup/history` are
+      wired in the Dictionary module; successful lookup writes history without
+      making a history failure fail the lookup response.
+- [x] Migration harness passed both fresh and V1-to-Phase 3 upgrades with 9
+      migrations and the `dictionary_lookup_history` table present.
+- [x] Focused history/controller tests and the full API suite passed (147
+      tests passed, 2 integration tests skipped because no integration flag was
+      requested); API build, typecheck, and lint passed.
 
 Commit: `feat(dictionary): add bounded lookup history`
 
@@ -425,18 +439,31 @@ Commit: `feat(dictionary): add bounded lookup history`
 
 ## TASK-421 — Add dictionary favorites
 
-- [ ] Add compact favorite model.
-- [ ] Store term, reading, Vietnamese meaning summary, direction/source metadata needed to reopen lookup.
-- [ ] Do not persist full provider payload.
-- [ ] Add favorite/unfavorite endpoints.
-- [ ] Add list endpoint.
-- [ ] Prevent obvious duplicates.
-- [ ] Paginate/bound the list.
-- [ ] Add migration and tests.
+- [x] Add compact favorite model.
+- [x] Store term, reading, Vietnamese meaning summary, direction/source metadata needed to reopen lookup.
+- [x] Do not persist full provider payload.
+- [x] Add favorite/unfavorite endpoints.
+- [x] Add list endpoint.
+- [x] Prevent obvious duplicates.
+- [x] Paginate/bound the list.
+- [x] Add migration and tests.
 
 Acceptance criteria:
 
 - User can save useful terms without immediately creating a Flashcard.
+
+Verification (2026-08-27):
+
+- [x] `DictionaryFavorite` stores only bounded flattened fields and uses the
+      unique `(user_key, term, direction, reading)` key for idempotent saves.
+- [x] Authenticated POST/GET/DELETE favorites routes are wired with user
+      scoping, HTTP(S) source validation, HTML stripping, bounded page size,
+      and bounded offset.
+- [x] Fresh and V1-to-Phase 3 migration checks passed with
+      `dictionary_favorites` present; no raw provider payload column exists.
+- [x] Focused favorite/controller tests and the full API suite passed (147
+      tests passed, 2 integration tests skipped because no integration flag was
+      requested); API build, typecheck, and lint passed.
 
 Commit: `feat(dictionary): add lookup favorites`
 

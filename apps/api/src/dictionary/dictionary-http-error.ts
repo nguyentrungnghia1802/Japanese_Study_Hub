@@ -11,6 +11,8 @@ import { DictionaryDomainError } from './dictionary-domain-error.js';
 import { DictionaryProviderError } from './dictionary-errors.js';
 
 export function toDictionaryHttpException(error: unknown): HttpException {
+  if (error instanceof HttpException) return error;
+
   if (error instanceof DictionaryDomainError) {
     if (error.code === DictionaryErrorCode.INVALID_QUERY) {
       return new BadRequestException({

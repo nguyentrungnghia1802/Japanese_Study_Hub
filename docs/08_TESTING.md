@@ -163,6 +163,11 @@ For critical user journeys:
 - Deleted or old-version mistake references are removed
 - Practice submission does not write official best-result or mistake history
 
+Phase 3 dictionary retention tests must verify server-owned history,
+deduplication by normalized query/direction, pruning at 100 rows, and the
+absence of raw provider payloads. Favorite tests must verify compact source
+metadata, user scoping, idempotent duplicates, and bounded pagination.
+
 ---
 
 ## 9. Scoring tests

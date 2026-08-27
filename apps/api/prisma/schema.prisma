@@ -48,6 +48,11 @@ enum FlashcardReviewRating {
   EASY
 }
 
+enum DictionaryLookupDirection {
+  JA_TO_VI
+  VI_TO_JA
+}
+
 model FlashcardSet {
   id          String    @id @default(uuid()) @db.Uuid
   title       String    @db.VarChar(255)
@@ -366,4 +371,37 @@ model RecentLearning {
   @@unique([userKey, kind, entityId])
   @@index([userKey, lastAccessedAt])
   @@map("recent_learning")
+}
+
+model DictionaryLookupHistory {
+  id           String                    @id @default(uuid()) @db.Uuid
+  userKey      String                    @default("primary_user") @map("user_key") @db.VarChar(255)
+  query        String                    @db.VarChar(120)
+  direction    DictionaryLookupDirection
+  primaryLabel String?                   @map("primary_label") @db.VarChar(255)
+  createdAt    DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([userKey, query, direction])
+  @@index([userKey, createdAt])
+  @@map("dictionary_lookup_history")
+}
+
+model DictionaryFavorite {
+  id                String                    @id @default(uuid()) @db.Uuid
+  userKey           String                    @default("primary_user") @map("user_key") @db.VarChar(255)
+  term              String                    @db.VarChar(120)
+  reading           String                    @default("") @db.VarChar(120)
+  meaningSummary    String                    @map("meaning_summary") @db.VarChar(512)
+  direction         DictionaryLookupDirection
+  sourceProvider    String                    @map("source_provider") @db.VarChar(32)
+  sourceName        String                    @map("source_name") @db.VarChar(128)
+  sourceUrl         String                    @map("source_url") @db.VarChar(512)
+  sourceLicense     String?                   @map("source_license") @db.VarChar(128)
+  sourceAttribution String                    @map("source_attribution") @db.VarChar(255)
+  createdAt         DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userKey, term, direction, reading])
+  @@index([userKey, createdAt])
+  @@map("dictionary_favorites")
 }

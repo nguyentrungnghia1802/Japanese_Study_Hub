@@ -1,12 +1,30 @@
-import { Controller, Get, Query, HttpException, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  Logger,
+  Optional,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { DictionaryLookupDirection } from '@japanese-learning/contracts';
+import { DictionaryErrorCode, DictionaryLookupDirection } from '@japanese-learning/contracts';
 import {
+  DictionaryFavoriteBodyDto,
+  DictionaryFavoriteListQueryDto,
+  DictionaryHistoryQueryDto,
   DictionaryLookupQueryDto,
   DictionarySuggestionQueryDto,
 } from './dto/dictionary-query.dto.js';
 import { toDictionaryHttpException } from './dictionary-http-error.js';
+import { DictionaryDomainError } from './dictionary-domain-error.js';
+import { DictionaryFavoritesService } from './dictionary-favorites.service.js';
+import { DictionaryHistoryService } from './dictionary-history.service.js';
 import { DictionaryLookupService } from './dictionary-lookup.service.js';
 
 @ApiTags('Dictionary')
@@ -14,7 +32,13 @@ import { DictionaryLookupService } from './dictionary-lookup.service.js';
 @Controller('lookup')
 @UseGuards(ThrottlerGuard)
 export class DictionaryController {
-  constructor(private readonly dictionaryService: DictionaryLookupService) {}
+  private readonly logger = new Logger(DictionaryController.name);
+
+  constructor(
+    private readonly dictionaryService: DictionaryLookupService,
+    @Optional() private readonly historyService?: DictionaryHistoryService,
+    @Optional() private readonly favoritesService?: DictionaryFavoritesService,
+  ) {}
 
   @Get()
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
@@ -29,12 +53,14 @@ export class DictionaryController {
   @ApiResponse({ status: 429, description: 'Dictionary rate limit reached' })
   async lookup(@Query() query: DictionaryLookupQueryDto) {
     try {
-      return await this.dictionaryService.lookup({
+      const result = await this.dictionaryService.lookup({
         query: query.q,
         direction: query.direction,
         limit: query.limit,
         includeExamples: query.includeExamples,
       });
+      await this.recordHistory(result);
+      return result;
     } catch (error) {
       throw this.safeMapError(error);
     }
@@ -58,6 +84,106 @@ export class DictionaryController {
       });
     } catch (error) {
       throw this.safeMapError(error);
+    }
+  }
+
+  @Get('history')
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @ApiOperation({ summary: 'List bounded authenticated dictionary lookup history' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, minimum: 1, maximum: 100 })
+  @ApiResponse({ status: 200, description: 'Recent compact lookup history' })
+  async history(@Query() query: DictionaryHistoryQueryDto) {
+    try {
+      if (!this.historyService) throw new Error('Dictionary history service is unavailable');
+      return await this.historyService.list(query.limit);
+    } catch (error) {
+      throw this.safeMapError(error);
+    }
+  }
+
+  @Delete('history')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Clear authenticated dictionary lookup history' })
+  @ApiResponse({ status: 200, description: 'History rows removed' })
+  async clearHistory() {
+    try {
+      if (!this.historyService) throw new Error('Dictionary history service is unavailable');
+      return await this.historyService.clear();
+    } catch (error) {
+      throw this.safeMapError(error);
+    }
+  }
+
+  @Post('favorites')
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Create or update a compact dictionary favorite' })
+  @ApiResponse({ status: 201, description: 'Dictionary favorite saved' })
+  async saveFavorite(@Body() body: DictionaryFavoriteBodyDto) {
+    try {
+      if (!this.favoritesService) throw new Error('Dictionary favorites service is unavailable');
+      if (body.direction === DictionaryLookupDirection.AUTO) {
+        throw new DictionaryDomainError(DictionaryErrorCode.INVALID_QUERY);
+      }
+      return await this.favoritesService.save({
+        term: body.term,
+        reading: body.reading ?? null,
+        meaningSummary: body.meaningSummary,
+        direction: body.direction,
+        source: {
+          provider: body.sourceProvider as 'MINHQND' | 'VI_WIKTIONARY' | 'KANJIAPI' | 'TATOEBA',
+          name: body.sourceName,
+          url: body.sourceUrl,
+          license: body.sourceLicense ?? null,
+          attribution: body.sourceAttribution,
+        },
+      });
+    } catch (error) {
+      throw this.safeMapError(error);
+    }
+  }
+
+  @Get('favorites')
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @ApiOperation({ summary: 'List bounded authenticated dictionary favorites' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, minimum: 1, maximum: 100 })
+  @ApiQuery({ name: 'offset', required: false, type: Number, minimum: 0, maximum: 10000 })
+  @ApiResponse({ status: 200, description: 'Compact dictionary favorite page' })
+  async favorites(@Query() query: DictionaryFavoriteListQueryDto) {
+    try {
+      if (!this.favoritesService) throw new Error('Dictionary favorites service is unavailable');
+      return await this.favoritesService.list(query.limit, query.offset);
+    } catch (error) {
+      throw this.safeMapError(error);
+    }
+  }
+
+  @Delete('favorites/:id')
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Remove an authenticated dictionary favorite' })
+  @ApiResponse({ status: 200, description: 'Dictionary favorite removed' })
+  async removeFavorite(@Param('id') id: string) {
+    try {
+      if (!this.favoritesService) throw new Error('Dictionary favorites service is unavailable');
+      return await this.favoritesService.remove(id);
+    } catch (error) {
+      throw this.safeMapError(error);
+    }
+  }
+
+  private async recordHistory(result: Awaited<ReturnType<DictionaryLookupService['lookup']>>) {
+    if (!this.historyService || result.direction === DictionaryLookupDirection.AUTO) return;
+    try {
+      await this.historyService.record({
+        query: result.query,
+        direction: result.direction,
+        primaryLabel: result.results[0]?.writtenForm ?? result.kanji?.character ?? null,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `dictionary_history_write_failed code=${
+          error instanceof Error ? error.name : 'unknown'
+        }`,
+      );
     }
   }
 

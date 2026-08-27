@@ -46,6 +46,19 @@ Web and Android never call dictionary providers directly. Lookup is limited to
 The response shape, bounds, attribution, and stable dictionary error codes are
 documented in [`docs/dictionary/contracts.md`](dictionary/contracts.md).
 
+`GET /api/v1/lookup/history?limit=10` returns the latest bounded compact
+lookup entries shared by Web and Android. `DELETE /api/v1/lookup/history`
+clears the authenticated logical user's history. A successful lookup records
+only its normalized query, resolved direction, optional primary label, and
+timestamp; it never writes the provider response.
+
+`POST /api/v1/lookup/favorites` saves or updates a compact favorite projection
+(`term`, `reading`, `meaningSummary`, resolved `direction`, and flattened
+source attribution). `GET /api/v1/lookup/favorites?limit=20&offset=0` returns a
+bounded page, and `DELETE /api/v1/lookup/favorites/:id` removes only the
+authenticated user's favorite. Favorites are idempotent on
+`term + direction + reading` and contain no raw provider payload.
+
 ### 2.1 Current request headers and transport cache policy
 
 Protected application requests send `Authorization: Bearer <accessToken>`.

@@ -21,7 +21,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $prismaRoot = Join-Path $repoRoot 'apps/api/prisma'
 $schemaPath = Join-Path $prismaRoot 'schema.prisma'
 $migrationRoot = Join-Path $prismaRoot 'migrations'
-$temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ('jsh-phase2-migrations-' + [Guid]::NewGuid().ToString('N'))
+$temporaryRoot = Join-Path ([IO.Path]::GetTempPath()) ('jsh-phase3-migrations-' + [Guid]::NewGuid().ToString('N'))
 $runId = [DateTime]::UtcNow.ToString('yyyyMMddHHmmssfff')
 $freshDatabase = 'jsh_phase2_fresh_' + $runId
 $upgradeDatabase = 'jsh_phase2_upgrade_' + $runId
@@ -91,11 +91,11 @@ function Assert-DatabaseShape {
   )
 
   $migrationCount = Invoke-Psql -DatabaseUrl $DatabaseUrl -CaptureOutput -Sql 'SELECT count(*) FROM "_prisma_migrations";'
-  if ($migrationCount -ne '7') {
-    throw "$Label expected 7 applied migrations, found $migrationCount."
+  if ($migrationCount -ne '9') {
+    throw "$Label expected 9 applied migrations, found $migrationCount."
   }
 
-  $requiredTables = @('recent_learning', 'tags', 'flashcard_set_tags', 'exam_tags', 'flashcard_review_logs', 'exam_mistakes')
+  $requiredTables = @('recent_learning', 'tags', 'flashcard_set_tags', 'exam_tags', 'flashcard_review_logs', 'exam_mistakes', 'dictionary_lookup_history', 'dictionary_favorites')
   foreach ($table in $requiredTables) {
     $exists = Invoke-Psql -DatabaseUrl $DatabaseUrl -CaptureOutput -Sql "SELECT to_regclass('public.$table') IS NOT NULL;"
     if ($exists -ne 't') {
@@ -116,7 +116,7 @@ function Assert-DatabaseShape {
     }
   }
 
-  Write-Host "$Label migration shape verified: 7 migrations and all Phase 2 tables/columns present."
+  Write-Host "$Label migration shape verified: 9 migrations and all Phase 2/3 dictionary tables/columns present."
 }
 
 try {
@@ -158,10 +158,10 @@ try {
       Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $temporaryMigrations $_.Name) -Recurse
     }
 
-  Write-Host 'Upgrading the V1 database through all Phase 2 migrations...'
+  Write-Host 'Upgrading the V1 database through all Phase 2 and Phase 3 dictionary migrations...'
   Invoke-MigrateDeploy -DatabaseUrl $upgradeUrl -Schema $temporarySchema
-  Assert-DatabaseShape -DatabaseUrl $upgradeUrl -Label 'V1 to Phase 2 upgrade'
-  Write-Host 'Phase 2 migration verification passed.'
+  Assert-DatabaseShape -DatabaseUrl $upgradeUrl -Label 'V1 to Phase 2/3 upgrade'
+  Write-Host 'Phase 2 and Phase 3 dictionary migration verification passed.'
 } finally {
   foreach ($database in $createdDatabases) {
     try {

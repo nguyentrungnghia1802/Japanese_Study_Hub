@@ -38,6 +38,9 @@ QuestionContext 1 ─ N ExamQuestion   (reserved/future-friendly)
 
 RecentLearning N ─── 1 FlashcardSet or Exam (polymorphic, validated by API)
 
+DictionaryLookupHistory N ─── 1 logical user
+DictionaryFavorite N ─────── 1 logical user
+
 FlashcardSet N ─── N Tag (FlashcardSetTag)
 Exam N ────────── N Tag (ExamTag)
 ```
@@ -71,9 +74,12 @@ chain is:
 5. `20260826234000_phase2_fsrs_schema`
 6. `20260826235000_phase2_fsrs_review_snapshots`
 7. `20260827000000_phase2_exam_review`
+8. `20260827010000_phase3_dictionary_history`
+9. `20260827011000_phase3_dictionary_favorites`
 
 The Phase 2 additions are `recent_learning`, `tags`, `flashcard_set_tags`,
-`exam_tags`, `flashcard_review_logs`, and `exam_mistakes`; favorite flags are on
+`exam_tags`, `flashcard_review_logs`, and `exam_mistakes`; Phase 3 adds
+`dictionary_lookup_history` and `dictionary_favorites`; favorite flags are on
 `flashcard_sets` and `exams`; FSRS state/snapshot fields are on `flashcards` and
 `flashcard_review_logs`; and `is_practice` is on `exam_attempts`. The applied
 unique keys and indexes include:
@@ -88,10 +94,25 @@ unique keys and indexes include:
   join tables;
 - `(deleted_at, fsrs_due_at)` on `flashcards` for bounded active due-card reads;
 - `(exam_id, user_key)` on `exam_attempts` and
-  `(user_key, exam_id, exam_version)` unique on `exam_best_results`.
+  `(user_key, exam_id, exam_version)` unique on `exam_best_results`;
+- `(user_key, query, direction)` unique on `dictionary_lookup_history` and
+  `(user_key, term, direction, reading)` unique on `dictionary_favorites`.
 
-Fresh-database and V1-to-Phase-2 migration verification is performed by
+Fresh-database and V1-to-Phase-2/3 migration verification is performed by
 `scripts/verify-phase2-migrations.ps1` and must continue to assert this chain.
+
+### 3.4 Phase 3 dictionary retention
+
+`dictionary_lookup_history` stores at most 100 normalized rows for the V1
+logical user. It contains only the query, resolved direction, optional primary
+label, and timestamp; raw provider responses are never persisted. Repeating a
+query in the same direction updates its timestamp through the unique key, and
+older rows are pruned after each write.
+
+`dictionary_favorites` stores a flattened reopen projection: term, reading,
+Vietnamese meaning summary, resolved direction, and bounded source attribution
+fields. It intentionally excludes raw provider payloads and is returned in
+bounded pages of at most 100 items.
 
 ---
 
