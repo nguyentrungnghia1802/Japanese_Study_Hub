@@ -7,11 +7,11 @@ API boundary or be persisted in lookup history/favorites.
 
 ## Decision
 
-| Capability                                              | Selected provider                                      | Backend usage                                                                                                                                                  | Fallback / no-result policy                                                                                                                                                                                                                                                                                                  |
-| ------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Japanese ↔ Vietnamese dictionary lookup and suggestions | [dict.minhqnd.com](https://dict.minhqnd.com/)          | Use the documented `/api/v1/lookup` and `/api/v1/suggest` endpoints. Normalize only entries that contain the requested language direction and Vietnamese text. | For Vietnamese → Japanese, query the documented [Vietnamese Wiktionary MediaWiki API](https://vi.wiktionary.org/w/api.php) only when the primary response has no usable Japanese translation. If neither provider has a safe result, return the typed `NO_RESULT` domain outcome; never infer or machine-translate a result. |
-| Single-kanji metadata                                   | [kanjiapi.dev](https://kanjiapi.dev/)                  | Use `/v1/kanji/{character}` for one validated Unicode kanji. Accept readings, stroke count, JLPT/grade/frequency only from fields supplied by the provider.    | Kanji enrichment is optional. A provider failure leaves the primary dictionary result usable. English-only meanings are not shown as Vietnamese.                                                                                                                                                                             |
-| Japanese/Vietnamese examples                            | [Tatoeba API v1](https://api.tatoeba.org/openapi.json) | Use `GET /v1/sentences` with `lang=jpn`, `trans:lang=vie`, and `showtrans:lang=vie`; normalize at most five sentence/translation pairs.                        | Examples are best-effort enrichment. A timeout, rate limit, or empty result never fails the primary lookup.                                                                                                                                                                                                                  |
+| Capability                                              | Selected provider                                      | Backend usage                                                                                                                                                                                                    | Fallback / no-result policy                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Japanese ↔ Vietnamese dictionary lookup and suggestions | [dict.minhqnd.com](https://dict.minhqnd.com/)          | Use the documented `/api/v1/lookup` and `/api/v1/suggest` endpoints. Normalize only entries that contain the requested language direction and Vietnamese text.                                                   | For Vietnamese → Japanese, query the documented [Vietnamese Wiktionary MediaWiki API](https://vi.wiktionary.org/w/api.php) only when the primary response has no usable Japanese translation. If neither provider has a safe result, return the typed `NO_RESULT` domain outcome; never infer or machine-translate a result. |
+| Single-kanji metadata                                   | [kanjiapi.dev](https://kanjiapi.dev/)                  | Use `/v1/kanji/{character}` and `/v1/words/{character}` for one validated Unicode kanji. Accept readings, stroke count, JLPT/grade/frequency, and related-word fields only from fields supplied by the provider. | Kanji enrichment is optional. A provider failure leaves the primary dictionary result usable. English-only meanings are not shown as Vietnamese.                                                                                                                                                                             |
+| Japanese/Vietnamese examples                            | [Tatoeba API v1](https://api.tatoeba.org/openapi.json) | Use `GET /v1/sentences` with `lang=jpn`, `trans:lang=vie`, and `showtrans:lang=vie`; normalize at most five sentence/translation pairs.                                                                          | Examples are best-effort enrichment. A timeout, rate limit, or empty result never fails the primary lookup.                                                                                                                                                                                                                  |
 
 The Wiktionary fallback is deliberately narrow: the adapter will parse only
 Vietnamese entries and explicit Japanese translation templates such as
@@ -50,19 +50,42 @@ service connection open.
 ## Licensing and attribution
 
 - `dict.minhqnd.com` documents the API/data attribution as CC BY-SA 4.0 and
-  asks consumers to attribute `@minhqnd` / `dict.minhqnd.com`. The normalized
-  result will retain a source label and attribution URL.
-- `kanjiapi.dev` documents the API and its KANJIDIC/EDRDG-derived data. The
-  normalized kanji result will retain the provider attribution and link; its
-  English glosses will not be relabeled as Vietnamese.
+- asks consumers to attribute `@minhqnd` / `dict.minhqnd.com`. The normalized
+  result retains the source label, provider URL, license label, and attribution
+  text when it is shown or persisted as compact favorite metadata.
+- `kanjiapi.dev` documents that the API uses the EDICT and KANJIDIC files under
+  the Electronic Dictionary Research and Development Group's licence. The
+  normalized kanji result therefore uses an explicit
+  `EDICT/KANJIDIC/EDRDG terms` label rather than claiming that all kanji data is
+  MIT-licensed. Its English glosses are metadata only and are not relabeled as
+  Vietnamese.
 - Tatoeba v1 responses include sentence-level license and owner fields. The
-  example contract will preserve source attribution and license information;
-  the UI will render a compact attribution link. Tatoeba examples are not
+  example contract preserves the sentence license when present, links the
+  attribution to the individual Tatoeba sentence, and uses the project
+  attribution text when owner metadata is absent. Tatoeba examples are not
   copied into history/favorites.
 - Vietnamese Wiktionary content is used only through its documented MediaWiki
-  API and must retain a Wiktionary attribution link/license notice. The
-  fallback parser stores normalized Japanese terms only in the response; raw
-  wikitext is never persisted.
+  API. The project's copyright notice identifies CC BY-SA 4.0 as the default,
+  while allowing entry-specific notices; the normalized source label keeps
+  that qualification. The fallback parser stores normalized Japanese terms
+  only in the response; raw wikitext is never persisted.
+
+The authoritative notices used for this record are:
+
+| Source                | Attribution/license notice                                                                                                                |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| dict.minhqnd          | [API and data terms](https://dict.minhqnd.com/)                                                                                           |
+| kanjiapi.dev          | [API/data source notice](https://kanjiapi.dev/)                                                                                           |
+| Tatoeba               | [Downloads and Creative Commons notice](https://tatoeba.org/la/downloads), plus the license/attribution fields returned for each sentence |
+| Vietnamese Wiktionary | [Copyright policy](https://vi.wiktionary.org/wiki/Wiktionary%3AQuy%E1%BB%81n_t%C3%A1c_gi%E1%BA%A3)                                        |
+
+This is an engineering attribution record, not a legal opinion. Maintainers
+must recheck the linked upstream notices before changing providers or making a
+release that redistributes persisted dictionary text. Provider source metadata
+is centralized in `apps/api/src/dictionary/provider-sources.ts`; replacing a
+provider requires changing its adapter, source metadata, boundary tests, smoke
+record, and this document. Web/Android continue to use the API contract and do
+not need provider-specific integrations.
 
 ## Adapter boundary requirements
 

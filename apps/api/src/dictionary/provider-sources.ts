@@ -12,7 +12,7 @@ export const VI_WIKTIONARY_SOURCE: DictionarySourceAttributionDto = Object.freez
   provider: 'VI_WIKTIONARY',
   name: 'Vietnamese Wiktionary',
   url: 'https://vi.wiktionary.org/',
-  license: 'CC BY-SA',
+  license: 'CC BY-SA 4.0; entry-specific notices may apply',
   attribution: 'Vietnamese Wiktionary contributors',
 });
 
@@ -20,7 +20,7 @@ export const KANJIAPI_SOURCE: DictionarySourceAttributionDto = Object.freeze({
   provider: 'KANJIAPI',
   name: 'kanjiapi.dev',
   url: 'https://kanjiapi.dev/',
-  license: 'MIT / provider data terms',
+  license: 'EDICT/KANJIDIC/EDRDG terms; see provider documentation',
   attribution: 'kanjiapi.dev and its cited KANJIDIC/EDRDG data sources',
 });
 

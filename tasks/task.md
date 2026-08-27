@@ -1378,17 +1378,27 @@ Commit: `docs: synchronize phase 3 technical documentation`
 
 ## TASK-521 — Verify provider attribution/licenses
 
-- [ ] Verify dictionary provider attribution.
-- [ ] Verify kanji provider attribution/license requirements.
-- [ ] Verify Tatoeba attribution/license requirements.
-- [ ] Add required links/source labels.
-- [ ] Avoid copying provider branding/assets without permission.
-- [ ] Record provider URLs and verification date.
-- [ ] Document how maintainers can swap providers later.
+- [x] Verify dictionary provider attribution.
+- [x] Verify kanji provider attribution/license requirements.
+- [x] Verify Tatoeba attribution/license requirements.
+- [x] Add required links/source labels.
+- [x] Avoid copying provider branding/assets without permission.
+- [x] Record provider URLs and verification date.
+- [x] Document how maintainers can swap providers later.
 
 Acceptance criteria:
 
 - External data usage is transparent and license-compatible.
+
+Verification (2026-08-27): Rechecked the provider notices and recorded the
+source URLs, attribution labels, license qualifications, and provider-swap
+procedure in `docs/dictionary/provider-evaluation-2026-08-27.md`. The API now
+labels kanjiapi.dev data as EDICT/KANJIDIC/EDRDG terms rather than asserting a
+generic MIT license, preserves sentence-level Tatoeba license/owner metadata,
+and qualifies the Vietnamese Wiktionary CC BY-SA 4.0 default for entry-specific
+notices. Product code adds text attribution only and no provider branding or
+assets. This record is an engineering attribution check; maintainers must
+recheck upstream terms before a release that redistributes persisted text.
 
 Commit: `docs(dictionary): finalize provider attribution`
 
