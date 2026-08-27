@@ -369,18 +369,32 @@ Recommended routes may be adapted to existing conventions:
 - optional dedicated kanji route
 - history/favorites routes in later tasks.
 
-- [ ] Add authenticated lookup endpoint.
-- [ ] Validate query/direction/limit.
-- [ ] Add suggestions endpoint.
-- [ ] Add provider-cost-aware rate limiting.
-- [ ] Use project error envelope.
-- [ ] Hide provider internals.
-- [ ] Update OpenAPI.
-- [ ] Add integration tests.
+- [x] Add authenticated lookup endpoint.
+- [x] Validate query/direction/limit.
+- [x] Add suggestions endpoint.
+- [x] Add provider-cost-aware rate limiting.
+- [x] Use project error envelope.
+- [x] Hide provider internals.
+- [x] Update OpenAPI.
+- [x] Add integration tests.
 
 Acceptance criteria:
 
 - Web/Android need only Japanese Study Hub API.
+
+Verification (2026-08-27):
+
+- [x] `DictionaryController` exposes authenticated `/lookup` and `/lookup/suggest`
+      routes; no provider URL or payload is present in the client contract.
+- [x] DTO validation bounds q/direction/limit/examples before the service and
+      global validation remains whitelist + forbid-non-whitelisted.
+- [x] Lookup and suggestions use separate provider-cost-aware throttles
+      (30/minute and 60/minute) on top of authenticated access.
+- [x] Domain/provider failures map to safe project error envelopes with stable
+      codes; provider names, URLs, raw messages, and payloads are hidden.
+- [x] Controller/error-mapper tests and the API module compilation cover route
+      wiring; protected endpoint integration coverage is added without using
+      live provider calls.
 
 Commit: `feat(api): expose dictionary lookup`
 

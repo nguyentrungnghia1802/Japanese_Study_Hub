@@ -4,6 +4,7 @@ import {
   DictionaryLookupDirection,
   DictionaryLookupRequestDto,
   DictionaryLookupResponseDto,
+  DictionarySuggestionResponseDto,
   DictionaryWordResultDto,
   DICTIONARY_LIMITS,
 } from '@japanese-learning/contracts';
@@ -19,6 +20,7 @@ import { KanjiApiProvider } from './kanjiapi.provider.js';
 import { MinhqndDictionaryProvider } from './minhqnd.provider.js';
 import { TatoebaProvider } from './tatoeba.provider.js';
 import { VietnameseWiktionaryProvider } from './wiktionary.provider.js';
+import { MINHQND_SOURCE } from './provider-sources.js';
 
 const JAPANESE_SCRIPT_PATTERN =
   /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9d]/u;
@@ -40,6 +42,13 @@ export class DictionaryExampleCache extends TtlLruCache<DictionaryLookupResponse
 }
 
 @Injectable()
+export class DictionarySuggestionCache extends TtlLruCache<DictionarySuggestionResponseDto> {
+  constructor() {
+    super(DICTIONARY_CACHE_POLICY.maxEntries);
+  }
+}
+
+@Injectable()
 export class DictionaryLookupService {
   private readonly logger = new Logger(DictionaryLookupService.name);
 
@@ -50,6 +59,7 @@ export class DictionaryLookupService {
     private readonly kanjiProvider: KanjiApiProvider,
     private readonly exampleCache: DictionaryExampleCache,
     private readonly exampleProvider: TatoebaProvider,
+    private readonly suggestionCache: DictionarySuggestionCache,
   ) {}
 
   async lookup(request: DictionaryLookupRequestDto): Promise<DictionaryLookupResponseDto> {
@@ -97,6 +107,40 @@ export class DictionaryLookupService {
     );
     if (response.results.length === 0 && response.kanji === null)
       throw new DictionaryDomainError(DictionaryErrorCode.NO_RESULT);
+    return response;
+  }
+
+  async suggest(request: {
+    query: string;
+    direction?: DictionaryLookupDirection;
+    limit?: number;
+  }): Promise<DictionarySuggestionResponseDto> {
+    const query = normalizeLookupQuery(request.query);
+    const direction = resolveLookupDirection(query, request.direction);
+    const limit = normalizeSuggestionLimit(request.limit);
+    const cacheKey = createDictionaryCacheKey({
+      kind: 'suggestions',
+      query,
+      direction,
+      limit,
+    });
+    const cached = this.suggestionCache.get(cacheKey);
+    if (cached) return cached;
+
+    const suggestions = (await this.primaryProvider.suggest(query, limit)).slice(0, limit);
+    const response: DictionarySuggestionResponseDto = {
+      query,
+      direction,
+      suggestions,
+      source: MINHQND_SOURCE,
+    };
+    this.suggestionCache.set(
+      cacheKey,
+      response,
+      suggestions.length > 0
+        ? DICTIONARY_CACHE_POLICY.suggestionsSuccessTtlMs
+        : DICTIONARY_CACHE_POLICY.noResultTtlMs,
+    );
     return response;
   }
 
@@ -215,6 +259,14 @@ export function normalizeLookupLimit(limit: number | undefined): number {
     throw new DictionaryDomainError(DictionaryErrorCode.INVALID_QUERY);
   }
   return Math.min(DICTIONARY_LIMITS.maxResults, limit);
+}
+
+export function normalizeSuggestionLimit(limit: number | undefined): number {
+  if (limit === undefined) return DICTIONARY_LIMITS.maxSuggestions;
+  if (!Number.isInteger(limit) || limit < 1) {
+    throw new DictionaryDomainError(DictionaryErrorCode.INVALID_QUERY);
+  }
+  return Math.min(DICTIONARY_LIMITS.maxSuggestions, limit);
 }
 
 function rankDictionaryResults(

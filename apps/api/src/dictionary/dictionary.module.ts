@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { KanjiApiProvider } from './kanjiapi.provider.js';
 import { MinhqndDictionaryProvider } from './minhqnd.provider.js';
 import { ProviderHttpClient } from './provider-http-client.js';
@@ -8,9 +9,13 @@ import {
   DictionaryExampleCache,
   DictionaryLookupCache,
   DictionaryLookupService,
+  DictionarySuggestionCache,
 } from './dictionary-lookup.service.js';
+import { DictionaryController } from './dictionary.controller.js';
 
 @Module({
+  imports: [ThrottlerModule.forRoot([{ ttl: 60_000, limit: 20 }])],
+  controllers: [DictionaryController],
   providers: [
     ProviderHttpClient,
     MinhqndDictionaryProvider,
@@ -19,6 +24,7 @@ import {
     TatoebaProvider,
     DictionaryLookupCache,
     DictionaryExampleCache,
+    DictionarySuggestionCache,
     DictionaryLookupService,
   ],
   exports: [
@@ -29,6 +35,7 @@ import {
     TatoebaProvider,
     DictionaryLookupCache,
     DictionaryExampleCache,
+    DictionarySuggestionCache,
     DictionaryLookupService,
   ],
 })

@@ -36,6 +36,16 @@ Error envelope:
 
 Do not expose stack traces in production responses.
 
+### 2.1 Phase 3 dictionary routes
+
+`GET /api/v1/lookup?q=<term>&direction=AUTO|JA_TO_VI|VI_TO_JA&limit=20&includeExamples=false`
+and `GET /api/v1/lookup/suggest?q=<prefix>&direction=...&limit=10` are
+authenticated project routes. They call the API-owned provider adapters only;
+Web and Android never call dictionary providers directly. Lookup is limited to
+30 requests/minute per throttling key and suggestions to 60 requests/minute.
+The response shape, bounds, attribution, and stable dictionary error codes are
+documented in [`docs/dictionary/contracts.md`](dictionary/contracts.md).
+
 ### 2.1 Current request headers and transport cache policy
 
 Protected application requests send `Authorization: Bearer <accessToken>`.

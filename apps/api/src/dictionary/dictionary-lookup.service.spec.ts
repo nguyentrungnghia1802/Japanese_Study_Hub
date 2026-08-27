@@ -9,6 +9,7 @@ import {
   DictionaryLookupCache,
   DictionaryExampleCache,
   DictionaryLookupService,
+  DictionarySuggestionCache,
   isSingleKanji,
   resolveLookupDirection,
 } from './dictionary-lookup.service.js';
@@ -61,6 +62,7 @@ function serviceWith(
     kanji,
     new DictionaryExampleCache(),
     exampleProvider,
+    new DictionarySuggestionCache(),
   );
   return { service, primary, fallback, kanji, exampleProvider };
 }
