@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { DictionaryErrorCode } from '@japanese-learning/contracts';
 import { DictionaryProviderError, mapProviderError } from './dictionary-errors.js';
 
@@ -20,6 +20,8 @@ export interface ProviderHttpClientOptions {
   now?: () => number;
 }
 
+export const PROVIDER_HTTP_CLIENT_OPTIONS = Symbol('PROVIDER_HTTP_CLIENT_OPTIONS');
+
 interface ProviderFailureState {
   consecutiveFailures: number;
   openUntil: number;
@@ -37,7 +39,9 @@ export class ProviderHttpClient {
   private readonly now: () => number;
   private readonly failureStates = new Map<string, ProviderFailureState>();
 
-  constructor(options: ProviderHttpClientOptions = {}) {
+  constructor(
+    @Inject(PROVIDER_HTTP_CLIENT_OPTIONS) options: ProviderHttpClientOptions = {},
+  ) {
     this.fetchImpl = options.fetchImpl ?? ((input, init) => fetch(input, init));
     this.timeoutMs = options.timeoutMs ?? DEFAULT_PROVIDER_TIMEOUT_MS;
     this.maxResponseBytes = options.maxResponseBytes ?? DEFAULT_PROVIDER_MAX_RESPONSE_BYTES;

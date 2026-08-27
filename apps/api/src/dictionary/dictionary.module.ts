@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { KanjiApiProvider } from './kanjiapi.provider.js';
 import { MinhqndDictionaryProvider } from './minhqnd.provider.js';
-import { ProviderHttpClient } from './provider-http-client.js';
+import {
+  ProviderHttpClient,
+  PROVIDER_HTTP_CLIENT_OPTIONS,
+} from './provider-http-client.js';
 import { TatoebaProvider } from './tatoeba.provider.js';
 import { VietnameseWiktionaryProvider } from './wiktionary.provider.js';
 import {
@@ -19,6 +22,7 @@ import { DictionaryHistoryService } from './dictionary-history.service.js';
   imports: [ThrottlerModule.forRoot([{ ttl: 60_000, limit: 20 }])],
   controllers: [DictionaryController],
   providers: [
+    { provide: PROVIDER_HTTP_CLIENT_OPTIONS, useValue: {} },
     ProviderHttpClient,
     MinhqndDictionaryProvider,
     VietnameseWiktionaryProvider,
@@ -32,6 +36,7 @@ import { DictionaryHistoryService } from './dictionary-history.service.js';
     DictionaryLookupService,
   ],
   exports: [
+    PROVIDER_HTTP_CLIENT_OPTIONS,
     ProviderHttpClient,
     MinhqndDictionaryProvider,
     VietnameseWiktionaryProvider,
