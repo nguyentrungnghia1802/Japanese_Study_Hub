@@ -59,6 +59,15 @@ database_url() {
   printf '%s' "${DATABASE_URL_TEMPLATE//%DB%/${database}}"
 }
 
+psql_database_url() {
+  local database="$1"
+  local url
+  url="$(database_url "${database}")"
+  url="${url//\?schema=public/}"
+  url="${url//&schema=public/}"
+  printf '%s' "${url}"
+}
+
 apply_migrations() {
   local database="$1"
   local schema="$2"
@@ -70,11 +79,11 @@ apply_migrations() {
 
 assert_current_schema() {
   local database="$1"
-  local url
+  local psql_url
   local table
   local table_name
-  url="$(database_url "${database}")"
-  [[ "$(psql "${url}" -Atq -c 'SELECT count(*) FROM _prisma_migrations')" == "10" ]] ||
+  psql_url="$(psql_database_url "${database}")"
+  [[ "$(psql "${psql_url}" -Atq -c 'SELECT count(*) FROM _prisma_migrations')" == "10" ]] ||
     die "${database} does not have exactly ten applied migrations"
   for table_name in \
     flashcards \
@@ -87,7 +96,7 @@ assert_current_schema() {
     exam_tags \
     dictionary_lookup_history \
     dictionary_favorites; do
-    table="$(psql "${url}" -Atq -c "SELECT to_regclass('public.${table_name}')")"
+    table="$(psql "${psql_url}" -Atq -c "SELECT to_regclass('public.${table_name}')")"
     [[ "${table}" == "public.${table_name}" ]] ||
       die "${database} is missing table ${table_name}"
   done
@@ -114,7 +123,7 @@ assert_current_schema "${FRESH_DATABASE}"
 
 create_database "${UPGRADE_DATABASE}"
 apply_migrations "${UPGRADE_DATABASE}" "${V1_SCHEMA_DIR}/schema.prisma"
-[[ "$(psql "$(database_url "${UPGRADE_DATABASE}")" -Atq -c 'SELECT count(*) FROM _prisma_migrations')" == "7" ]] ||
+[[ "$(psql "$(psql_database_url "${UPGRADE_DATABASE}")" -Atq -c 'SELECT count(*) FROM _prisma_migrations')" == "7" ]] ||
   die "V1 fixture did not apply exactly seven migrations"
 apply_migrations "${UPGRADE_DATABASE}" "${ROOT_DIR}/apps/api/prisma/schema.prisma"
 assert_current_schema "${UPGRADE_DATABASE}"
