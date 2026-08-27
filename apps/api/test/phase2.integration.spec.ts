@@ -144,12 +144,23 @@ integration('Phase 2 service integration against PostgreSQL', () => {
     const submitted = await attempts.submitAttempt(live.attemptId, {
       answers: [{ questionId, selectedOptionId: wrongOptionId }],
     });
+    const submittedAttemptIds = [submitted.attemptId];
     expect(submitted.isPractice).toBe(false);
     expect(submitted.score).toBe(0);
 
     const mistakes = await examReview.getMistakes(examId);
     expect(mistakes.items).toHaveLength(1);
     expect(JSON.stringify(mistakes.items[0])).not.toMatch(/isCorrect|correctOptionId|answerKey/);
+
+    const firstHistory = await examReview.getMistakeAttempts(examId);
+    expect(firstHistory.attempts).toHaveLength(1);
+    const firstDetail = await examReview.getMistakeAttemptDetail(submitted.attemptId);
+    expect(firstDetail.items[0]).toMatchObject({
+      questionContent: 'Which word means to eat?',
+      selectedOptionId: wrongOptionId,
+      correctOptionId,
+    });
+    expect((await examReview.getFrequentMistakes(examId)).retainedAttemptCount).toBe(1);
 
     const practice = await examReview.startPractice({
       examId,
@@ -163,8 +174,25 @@ integration('Phase 2 service integration against PostgreSQL', () => {
     });
     expect(practiceResult.isPractice).toBe(true);
     expect(practiceResult.isNewBest).toBe(false);
+
+    for (let index = 0; index < 4; index += 1) {
+      const nextAttempt = await attempts.startAttempt(examId);
+      const nextResult = await attempts.submitAttempt(nextAttempt.attemptId, {
+        answers: [{ questionId, selectedOptionId: wrongOptionId }],
+      });
+      submittedAttemptIds.push(nextResult.attemptId);
+    }
+
+    const retainedHistory = await examReview.getMistakeAttempts(examId);
+    expect(retainedHistory.attempts.map((item) => item.attemptId)).toEqual(
+      submittedAttemptIds.slice(-3).reverse(),
+    );
+    await expect(examReview.getMistakeAttemptDetail(submittedAttemptIds[0])).rejects.toThrow();
+    expect((await examReview.getFrequentMistakes(examId)).retainedAttemptCount).toBe(3);
+    await expect(prisma.examMistake.count({ where: { examId } })).resolves.toBe(3);
+    const bestResult = await prisma.examBestResult.findFirst({ where: { examId } });
+    expect(bestResult?.attemptCount).toBe(5);
     await expect(prisma.examBestResult.count({ where: { examId } })).resolves.toBe(1);
-    await expect(prisma.examMistake.count({ where: { examId } })).resolves.toBe(1);
     expect(correctOptionId).not.toBe(wrongOptionId);
   });
 });

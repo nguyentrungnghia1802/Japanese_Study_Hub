@@ -1,5 +1,12 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ExamReviewService, MAX_MISTAKE_QUEUE_ITEMS } from './exam-review.service.js';
 import { StartPracticeBodyDto } from './dto/start-practice.dto.js';
 
@@ -36,6 +43,34 @@ export class ExamReviewController {
   @ApiResponse({ status: 404, description: 'Mistake not found' })
   dismissMistake(@Param('id', ParseUUIDPipe) id: string) {
     return this.examReviewService.dismissMistake(id);
+  }
+
+  @Get('exams/:examId/mistake-attempts')
+  @ApiOperation({ summary: 'List the three newest official mistake histories for an exam' })
+  @ApiParam({ name: 'examId', type: String })
+  @ApiResponse({ status: 200, description: 'Newest retained official attempt summaries' })
+  @ApiResponse({ status: 404, description: 'Exam not found' })
+  getMistakeAttempts(@Param('examId', ParseUUIDPipe) examId: string) {
+    return this.examReviewService.getMistakeAttempts(examId);
+  }
+
+  @Get('attempts/:attemptId/mistakes')
+  @ApiOperation({ summary: 'Get wrong and unanswered items for one retained official attempt' })
+  @ApiParam({ name: 'attemptId', type: String })
+  @ApiResponse({ status: 200, description: 'Submitted snapshot review items with answers' })
+  @ApiResponse({ status: 400, description: 'Attempt is not an official submitted attempt' })
+  @ApiResponse({ status: 404, description: 'Attempt is not retained or not found' })
+  getMistakeAttemptDetail(@Param('attemptId', ParseUUIDPipe) attemptId: string) {
+    return this.examReviewService.getMistakeAttemptDetail(attemptId);
+  }
+
+  @Get('exams/:examId/frequent-mistakes')
+  @ApiOperation({ summary: 'Summarize repeated mistakes across retained official attempts' })
+  @ApiParam({ name: 'examId', type: String })
+  @ApiResponse({ status: 200, description: 'Bounded frequent-mistake summary' })
+  @ApiResponse({ status: 404, description: 'Exam not found' })
+  getFrequentMistakes(@Param('examId', ParseUUIDPipe) examId: string) {
+    return this.examReviewService.getFrequentMistakes(examId);
   }
 
   @Post('practice')

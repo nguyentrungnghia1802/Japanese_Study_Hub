@@ -1002,17 +1002,17 @@ Recommended routes may be adapted to existing Phase 2 API:
 - `GET /api/v1/exam-attempts/{attemptId}/mistakes`
 - optional aggregate endpoint for frequent mistakes.
 
-- [ ] Return at most 3 retained attempt summaries, newest first.
-- [ ] Include submitted time, score, correct/total, and version.
-- [ ] Return only wrong/unanswered review items for selected retained attempt.
-- [ ] Include correct answer data only because the attempt is already submitted.
-- [ ] Enforce auth.
-- [ ] Enforce version/history policy.
-- [ ] Bound result size.
-- [ ] Add frequent-mistake aggregate across retained attempts.
-- [ ] Keep best-result API unchanged.
-- [ ] Update OpenAPI.
-- [ ] Add integration tests.
+- [x] Return at most 3 retained attempt summaries, newest first.
+- [x] Include submitted time, score, correct/total, and version.
+- [x] Return only wrong/unanswered review items for selected retained attempt.
+- [x] Include correct answer data only because the attempt is already submitted.
+- [x] Enforce auth.
+- [x] Enforce version/history policy.
+- [x] Bound result size.
+- [x] Add frequent-mistake aggregate across retained attempts.
+- [x] Keep best-result API unchanged.
+- [x] Update OpenAPI.
+- [x] Add integration tests.
 
 Acceptance criteria:
 
