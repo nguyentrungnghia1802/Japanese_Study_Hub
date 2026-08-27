@@ -258,24 +258,37 @@ Commit: `feat(dictionary): add provider abstraction`
 
 ## TASK-411 — Implement Japanese ↔ Vietnamese lookup
 
-- [ ] Implement direction auto-detection.
-- [ ] Japanese scripts/kanji default to JA_TO_VI.
-- [ ] Vietnamese/Latin input defaults to VI_TO_JA when appropriate.
-- [ ] Allow explicit direction override.
-- [ ] Normalize Unicode safely.
-- [ ] Preserve Vietnamese diacritics.
-- [ ] Implement Japanese → Vietnamese.
-- [ ] Implement Vietnamese → Japanese using the verified provider path.
-- [ ] Return multiple ranked results where applicable.
-- [ ] Bound result count.
-- [ ] Handle no-result as a normal domain outcome.
-- [ ] Integrate bounded cache.
-- [ ] Implement verified fallback only when needed.
-- [ ] Add tests for Japanese, kana, compound, Vietnamese, invalid input, no result, timeout, and provider failure.
+- [x] Implement direction auto-detection.
+- [x] Japanese scripts/kanji default to JA_TO_VI.
+- [x] Vietnamese/Latin input defaults to VI_TO_JA when appropriate.
+- [x] Allow explicit direction override.
+- [x] Normalize Unicode safely.
+- [x] Preserve Vietnamese diacritics.
+- [x] Implement Japanese → Vietnamese.
+- [x] Implement Vietnamese → Japanese using the verified provider path.
+- [x] Return multiple ranked results where applicable.
+- [x] Bound result count.
+- [x] Handle no-result as a normal domain outcome.
+- [x] Integrate bounded cache.
+- [x] Implement verified fallback only when needed.
+- [x] Add tests for Japanese, kana, compound, Vietnamese, invalid input, no result, timeout, and provider failure.
 
 Acceptance criteria:
 
 - Both lookup directions work through one stable project API contract.
+
+Verification (2026-08-27):
+
+- [x] `DictionaryLookupService` resolves Japanese scripts to `JA_TO_VI`, Latin
+      Vietnamese input to `VI_TO_JA`, and honors explicit direction overrides.
+- [x] NFKC/whitespace normalization preserves Japanese Unicode and Vietnamese
+      diacritics; invalid and oversized input uses `INVALID_QUERY`.
+- [x] Lookup results are ranked and capped at the shared 20-result bound.
+- [x] Vietnamese Wiktionary is called only after an empty primary VI→JA result;
+      no-result is cached briefly and returned as typed `NO_RESULT`.
+- [x] Service tests cover Japanese/kana/compound behavior, Vietnamese input,
+      fallback, ranking/bounds, invalid/no-result, and cache reuse. Provider
+      timeout/failure mappings remain covered by TASK-410 boundary tests.
 
 Commit: `feat(dictionary): implement bidirectional lookup`
 
