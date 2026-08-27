@@ -1,7 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AttemptStatus, QuestionType, LiveExamAttemptDto } from '@japanese-learning/contracts';
 import { LIVE_ATTEMPT_QUERY_OPTIONS, createStudyQueryClient } from './query-client.js';
-import { getServerRemainingSeconds } from './live-attempt-policy.js';
+import {
+  clearActiveAttemptId,
+  clearExamAttemptPending,
+  getServerRemainingSeconds,
+  hasAnyActiveExamAttempt,
+  markExamAttemptPending,
+  writeActiveAttemptId,
+} from './live-attempt-policy.js';
 import { queryKeys } from './query-keys.js';
 import { assertLiveAttemptPayload } from './study-api.js';
 
@@ -31,6 +38,10 @@ const safeAttempt: LiveExamAttemptDto = {
 };
 
 describe('live attempt safety and freshness policy', () => {
+  afterEach(() => {
+    Reflect.deleteProperty(globalThis, 'window');
+  });
+
   it('recomputes the timer from the server expiry after restore', () => {
     const now = Date.parse('2026-08-26T00:00:00.000Z');
     expect(getServerRemainingSeconds(safeAttempt.expiresAt, now)).toBe(90);
@@ -72,5 +83,30 @@ describe('live attempt safety and freshness policy', () => {
       }),
     ).rejects.toThrow('forbidden correctness metadata');
     expect(queryClient.getQueryData(leakedKey)).toBeUndefined();
+  });
+
+  it('keeps the active-attempt lookup gate bounded and clears it after finalization', () => {
+    const values = new Map<string, string>();
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        sessionStorage: {
+          getItem: (key: string) => values.get(key) ?? null,
+          setItem: (key: string, value: string) => values.set(key, value),
+          removeItem: (key: string) => values.delete(key),
+        },
+        dispatchEvent: vi.fn(),
+      },
+    });
+    const examId = '77777777-7777-4777-8777-777777777777';
+    const attemptId = '88888888-8888-4888-8888-888888888888';
+
+    markExamAttemptPending(examId);
+    expect(hasAnyActiveExamAttempt()).toBe(true);
+    writeActiveAttemptId(examId, attemptId);
+    expect(hasAnyActiveExamAttempt()).toBe(true);
+    clearActiveAttemptId(examId);
+    clearExamAttemptPending(examId);
+    expect(hasAnyActiveExamAttempt()).toBe(false);
   });
 });

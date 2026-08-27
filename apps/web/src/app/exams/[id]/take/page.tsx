@@ -16,6 +16,7 @@ import {
   RotateCcw,
   Sparkles,
   Send,
+  Languages,
 } from 'lucide-react';
 import { AttemptStatus, ExamAttemptResultDto } from '@japanese-learning/contracts';
 import { apiClient, getApiErrorMessage } from '@/lib/api-client';
@@ -23,8 +24,10 @@ import { LIVE_ATTEMPT_QUERY_OPTIONS } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
 import { invalidateExamQueries } from '@/lib/query-invalidation';
 import {
+  clearExamAttemptPending,
   clearActiveAttemptId,
   getServerRemainingSeconds,
+  markExamAttemptPending,
   readActiveAttemptId,
   writeActiveAttemptId,
 } from '@/lib/live-attempt-policy';
@@ -87,6 +90,7 @@ export default function ExamTakePage() {
     : null;
 
   useEffect(() => {
+    markExamAttemptPending(examId);
     setAttemptContext({ examId, attemptId: readActiveAttemptId(examId) });
   }, [examId]);
 
@@ -94,10 +98,10 @@ export default function ExamTakePage() {
     const data = attemptData;
     if (!data || !examId) return;
 
-    if (data.status !== AttemptStatus.IN_PROGRESS && activeAttemptId) {
+    if (data.status !== AttemptStatus.IN_PROGRESS) {
       clearActiveAttemptId(examId);
       queryClient.removeQueries({
-        queryKey: queryKeys.liveAttempt(activeAttemptId),
+        queryKey: queryKeys.liveAttempt(data.attemptId),
         exact: true,
       });
       setAttemptContext({ examId, attemptId: null });
@@ -108,12 +112,17 @@ export default function ExamTakePage() {
       queryClient.setQueryData(queryKeys.liveAttempt(data.attemptId), data);
       writeActiveAttemptId(examId, data.attemptId);
       setAttemptContext({ examId, attemptId: data.attemptId });
+      clearExamAttemptPending(examId);
       queryClient.removeQueries({
         queryKey: queryKeys.liveAttempt(bootstrapAttemptKey),
         exact: true,
       });
     }
   }, [activeAttemptId, attemptData, bootstrapAttemptKey, examId, queryClient]);
+
+  useEffect(() => {
+    if (attemptQuery.error) clearExamAttemptPending(examId);
+  }, [attemptQuery.error, examId]);
 
   useEffect(() => {
     const data = attemptData;
@@ -488,6 +497,25 @@ export default function ExamTakePage() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <Link
+              href={`/exams/review/${result.attemptId}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.625rem 1.5rem',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(56, 189, 248, 0.1)',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                color: 'var(--accent-cyan)',
+                fontWeight: '600',
+                fontSize: '0.875rem',
+                textDecoration: 'none',
+              }}
+            >
+              <Languages size={16} />
+              <span>Open Review Workspace</span>
+            </Link>
             <button
               onClick={() => {
                 cancelAutosaves();

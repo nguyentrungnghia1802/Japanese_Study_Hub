@@ -19,6 +19,7 @@ import {
   normalizeLookupReturnPath,
   parseLookupDirection,
 } from '@/lib/lookup-helpers';
+import { ACTIVE_ATTEMPT_STATE_EVENT, hasAnyActiveExamAttempt } from '@/lib/live-attempt-policy';
 import LookupFlashcardDialog from '@/components/lookup/lookup-flashcard-dialog';
 import { getLookupPrimaryCard } from '@/components/lookup/lookup-results';
 import LookupResults from '@/components/lookup/lookup-results';
@@ -68,6 +69,7 @@ export default function LookupPage() {
   const [favoriteBusy, setFavoriteBusy] = useState(false);
   const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
+  const [attemptBlocked, setAttemptBlocked] = useState(false);
   const [flashcardDraft, setFlashcardDraft] = useState<{
     japanese: string;
     reading: string | null;
@@ -97,11 +99,18 @@ export default function LookupPage() {
     return () => window.removeEventListener('lookup:focus', focusLookup);
   }, []);
 
+  useEffect(() => {
+    const syncAttemptState = () => setAttemptBlocked(hasAnyActiveExamAttempt());
+    syncAttemptState();
+    window.addEventListener(ACTIVE_ATTEMPT_STATE_EVENT, syncAttemptState);
+    return () => window.removeEventListener(ACTIVE_ATTEMPT_STATE_EVENT, syncAttemptState);
+  }, []);
+
   const suggestionsQuery = useQuery({
     queryKey: queryKeys.dictionarySuggestions(debouncedQuery, direction, SUGGESTION_LIMIT),
     queryFn: ({ signal }) =>
       studyApi.dictionarySuggestions(debouncedQuery, direction, SUGGESTION_LIMIT, signal),
-    enabled: suggestionsOpen && debouncedQuery.length > 0,
+    enabled: !attemptBlocked && suggestionsOpen && debouncedQuery.length > 0,
     staleTime: CACHE_POLICY.search.staleTime,
     gcTime: CACHE_POLICY.search.gcTime,
   });
@@ -121,7 +130,7 @@ export default function LookupPage() {
         includeExamples,
         signal,
       ),
-    enabled: submittedQuery.length > 0,
+    enabled: !attemptBlocked && submittedQuery.length > 0,
     staleTime: CACHE_POLICY.search.staleTime,
     gcTime: CACHE_POLICY.search.gcTime,
   });
@@ -129,18 +138,24 @@ export default function LookupPage() {
   const historyQuery = useQuery<DictionaryLookupHistoryResponseDto>({
     queryKey: queryKeys.dictionaryHistory(10),
     queryFn: ({ signal }) => studyApi.dictionaryHistory(10, signal),
+    enabled: !attemptBlocked,
     staleTime: 30_000,
     gcTime: 5 * 60_000,
   });
   const favoritesQuery = useQuery<DictionaryFavoriteListResponseDto>({
     queryKey: queryKeys.dictionaryFavorites(20, 0),
     queryFn: ({ signal }) => studyApi.dictionaryFavorites(20, 0, signal),
+    enabled: !attemptBlocked,
     staleTime: 30_000,
     gcTime: 5 * 60_000,
   });
 
   const submitLookup = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (hasAnyActiveExamAttempt()) {
+      setAttemptBlocked(true);
+      return;
+    }
     const nextQuery = query.trim();
     if (!nextQuery) {
       inputRef.current?.focus();
@@ -152,6 +167,10 @@ export default function LookupPage() {
   };
 
   const selectSuggestion = (value: string) => {
+    if (hasAnyActiveExamAttempt()) {
+      setAttemptBlocked(true);
+      return;
+    }
     setQuery(value);
     setSubmittedQuery(value);
     setSuggestionsOpen(false);
@@ -254,6 +273,10 @@ export default function LookupPage() {
   };
 
   const selectSavedLookup = (nextQuery: string, nextDirection: DictionaryLookupDirection) => {
+    if (hasAnyActiveExamAttempt()) {
+      setAttemptBlocked(true);
+      return;
+    }
     setQuery(nextQuery);
     setSubmittedQuery(nextQuery);
     setDirection(nextDirection);
@@ -262,6 +285,10 @@ export default function LookupPage() {
   };
 
   const clearHistory = () => {
+    if (hasAnyActiveExamAttempt()) {
+      setAttemptBlocked(true);
+      return;
+    }
     if (!window.confirm('Xóa toàn bộ lịch sử tra cứu?')) return;
     void (async () => {
       try {
@@ -277,6 +304,10 @@ export default function LookupPage() {
   };
 
   const removeFavorite = (id: string) => {
+    if (hasAnyActiveExamAttempt()) {
+      setAttemptBlocked(true);
+      return;
+    }
     void (async () => {
       try {
         await studyApi.removeDictionaryFavorite(id);
@@ -297,6 +328,38 @@ export default function LookupPage() {
       }
     })();
   };
+
+  if (attemptBlocked) {
+    return (
+      <main
+        role="alert"
+        style={{ maxWidth: '760px', margin: '0 auto', padding: '5rem 1.5rem', textAlign: 'center' }}
+      >
+        <h1 style={{ color: 'var(--text-primary)', marginBottom: '0.75rem' }}>
+          Tra cứu đang tạm khóa
+        </h1>
+        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+          Bạn chỉ có thể dùng Lookup sau khi nộp bài và xem kết quả đã chấm. Bài thi hiện tại vẫn
+          được lưu trên máy chủ; hãy quay lại bài thi để tiếp tục.
+        </p>
+        <button
+          type="button"
+          onClick={() => router.back()}
+          style={{
+            marginTop: '1rem',
+            padding: '0.65rem 1rem',
+            borderRadius: 'var(--radius-md)',
+            border: 0,
+            background: 'var(--gradient-brand)',
+            color: '#fff',
+            fontWeight: 700,
+          }}
+        >
+          Quay lại bài thi
+        </button>
+      </main>
+    );
+  }
 
   return (
     <main

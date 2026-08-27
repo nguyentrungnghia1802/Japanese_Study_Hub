@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   BookOpen,
@@ -15,10 +15,19 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { PrefetchLink } from '@/components/navigation/prefetch-link';
+import { ACTIVE_ATTEMPT_STATE_EVENT, hasAnyActiveExamAttempt } from '@/lib/live-attempt-policy';
 
 export function Navbar() {
   const pathname = usePathname();
   const { user, logout, isAuthenticated } = useAuth();
+  const [hasActiveExamAttempt, setHasActiveExamAttempt] = useState(false);
+
+  useEffect(() => {
+    const sync = () => setHasActiveExamAttempt(hasAnyActiveExamAttempt());
+    sync();
+    window.addEventListener(ACTIVE_ATTEMPT_STATE_EVENT, sync);
+    return () => window.removeEventListener(ACTIVE_ATTEMPT_STATE_EVENT, sync);
+  }, []);
 
   if (!isAuthenticated || pathname === '/login') {
     return null;
@@ -99,6 +108,29 @@ export function Navbar() {
             const Icon = link.icon;
             const isActive =
               pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+            if (link.href === '/lookup' && hasActiveExamAttempt) {
+              return (
+                <span
+                  key={link.href}
+                  aria-disabled="true"
+                  title="Lookup is unavailable while an exam attempt is in progress."
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.5rem 0.875rem',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '0.875rem',
+                    color: 'var(--text-muted)',
+                    opacity: 0.7,
+                    cursor: 'not-allowed',
+                  }}
+                >
+                  <Icon size={16} />
+                  <span>Tra cứu (đang thi)</span>
+                </span>
+              );
+            }
             return (
               <PrefetchLink
                 key={link.href}
