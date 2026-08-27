@@ -1200,18 +1200,22 @@ Commit: `test(storage): verify phase 3 cache bounds`
 
 ## TASK-510 — Dictionary unit test completion
 
-- [ ] Direction auto-detection.
-- [ ] Japanese Unicode normalization.
-- [ ] Vietnamese diacritic preservation.
-- [ ] Empty/invalid query.
-- [ ] Provider normalization.
-- [ ] Provider timeout mapping.
-- [ ] Rate-limit mapping.
-- [ ] No-result behavior.
-- [ ] Single-kanji detection.
-- [ ] Kanji normalization.
-- [ ] Cache key normalization.
-- [ ] Cache TTL/max-size behavior.
+- [x] Direction auto-detection.
+- [x] Japanese Unicode normalization.
+- [x] Vietnamese diacritic preservation.
+- [x] Empty/invalid query.
+- [x] Provider normalization.
+- [x] Provider timeout mapping.
+- [x] Rate-limit mapping.
+- [x] No-result behavior.
+- [x] Single-kanji detection.
+- [x] Kanji normalization.
+- [x] Cache key normalization.
+- [x] Cache TTL/max-size behavior.
+
+Verification (2026-08-27): dictionary lookup/cache, provider adapter, provider
+HTTP boundary, and controller specs passed, including the Phase 3 bounded
+lookup stress and safe Retry-After/circuit assertions.
 
 Commit: `test(dictionary): add unit coverage`
 
