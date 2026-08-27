@@ -258,6 +258,13 @@ data class StartMistakePracticeRequest(
 )
 
 @Serializable
+data class CreateFlashcardRequest(
+    val front: String,
+    val back: String,
+    val position: Int? = null,
+)
+
+@Serializable
 data class GradedOptionDto(
     val id: String,
     val content: String,

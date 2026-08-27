@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -56,6 +57,7 @@ import com.japaneselearning.mobile.data.model.GradedQuestion
 @Composable
 fun ExamTakeScreen(
     onBack: () -> Unit,
+    onOpenLookup: () -> Unit,
     viewModel: ExamTakeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -66,7 +68,15 @@ fun ExamTakeScreen(
     when {
         state.isLoading -> LoadingState("Đang khôi phục bài thi…")
         state.error != null && state.attempt == null -> ErrorState(state.error ?: "Không thể bắt đầu bài thi.", viewModel::retry)
-        state.result != null -> ExamResultScreen(state.result!!, onBack)
+        state.result != null -> ExamResultScreen(
+            result = state.result!!,
+            onBack = onBack,
+            onOpenLookup = onOpenLookup,
+            filter = state.reviewFilter,
+            reviewIndex = state.reviewIndex,
+            onFilterChanged = viewModel::setReviewFilter,
+            onIndexChanged = viewModel::setReviewIndex,
+        )
         state.attempt == null -> EmptyState("Không thể bắt đầu", "Bài thi chưa sẵn sàng.")
         else -> {
             val attempt = state.attempt!!
@@ -186,12 +196,29 @@ fun ExamTakeScreen(
 }
 
 @Composable
-private fun ExamResultScreen(result: ExamResult, onBack: () -> Unit) {
+private fun ExamResultScreen(
+    result: ExamResult,
+    onBack: () -> Unit,
+    onOpenLookup: () -> Unit,
+    filter: ReviewFilter,
+    reviewIndex: Int,
+    onFilterChanged: (ReviewFilter) -> Unit,
+    onIndexChanged: (Int) -> Unit,
+) {
+    val filteredQuestions = result.questions.withIndex().filter { (_, question) ->
+        ReviewFilterLogic.matches(filter, question)
+    }
+    val selectedQuestion = filteredQuestions.getOrNull(reviewIndex.coerceIn(0, (filteredQuestions.size - 1).coerceAtLeast(0)))
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Kết quả") },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.Close, "Đóng") } },
+                actions = {
+                    IconButton(onClick = onOpenLookup) {
+                        Icon(Icons.Default.Search, "Tra cứu")
+                    }
+                },
             )
         },
     ) { padding ->
@@ -214,13 +241,55 @@ private fun ExamResultScreen(result: ExamResult, onBack: () -> Unit) {
                 }
             }
             item { Text("Xem lại câu trả lời", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
-            itemsIndexed(result.questions) { index, question -> GradedQuestionCard(index, question) }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    ReviewFilter.values().forEach { option ->
+                        FilterChip(
+                            selected = filter == option,
+                            onClick = { onFilterChanged(option) },
+                            label = {
+                                Text(
+                                    when (option) {
+                                        ReviewFilter.ALL -> "Tất cả (${result.questions.size})"
+                                        ReviewFilter.WRONG -> "Sai (${result.questions.count { ReviewFilterLogic.matches(ReviewFilter.WRONG, it) }})"
+                                        ReviewFilter.UNANSWERED -> "Chưa trả lời (${result.questions.count { ReviewFilterLogic.matches(ReviewFilter.UNANSWERED, it) }})"
+                                    },
+                                )
+                            },
+                        )
+                    }
+                }
+            }
+            if (filteredQuestions.isEmpty()) {
+                item { EmptyState("Không có câu phù hợp", "Bộ lọc này không có câu hỏi để xem lại.") }
+            } else {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        filteredQuestions.forEachIndexed { index, indexedQuestion ->
+                            FilterChip(
+                                selected = index == reviewIndex,
+                                onClick = { onIndexChanged(index) },
+                                label = { Text("Câu ${indexedQuestion.index + 1}") },
+                            )
+                        }
+                    }
+                }
+                selectedQuestion?.let { (index, question) ->
+                    item { GradedQuestionCard(index, question, onOpenLookup) }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun GradedQuestionCard(index: Int, question: GradedQuestion) {
+private fun GradedQuestionCard(index: Int, question: GradedQuestion, onOpenLookup: (() -> Unit)? = null) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -249,6 +318,13 @@ private fun GradedQuestionCard(index: Int, question: GradedQuestion) {
                     "${('A'.code + optionIndex).toChar()}. ${option.content}${if (option.isCorrect) "  ✓" else if (selected) "  ✕" else ""}",
                     color = tint,
                 )
+            }
+            if (onOpenLookup != null) {
+                OutlinedButton(onClick = onOpenLookup, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Search, contentDescription = null)
+                    Spacer(Modifier.size(8.dp))
+                    Text("Tra cứu thêm")
+                }
             }
         }
     }

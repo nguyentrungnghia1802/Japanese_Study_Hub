@@ -20,6 +20,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+enum class ReviewFilter {
+    ALL,
+    WRONG,
+    UNANSWERED,
+}
+
+object ReviewFilterLogic {
+    fun matches(filter: ReviewFilter, question: com.japaneselearning.mobile.data.model.GradedQuestion): Boolean = when (filter) {
+        ReviewFilter.ALL -> true
+        ReviewFilter.WRONG -> !question.isCorrect && question.selectedOptionId != null
+        ReviewFilter.UNANSWERED -> question.selectedOptionId == null
+    }
+}
+
 data class ExamTakeUiState(
     val isLoading: Boolean = true,
     val attempt: LiveAttempt? = null,
@@ -27,13 +41,15 @@ data class ExamTakeUiState(
     val answers: Map<String, String?> = emptyMap(),
     val remainingSeconds: Long? = null,
     val result: ExamResult? = null,
+    val reviewFilter: ReviewFilter = ReviewFilter.ALL,
+    val reviewIndex: Int = 0,
     val isSubmitting: Boolean = false,
     val error: String? = null,
 )
 
 @HiltViewModel
 class ExamTakeViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle,
     private val repository: StudyRepository,
     private val attemptStore: AttemptStore,
 ) : ViewModel() {
@@ -58,6 +74,8 @@ class ExamTakeViewModel @Inject constructor(
                     attempt = attempt,
                     answers = answers,
                     remainingSeconds = calculateRemaining(attempt.expiresAt),
+                    reviewFilter = savedReviewFilter(),
+                    reviewIndex = savedStateHandle.get<Int>(KEY_REVIEW_INDEX) ?: 0,
                 )
                 attemptStore.saveActiveAttempt(examId, attempt.attemptId)
                 startTimer(attempt)
@@ -112,6 +130,19 @@ class ExamTakeViewModel @Inject constructor(
 
     fun retry() = loadAttempt()
 
+    fun setReviewFilter(filter: ReviewFilter) {
+        savedStateHandle[KEY_REVIEW_FILTER] = filter.name
+        savedStateHandle[KEY_REVIEW_INDEX] = 0
+        _state.update { it.copy(reviewFilter = filter, reviewIndex = 0) }
+    }
+
+    fun setReviewIndex(index: Int) {
+        val size = filteredQuestionCount(_state.value.result, _state.value.reviewFilter)
+        if (index !in 0 until size) return
+        savedStateHandle[KEY_REVIEW_INDEX] = index
+        _state.update { it.copy(reviewIndex = index) }
+    }
+
     override fun onCleared() {
         timerJob?.cancel()
         super.onCleared()
@@ -155,5 +186,18 @@ class ExamTakeViewModel @Inject constructor(
         if (expiresAt == null) return null
         val expiryMillis = runCatching { Instant.parse(expiresAt).toEpochMilli() }.getOrNull() ?: return null
         return ExamSessionLogic.remainingSeconds(expiryMillis, System.currentTimeMillis())
+    }
+
+    private fun savedReviewFilter(): ReviewFilter =
+        savedStateHandle.get<String>(KEY_REVIEW_FILTER)
+            ?.let { value -> runCatching { ReviewFilter.valueOf(value) }.getOrNull() }
+            ?: ReviewFilter.ALL
+
+    private fun filteredQuestionCount(result: ExamResult?, filter: ReviewFilter): Int =
+        result?.questions?.count { question -> ReviewFilterLogic.matches(filter, question) } ?: 0
+
+    private companion object {
+        const val KEY_REVIEW_FILTER = "exam_review_filter"
+        const val KEY_REVIEW_INDEX = "exam_review_index"
     }
 }

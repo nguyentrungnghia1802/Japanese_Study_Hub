@@ -326,6 +326,13 @@ The dated integration, Web E2E, and Android emulator evidence is kept in
 `docs/testing/phase2-android-e2e-2026-08-27.md`. These records distinguish local
 verification from owner-controlled production gates.
 
+Phase 3 Android continuity unit coverage includes exact flashcard-order
+recovery (including changed/deleted-card fallback) and submitted-review filter
+semantics. The Android build also compiles the Lookup route, server-backed
+history/favorites/actions, active-attempt gate, and submitted-review state.
+The device-only portion still requires the Android emulator/device gate in the
+command above.
+
 ---
 
 ## 17. Definition of test completion

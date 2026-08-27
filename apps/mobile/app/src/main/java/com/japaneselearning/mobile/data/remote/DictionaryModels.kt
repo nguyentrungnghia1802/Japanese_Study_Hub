@@ -85,3 +85,55 @@ data class DictionarySuggestionResponseDto(
     val suggestions: List<DictionarySuggestionDto> = emptyList(),
     val source: DictionarySourceAttributionDto,
 )
+
+@Serializable
+data class DictionaryHistoryItemDto(
+    val id: String,
+    val query: String,
+    val direction: DictionaryLookupDirectionDto,
+    val primaryLabel: String? = null,
+    val createdAt: String,
+)
+
+@Serializable
+data class DictionaryHistoryResponseDto(
+    val items: List<DictionaryHistoryItemDto> = emptyList(),
+    val total: Int = 0,
+)
+
+@Serializable
+data class DictionaryFavoriteDto(
+    val id: String,
+    val term: String,
+    val reading: String? = null,
+    val meaningSummary: String,
+    val direction: DictionaryLookupDirectionDto,
+    val sourceProvider: String,
+    val sourceName: String,
+    val sourceUrl: String,
+    val sourceLicense: String? = null,
+    val sourceAttribution: String,
+    val createdAt: String,
+    val updatedAt: String,
+)
+
+@Serializable
+data class DictionaryFavoriteListResponseDto(
+    val items: List<DictionaryFavoriteDto> = emptyList(),
+    val total: Int = 0,
+    val limit: Int = 20,
+    val offset: Int = 0,
+)
+
+@Serializable
+data class SaveDictionaryFavoriteRequest(
+    val term: String,
+    val reading: String? = null,
+    val meaningSummary: String,
+    val direction: DictionaryLookupDirectionDto,
+    val sourceProvider: String,
+    val sourceName: String,
+    val sourceUrl: String,
+    val sourceLicense: String? = null,
+    val sourceAttribution: String,
+)

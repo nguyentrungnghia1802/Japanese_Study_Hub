@@ -655,15 +655,26 @@ Submitted Exam review state:
 
 Checklist:
 
-- [ ] Use URL state + bounded in-memory/session metadata where appropriate.
-- [ ] Do not persist huge API payloads.
-- [ ] Keep authoritative content on server/Phase 2 query cache.
-- [ ] Define expiry/cleanup.
-- [ ] Define browser refresh and Back/Forward behavior.
+- [x] Use URL state + bounded in-memory/session metadata where appropriate.
+- [x] Do not persist huge API payloads.
+- [x] Keep authoritative content on server/Phase 2 query cache.
+- [x] Define expiry/cleanup.
+- [x] Define browser refresh and Back/Forward behavior.
 
 Acceptance criteria:
 
 - Continuity behavior is explicit before UI implementation.
+
+Verification (2026-08-27):
+
+- [x] `apps/web/src/lib/continuity.ts` stores only bounded IDs/metadata in
+      session storage, caps the card order at 500 IDs/32 KiB, expires entries
+      after 30 minutes, and rejects malformed or unsafe return paths.
+- [x] Web tests cover normal/shuffled Front/Back state, expiry, no payload
+      persistence, and changed/deleted-card fallback. Web typecheck, lint, and
+      full test suite passed.
+- [x] Architecture and testing documentation define refresh, Back/Forward,
+      missing-resource fallback, and the submitted-review server boundary.
 
 Commit: `docs(ux): define lookup continuity state`
 
@@ -671,27 +682,36 @@ Commit: `docs(ux): define lookup continuity state`
 
 ## TASK-451 — Preserve Flashcard study state around Lookup on Web
 
-- [ ] Allow Lookup while studying Flashcards.
-- [ ] Preserve current card.
-- [ ] Preserve Front/Back side.
-- [ ] Preserve shuffle order/session.
-- [ ] Preserve progress.
-- [ ] Preserve safe `returnTo`.
-- [ ] Return to exact prior study position.
-- [ ] Avoid unnecessary refetch on warm return.
-- [ ] Recover safely if underlying set/card changed/deleted.
-- [ ] Clear invalid/expired continuity state.
+- [x] Allow Lookup while studying Flashcards.
+- [x] Preserve current card.
+- [x] Preserve Front/Back side.
+- [x] Preserve shuffle order/session.
+- [x] Preserve progress.
+- [x] Preserve safe `returnTo`.
+- [x] Return to exact prior study position.
+- [x] Avoid unnecessary refetch on warm return.
+- [x] Recover safely if underlying set/card changed/deleted.
+- [x] Clear invalid/expired continuity state.
 
 Mandatory tests:
 
-- [ ] Normal order.
-- [ ] Shuffle order.
-- [ ] Front/Back.
-- [ ] Changed/deleted card fallback.
+- [x] Normal order.
+- [x] Shuffle order.
+- [x] Front/Back.
+- [x] Changed/deleted card fallback.
 
 Acceptance criteria:
 
 - `Flashcard → Lookup → Back` restores the exact study state.
+
+Verification (2026-08-27):
+
+- [x] Study mode persists the current card ID/index, ordered IDs, side,
+      shuffle/completion state, progress, and a bounded return path; the set
+      query remains warm for 45 seconds/5 minutes and authoritative card text
+      is re-read from the API/query cache.
+- [x] The continuity suite passed 3 tests, and the complete Web suite passed
+      21 files/44 tests with typecheck and lint green.
 
 Commit: `feat(web): preserve flashcard lookup continuity`
 
@@ -703,19 +723,31 @@ Owner rule:
 
 > Lookup is only allowed from Exam after the exam is finished and the user is reviewing submitted answers/mistakes.
 
-- [ ] Detect `IN_PROGRESS` attempt state.
-- [ ] Hide/disable Lookup navigation while taking an exam.
-- [ ] Disable Quick Lookup during active attempt.
-- [ ] Show a clear message for blocked in-app actions.
-- [ ] Preserve server-backed attempt restore after accidental refresh/navigation.
-- [ ] Do not attempt impossible browser-wide blocking of other tabs/sites.
-- [ ] Do not change server-authoritative timer.
-- [ ] Do not expose answers.
-- [ ] Add regression tests.
+- [x] Detect `IN_PROGRESS` attempt state.
+- [x] Hide/disable Lookup navigation while taking an exam.
+- [x] Disable Quick Lookup during active attempt.
+- [x] Show a clear message for blocked in-app actions.
+- [x] Preserve server-backed attempt restore after accidental refresh/navigation.
+- [x] Do not attempt impossible browser-wide blocking of other tabs/sites.
+- [x] Do not change server-authoritative timer.
+- [x] Do not expose answers.
+- [x] Add regression tests.
 
 Acceptance criteria:
 
 - Normal in-app navigation cannot open Lookup from an unfinished exam.
+
+Verification (2026-08-27):
+
+- [x] Navbar, Quick Lookup, and the Lookup route all honor the bounded
+      per-tab active/pending attempt marker; blocked actions show an explicit
+      message. Pending markers expire after two minutes and finalization clears
+      the marker.
+- [x] Live-attempt query policy remains zero-stale/zero-gc, server expiry still
+      drives the countdown, and live payload validation still rejects answer-key
+      metadata. Web tests passed 21 files/44 tests plus typecheck/lint.
+- [x] The implementation documents that other browser tabs/sites are outside
+      this in-app navigation boundary.
 
 Commit: `feat(exams): restrict lookup during active attempts`
 
@@ -723,19 +755,30 @@ Commit: `feat(exams): restrict lookup during active attempts`
 
 ## TASK-453 — Preserve submitted Exam review state around Lookup on Web
 
-- [ ] Enable Lookup only after submission/finalization.
-- [ ] Allow from full result review, wrong-answer review, and unanswered review.
-- [ ] Preserve attempt ID.
-- [ ] Preserve current review question.
-- [ ] Preserve review filter.
-- [ ] Preserve scroll/list position where practical.
-- [ ] Return to exact prior review context.
-- [ ] Use graded server data only.
-- [ ] Handle missing/deleted attempt gracefully.
+- [x] Enable Lookup only after submission/finalization.
+- [x] Allow from full result review, wrong-answer review, and unanswered review.
+- [x] Preserve attempt ID.
+- [x] Preserve current review question.
+- [x] Preserve review filter.
+- [x] Preserve scroll/list position where practical.
+- [x] Return to exact prior review context.
+- [x] Use graded server data only.
+- [x] Handle missing/deleted attempt gracefully.
 
 Acceptance criteria:
 
 - `Submitted review → Lookup → Back` restores the same reviewed question/filter.
+
+Verification (2026-08-27):
+
+- [x] Added authenticated `GET /attempts/{attemptId}/result`, which rejects
+      non-submitted attempts and reloads immutable graded data for the review
+      route. Missing/deleted attempts render a safe unavailable state.
+- [x] Review workspace persists only attempt/exam/version, question ID, filter,
+      bounded scroll position, and safe return path. It exposes Lookup from the
+      full result, wrong-answer, and unanswered filters.
+- [x] API tests passed 30 files/149 tests (2 documented integration skips),
+      Web tests passed 21 files/44 tests, and both typechecks/lint passed.
 
 Commit: `feat(web): preserve exam review lookup continuity`
 
@@ -745,16 +788,16 @@ Commit: `feat(web): preserve exam review lookup continuity`
 
 ## TASK-460 — Add Lookup to Android
 
-- [ ] Add Lookup to Compose navigation.
-- [ ] Add query input.
-- [ ] Support AUTO/JA→VI/VI→JA.
-- [ ] Add debounced suggestions.
-- [ ] Render vocabulary result.
-- [ ] Render kanji detail.
-- [ ] Render examples.
-- [ ] Add loading/no-result/error/retry.
-- [ ] Show attribution.
-- [ ] Call only project backend APIs.
+- [x] Add Lookup to Compose navigation.
+- [x] Add query input.
+- [x] Support AUTO/JA→VI/VI→JA.
+- [x] Add debounced suggestions.
+- [x] Render vocabulary result.
+- [x] Render kanji detail.
+- [x] Render examples.
+- [x] Add loading/no-result/error/retry.
+- [x] Show attribution.
+- [x] Call only project backend APIs.
 
 Acceptance criteria:
 
@@ -762,32 +805,43 @@ Acceptance criteria:
 
 Commit: `feat(android): add lookup module`
 
+Verification (2026-08-27): Android Compose navigation, backend-only dictionary
+repository calls, bounded suggestion debounce, normalized result rendering and
+attribution are implemented. `:app:compileDebugKotlin`, `:app:testDebugUnitTest`,
+`:app:lintDebug`, `:app:assembleDebug`, `:app:assembleProduction`, and
+`:app:verifyApiBaseUrls` passed with the local Android SDK.
+
 ---
 
 ## TASK-461 — Add Android history/favorites/Add-to-Flashcard
 
-- [ ] Show bounded shared lookup history.
-- [ ] Add clear-history.
-- [ ] Add dictionary favorites.
-- [ ] Add Add-to-Flashcard.
-- [ ] Reuse server persistence.
-- [ ] Integrate with existing Android cache only where safe.
-- [ ] Do not mirror the entire external dictionary into Room.
+- [x] Show bounded shared lookup history.
+- [x] Add clear-history.
+- [x] Add dictionary favorites.
+- [x] Add Add-to-Flashcard.
+- [x] Reuse server persistence.
+- [x] Integrate with existing Android cache only where safe.
+- [x] Do not mirror the entire external dictionary into Room.
 
 Commit: `feat(android): complete lookup productivity features`
+
+Verification (2026-08-27): History/favorites and flashcard creation use the
+shared API contracts; UI limits displayed data and no dictionary payload is
+written to Room. The Android compile/unit/lint/debug-production build gates
+listed under TASK-460 passed.
 
 ---
 
 ## TASK-462 — Preserve Android Flashcard continuity around Lookup
 
-- [ ] Preserve current card.
-- [ ] Preserve Front/Back.
-- [ ] Preserve shuffle order.
-- [ ] Preserve progress.
-- [ ] Navigate to Lookup and return.
-- [ ] Survive normal configuration changes.
-- [ ] Keep saved state compact.
-- [ ] Recover safely after underlying data changes.
+- [x] Preserve current card.
+- [x] Preserve Front/Back.
+- [x] Preserve shuffle order.
+- [x] Preserve progress.
+- [x] Navigate to Lookup and return.
+- [x] Survive normal configuration changes.
+- [x] Keep saved state compact.
+- [x] Recover safely after underlying data changes.
 
 Acceptance criteria:
 
@@ -795,22 +849,35 @@ Acceptance criteria:
 
 Commit: `feat(android): preserve flashcard lookup continuity`
 
+Verification (2026-08-27): `SavedStateHandle` stores only bounded card IDs,
+index, side and shuffle metadata. Exact-permutation restore and changed/deleted
+card fallback are covered by `StudySessionLogicTest`; Android compile/unit/lint
+gates passed.
+
 ---
 
 ## TASK-463 — Restrict active Exam Lookup and preserve submitted review on Android
 
-- [ ] Hide/disable Lookup while exam is in progress.
-- [ ] Preserve normal server-backed attempt restoration.
-- [ ] Enable Lookup after submission.
-- [ ] Preserve current submitted review question/filter.
-- [ ] Restore exact review state after Lookup.
-- [ ] Preserve timer and no-answer-leakage invariants.
+- [x] Hide/disable Lookup while exam is in progress.
+- [x] Preserve normal server-backed attempt restoration.
+- [x] Enable Lookup after submission.
+- [x] Preserve current submitted review question/filter.
+- [x] Restore exact review state after Lookup.
+- [x] Preserve timer and no-answer-leakage invariants.
 
 Acceptance criteria:
 
 - Android behavior matches Web.
 
 Commit: `feat(android): preserve exam lookup continuity`
+
+Verification (2026-08-27): A bounded `AttemptStore.activeAttempts` flow disables
+the Lookup destination and direct screen while an official attempt is active;
+the existing persisted attempt/timer path remains unchanged. Submitted review
+state is saved in `SavedStateHandle` and filters use graded result data only.
+`:app:compileDebugKotlin`, `:app:testDebugUnitTest`, `:app:lintDebug`,
+`:app:assembleDebug`, `:app:assembleProduction`, and `:app:verifyApiBaseUrls`
+passed.
 
 ---
 

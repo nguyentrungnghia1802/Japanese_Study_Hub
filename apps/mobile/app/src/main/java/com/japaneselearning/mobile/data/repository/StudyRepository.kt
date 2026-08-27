@@ -4,9 +4,17 @@ import com.japaneselearning.mobile.core.network.ApiErrorMapper
 import com.japaneselearning.mobile.core.storage.TokenStore
 import com.japaneselearning.mobile.data.cache.StudyReadCache
 import com.japaneselearning.mobile.data.model.DashboardSummary
+import com.japaneselearning.mobile.data.model.DictionaryFavorite
+import com.japaneselearning.mobile.data.model.DictionaryFavoriteDraft
+import com.japaneselearning.mobile.data.model.DictionaryFavorites
+import com.japaneselearning.mobile.data.model.DictionaryHistory
+import com.japaneselearning.mobile.data.model.DictionaryLookup
+import com.japaneselearning.mobile.data.model.DictionaryLookupDirection
+import com.japaneselearning.mobile.data.model.DictionarySuggestions
 import com.japaneselearning.mobile.data.model.Exam
 import com.japaneselearning.mobile.data.model.ExamFolder
 import com.japaneselearning.mobile.data.model.ExamResult
+import com.japaneselearning.mobile.data.model.Flashcard
 import com.japaneselearning.mobile.data.model.FlashcardReviewCard
 import com.japaneselearning.mobile.data.model.FlashcardReviewQueue
 import com.japaneselearning.mobile.data.model.FlashcardReviewRating
@@ -20,6 +28,7 @@ import com.japaneselearning.mobile.data.model.User
 import com.japaneselearning.mobile.data.model.WrongAnswerReviewItem
 import com.japaneselearning.mobile.data.model.WrongAnswerReviewQueue
 import com.japaneselearning.mobile.data.remote.AnswerDto
+import com.japaneselearning.mobile.data.remote.CreateFlashcardRequest
 import com.japaneselearning.mobile.data.remote.DashboardDto
 import com.japaneselearning.mobile.data.remote.ExamDto
 import com.japaneselearning.mobile.data.remote.ExamFolderDto
@@ -97,6 +106,8 @@ interface StudyRepository {
 
     suspend fun submitAttempt(attemptId: String, answers: Map<String, String?>): ExamResult
 
+    suspend fun getSubmittedAttemptResult(attemptId: String): ExamResult = error("unused")
+
     suspend fun startMistakePractice(examId: String, mistakeIds: List<String>): LiveAttempt
 
     suspend fun getWrongAnswerReviewQueue(limit: Int = 20): WrongAnswerReviewQueue
@@ -104,6 +115,31 @@ interface StudyRepository {
     suspend fun dismissWrongAnswer(mistakeId: String)
 
     suspend fun clearWrongAnswers(examId: String? = null)
+
+    suspend fun dictionaryLookup(
+        query: String,
+        direction: DictionaryLookupDirection = DictionaryLookupDirection.AUTO,
+        limit: Int = 20,
+        includeExamples: Boolean = false,
+    ): DictionaryLookup = error("unused")
+
+    suspend fun dictionarySuggestions(
+        query: String,
+        direction: DictionaryLookupDirection = DictionaryLookupDirection.AUTO,
+        limit: Int = 10,
+    ): DictionarySuggestions = error("unused")
+
+    suspend fun dictionaryHistory(limit: Int = 10): DictionaryHistory = error("unused")
+
+    suspend fun clearDictionaryHistory(): Unit = error("unused")
+
+    suspend fun dictionaryFavorites(limit: Int = 20, offset: Int = 0): DictionaryFavorites = error("unused")
+
+    suspend fun saveDictionaryFavorite(draft: DictionaryFavoriteDraft): DictionaryFavorite = error("unused")
+
+    suspend fun removeDictionaryFavorite(favoriteId: String): Unit = error("unused")
+
+    suspend fun createFlashcard(setId: String, front: String, back: String): Flashcard = error("unused")
 
     suspend fun getDashboard(): DashboardSummary
 
@@ -248,6 +284,9 @@ class StudyRepositoryImpl @Inject constructor(
         return mapResult(request { api.submitAttempt(attemptId, request) })
     }
 
+    override suspend fun getSubmittedAttemptResult(attemptId: String): ExamResult =
+        mapResult(request { api.getSubmittedAttemptResult(attemptId) })
+
     override suspend fun startMistakePractice(examId: String, mistakeIds: List<String>): LiveAttempt =
         mapAttempt(request { api.startMistakePractice(StartMistakePracticeRequest(examId, mistakeIds)) })
 
@@ -265,6 +304,72 @@ class StudyRepositoryImpl @Inject constructor(
 
     override suspend fun clearWrongAnswers(examId: String?) {
         request { api.clearWrongAnswers(examId) }
+    }
+
+    override suspend fun dictionaryLookup(
+        query: String,
+        direction: DictionaryLookupDirection,
+        limit: Int,
+        includeExamples: Boolean,
+    ): DictionaryLookup = request {
+        api.dictionaryLookup(
+            query = query.trim(),
+            direction = direction.toRemote(),
+            limit = limit.coerceIn(1, 20),
+            includeExamples = includeExamples,
+        ).toDomain()
+    }
+
+    override suspend fun dictionarySuggestions(
+        query: String,
+        direction: DictionaryLookupDirection,
+        limit: Int,
+    ): DictionarySuggestions = request {
+        api.dictionarySuggestions(
+            query = query.trim(),
+            direction = direction.toRemote(),
+            limit = limit.coerceIn(1, 10),
+        ).toDomain()
+    }
+
+    override suspend fun dictionaryHistory(limit: Int): DictionaryHistory = request {
+        val response = api.dictionaryHistory(limit.coerceIn(1, 100))
+        DictionaryHistory(
+            items = response.items.take(100).map { it.toDomain() },
+            total = response.total,
+        )
+    }
+
+    override suspend fun clearDictionaryHistory() {
+        request { api.clearDictionaryHistory() }
+    }
+
+    override suspend fun dictionaryFavorites(limit: Int, offset: Int): DictionaryFavorites = request {
+        api.dictionaryFavorites(limit.coerceIn(1, 100), offset.coerceIn(0, 10_000)).toDomain()
+    }
+
+    override suspend fun saveDictionaryFavorite(draft: DictionaryFavoriteDraft): DictionaryFavorite = request {
+        api.saveDictionaryFavorite(
+            com.japaneselearning.mobile.data.remote.SaveDictionaryFavoriteRequest(
+                term = draft.term,
+                reading = draft.reading,
+                meaningSummary = draft.meaningSummary,
+                direction = draft.direction.toRemote(),
+                sourceProvider = draft.source.provider,
+                sourceName = draft.source.name,
+                sourceUrl = draft.source.url,
+                sourceLicense = draft.source.license,
+                sourceAttribution = draft.source.attribution,
+            ),
+        ).toDomain()
+    }
+
+    override suspend fun removeDictionaryFavorite(favoriteId: String) {
+        request { api.removeDictionaryFavorite(favoriteId) }
+    }
+
+    override suspend fun createFlashcard(setId: String, front: String, back: String): Flashcard = request {
+        mapCard(api.createFlashcard(setId, CreateFlashcardRequest(front = front, back = back)))
     }
 
     override suspend fun getDashboard(): DashboardSummary {

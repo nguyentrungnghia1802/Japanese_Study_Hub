@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -40,6 +41,7 @@ import com.japaneselearning.mobile.core.ui.LoadingState
 @Composable
 fun FlashcardStudyScreen(
     onBack: () -> Unit,
+    onOpenLookup: () -> Unit,
     viewModel: StudyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -51,6 +53,9 @@ fun FlashcardStudyScreen(
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Quay lại") }
                 },
                 actions = {
+                    IconButton(onClick = onOpenLookup) {
+                        Icon(Icons.Default.Search, "Tra cứu")
+                    }
                     IconButton(onClick = viewModel::shuffle) {
                         Icon(Icons.Default.Shuffle, "Trộn thẻ")
                     }

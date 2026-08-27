@@ -35,12 +35,14 @@ import com.japaneselearning.mobile.feature.dashboard.DashboardScreen
 import com.japaneselearning.mobile.feature.exams.ExamDetailScreen
 import com.japaneselearning.mobile.feature.exams.ExamTakeScreen
 import com.japaneselearning.mobile.feature.exams.ExamsScreen
+import com.japaneselearning.mobile.feature.exams.AttemptGateViewModel
 import com.japaneselearning.mobile.feature.exams.MistakesScreen
 import com.japaneselearning.mobile.feature.exams.PracticeScreen
 import com.japaneselearning.mobile.feature.flashcards.FlashcardDetailScreen
 import com.japaneselearning.mobile.feature.flashcards.FlashcardStudyScreen
 import com.japaneselearning.mobile.feature.flashcards.FlashcardReviewScreen
 import com.japaneselearning.mobile.feature.flashcards.FlashcardsScreen
+import com.japaneselearning.mobile.feature.lookup.DictionaryScreen
 import com.japaneselearning.mobile.feature.search.SearchScreen
 
 object Routes {
@@ -54,6 +56,7 @@ object Routes {
     const val EXAM_PRACTICE = "exam-practice/{examId}/{mistakeIds}"
     const val EXAM_DETAIL = "exam/{examId}"
     const val EXAM_TAKE = "exam/{examId}/take"
+    const val LOOKUP = "lookup"
     const val SEARCH = "search"
 }
 
@@ -74,12 +77,15 @@ private fun AuthenticatedApp(onLogout: () -> Unit) {
     val navController = rememberNavController()
     val entry by navController.currentBackStackEntryAsState()
     val route = entry?.destination?.route
+    val attemptGateViewModel: AttemptGateViewModel = hiltViewModel()
+    val hasActiveAttempt by attemptGateViewModel.hasActiveAttempt.collectAsStateWithLifecycle()
     val topLevel = remember {
         listOf(
         BottomDestination(Routes.DASHBOARD, "Tổng quan") { Icon(Icons.Default.Dashboard, null) },
         BottomDestination(Routes.FLASHCARDS, "Bộ thẻ") { Icon(Icons.Default.Style, null) },
         BottomDestination(Routes.REVIEW, "Ôn tập") { Icon(Icons.Default.Replay, null) },
         BottomDestination(Routes.EXAMS, "Đề thi") { Icon(Icons.Default.FolderCopy, null) },
+        BottomDestination(Routes.LOOKUP, "Tra cứu") { Icon(Icons.Default.Search, null) },
         BottomDestination(Routes.SEARCH, "Tìm kiếm") { Icon(Icons.Default.Search, null) },
         )
     }
@@ -93,21 +99,24 @@ private fun AuthenticatedApp(onLogout: () -> Unit) {
                         NavigationBarItem(
                             selected = route == destination.route,
                             onClick = {
-                                navController.navigate(destination.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
+                                if (destination.route != Routes.LOOKUP || !hasActiveAttempt) {
+                                    navController.navigate(destination.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
                             },
                             icon = destination.icon,
                             label = { Text(destination.label) },
+                            enabled = destination.route != Routes.LOOKUP || !hasActiveAttempt,
                         )
                     }
                 }
             }
         },
     ) { padding ->
-        StudyNavHost(navController, Modifier.padding(padding), onLogout)
+        StudyNavHost(navController, Modifier.padding(padding), onLogout, hasActiveAttempt)
     }
 }
 
@@ -116,6 +125,7 @@ private fun StudyNavHost(
     navController: NavHostController,
     modifier: Modifier,
     onLogout: () -> Unit,
+    activeExamBlocked: Boolean,
 ) {
     NavHost(
         navController = navController,
@@ -148,7 +158,10 @@ private fun StudyNavHost(
             Routes.FLASHCARD_STUDY,
             arguments = listOf(navArgument("setId") { type = NavType.StringType }),
         ) {
-            FlashcardStudyScreen(onBack = { navController.popBackStack() })
+            FlashcardStudyScreen(
+                onBack = { navController.popBackStack() },
+                onOpenLookup = { navController.navigate(Routes.LOOKUP) },
+            )
         }
         composable(Routes.EXAMS) {
             ExamsScreen(
@@ -186,13 +199,19 @@ private fun StudyNavHost(
             Routes.EXAM_TAKE,
             arguments = listOf(navArgument("examId") { type = NavType.StringType }),
         ) {
-            ExamTakeScreen(onBack = { navController.popBackStack() })
+            ExamTakeScreen(
+                onBack = { navController.popBackStack() },
+                onOpenLookup = { navController.navigate(Routes.LOOKUP) },
+            )
         }
         composable(Routes.SEARCH) {
             SearchScreen(
                 onOpenFlashcard = { setId -> navController.navigate("flashcard/$setId") },
                 onOpenExam = { examId -> navController.navigate("exam/$examId") },
             )
+        }
+        composable(Routes.LOOKUP) {
+            DictionaryScreen(activeExamBlocked = activeExamBlocked)
         }
     }
 }

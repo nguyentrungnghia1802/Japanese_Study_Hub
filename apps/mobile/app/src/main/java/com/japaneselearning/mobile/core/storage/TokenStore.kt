@@ -1,6 +1,7 @@
 package com.japaneselearning.mobile.core.storage
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 interface TokenStore {
     val token: Flow<String?>
@@ -15,6 +16,9 @@ interface TokenStore {
 }
 
 interface AttemptStore {
+    val activeAttempts: Flow<Set<String>>
+        get() = flowOf(emptySet())
+
     suspend fun readActiveAttempt(examId: String): String?
 
     suspend fun saveActiveAttempt(examId: String, attemptId: String)

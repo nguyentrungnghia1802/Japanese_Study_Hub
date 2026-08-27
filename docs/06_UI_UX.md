@@ -485,3 +485,20 @@ V1 does not require:
 - Social profile screens
 - Advanced charts
 - Custom rich-text editor framework
+
+## 23. Phase 3 Lookup on Android
+
+Android exposes Lookup as a first-class authenticated destination. The screen
+supports automatic direction detection plus explicit Japanese→Vietnamese and
+Vietnamese→Japanese modes, bounded debounced suggestions, vocabulary/kanji and
+example result states, and visible provider attribution. History and favorites
+are compact server-backed lists; clearing history, saving/removing favorites,
+and adding an editable result to an existing Flashcard Set use the project API.
+The app does not call dictionary providers directly or mirror provider data
+into Room.
+
+When an official exam attempt is active, Lookup is disabled in bottom
+navigation and a direct route renders an integrity explanation without making
+lookup actions. After submission, graded review exposes bounded All/Wrong/
+Unanswered filters and preserves the selected review question while the user
+visits Lookup and returns.

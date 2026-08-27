@@ -103,6 +103,9 @@ interface StudyApi {
         @Body request: SubmitAttemptRequest = SubmitAttemptRequest(),
     ): ExamResultDto
 
+    @GET("attempts/{attemptId}/result")
+    suspend fun getSubmittedAttemptResult(@Path("attemptId") attemptId: String): ExamResultDto
+
     @GET("exam-review/mistakes")
     suspend fun getWrongAnswerReviewQueue(@Query("limit") limit: Int = 20): WrongAnswerReviewQueueDto
 
@@ -116,6 +119,45 @@ interface StudyApi {
 
     @POST("exam-review/practice")
     suspend fun startMistakePractice(@Body request: StartMistakePracticeRequest): LiveAttemptDto
+
+    @GET("lookup")
+    suspend fun dictionaryLookup(
+        @Query("q") query: String,
+        @Query("direction") direction: DictionaryLookupDirectionDto = DictionaryLookupDirectionDto.AUTO,
+        @Query("limit") limit: Int = 20,
+        @Query("includeExamples") includeExamples: Boolean = false,
+    ): DictionaryLookupResponseDto
+
+    @GET("lookup/suggest")
+    suspend fun dictionarySuggestions(
+        @Query("q") query: String,
+        @Query("direction") direction: DictionaryLookupDirectionDto = DictionaryLookupDirectionDto.AUTO,
+        @Query("limit") limit: Int = 10,
+    ): DictionarySuggestionResponseDto
+
+    @GET("lookup/history")
+    suspend fun dictionaryHistory(@Query("limit") limit: Int = 10): DictionaryHistoryResponseDto
+
+    @DELETE("lookup/history")
+    suspend fun clearDictionaryHistory(): SuccessResponse
+
+    @GET("lookup/favorites")
+    suspend fun dictionaryFavorites(
+        @Query("limit") limit: Int = 20,
+        @Query("offset") offset: Int = 0,
+    ): DictionaryFavoriteListResponseDto
+
+    @POST("lookup/favorites")
+    suspend fun saveDictionaryFavorite(@Body request: SaveDictionaryFavoriteRequest): DictionaryFavoriteDto
+
+    @DELETE("lookup/favorites/{favoriteId}")
+    suspend fun removeDictionaryFavorite(@Path("favoriteId") favoriteId: String): SuccessResponse
+
+    @POST("flashcard-sets/{setId}/cards")
+    suspend fun createFlashcard(
+        @Path("setId") setId: String,
+        @Body request: CreateFlashcardRequest,
+    ): FlashcardDto
 
     @GET("search")
     suspend fun search(

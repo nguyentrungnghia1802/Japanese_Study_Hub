@@ -68,3 +68,42 @@ data class DictionarySuggestions(
     val suggestions: List<DictionarySuggestion>,
     val source: DictionarySourceAttribution,
 )
+
+data class DictionaryHistoryItem(
+    val id: String,
+    val query: String,
+    val direction: DictionaryLookupDirection,
+    val primaryLabel: String?,
+    val createdAt: String,
+)
+
+data class DictionaryHistory(
+    val items: List<DictionaryHistoryItem>,
+    val total: Int,
+)
+
+data class DictionaryFavorite(
+    val id: String,
+    val term: String,
+    val reading: String?,
+    val meaningSummary: String,
+    val direction: DictionaryLookupDirection,
+    val source: DictionarySourceAttribution,
+    val createdAt: String,
+    val updatedAt: String,
+)
+
+data class DictionaryFavoriteDraft(
+    val term: String,
+    val reading: String?,
+    val meaningSummary: String,
+    val direction: DictionaryLookupDirection,
+    val source: DictionarySourceAttribution,
+)
+
+data class DictionaryFavorites(
+    val items: List<DictionaryFavorite>,
+    val total: Int,
+    val limit: Int,
+    val offset: Int,
+)

@@ -1,5 +1,7 @@
 package com.japaneselearning.mobile.feature.exams
 
+import com.japaneselearning.mobile.data.model.GradedOption
+import com.japaneselearning.mobile.data.model.GradedQuestion
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -22,4 +24,23 @@ class ExamSessionLogicTest {
             ),
         )
     }
+
+    @Test
+    fun `submitted review filters distinguish wrong and unanswered questions`() {
+        val questions = listOf(
+            GradedQuestion("q1", "one", "a", "b", false, options()),
+            GradedQuestion("q2", "two", null, "b", false, options()),
+            GradedQuestion("q3", "three", "c", "c", true, options()),
+        )
+
+        assertEquals(listOf(true, false, false), questions.map { ReviewFilterLogic.matches(ReviewFilter.WRONG, it) })
+        assertEquals(listOf(false, true, false), questions.map { ReviewFilterLogic.matches(ReviewFilter.UNANSWERED, it) })
+        assertEquals(listOf(true, true, true), questions.map { ReviewFilterLogic.matches(ReviewFilter.ALL, it) })
+    }
+
+    private fun options() = listOf(
+        GradedOption("a", "A", false),
+        GradedOption("b", "B", true),
+        GradedOption("c", "C", false),
+    )
 }

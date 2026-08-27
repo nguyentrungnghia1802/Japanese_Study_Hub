@@ -17,6 +17,9 @@ import com.japaneselearning.mobile.data.remote.DictionaryRelatedWordDto
 import com.japaneselearning.mobile.data.remote.DictionarySourceAttributionDto
 import com.japaneselearning.mobile.data.remote.DictionarySuggestionResponseDto
 import com.japaneselearning.mobile.data.remote.DictionaryWordResultDto
+import com.japaneselearning.mobile.data.remote.DictionaryHistoryItemDto
+import com.japaneselearning.mobile.data.remote.DictionaryFavoriteDto
+import com.japaneselearning.mobile.data.remote.DictionaryFavoriteListResponseDto
 
 private const val MAX_RESULTS = 20
 private const val MAX_MEANINGS = 8
@@ -41,10 +44,51 @@ fun DictionarySuggestionResponseDto.toDomain(): DictionarySuggestions = Dictiona
     source = source.toDomain(),
 )
 
+fun DictionaryHistoryItemDto.toDomain(): com.japaneselearning.mobile.data.model.DictionaryHistoryItem =
+    com.japaneselearning.mobile.data.model.DictionaryHistoryItem(
+        id = id,
+        query = query,
+        direction = direction.toDomain(),
+        primaryLabel = primaryLabel,
+        createdAt = createdAt,
+    )
+
+fun DictionaryFavoriteListResponseDto.toDomain(): com.japaneselearning.mobile.data.model.DictionaryFavorites =
+    com.japaneselearning.mobile.data.model.DictionaryFavorites(
+        items = items.take(100).map(DictionaryFavoriteDto::toDomain),
+        total = total,
+        limit = limit.coerceIn(1, 100),
+        offset = offset.coerceIn(0, 10_000),
+    )
+
+fun DictionaryFavoriteDto.toDomain(): com.japaneselearning.mobile.data.model.DictionaryFavorite =
+    com.japaneselearning.mobile.data.model.DictionaryFavorite(
+        id = id,
+        term = term,
+        reading = reading,
+        meaningSummary = meaningSummary,
+        direction = direction.toDomain(),
+        source = DictionarySourceAttribution(
+            provider = sourceProvider,
+            name = sourceName,
+            url = sourceUrl,
+            license = sourceLicense,
+            attribution = sourceAttribution,
+        ),
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+    )
+
 private fun DictionaryLookupDirectionDto.toDomain(): DictionaryLookupDirection = when (this) {
     DictionaryLookupDirectionDto.AUTO -> DictionaryLookupDirection.AUTO
     DictionaryLookupDirectionDto.JA_TO_VI -> DictionaryLookupDirection.JA_TO_VI
     DictionaryLookupDirectionDto.VI_TO_JA -> DictionaryLookupDirection.VI_TO_JA
+}
+
+fun DictionaryLookupDirection.toRemote(): DictionaryLookupDirectionDto = when (this) {
+    DictionaryLookupDirection.AUTO -> DictionaryLookupDirectionDto.AUTO
+    DictionaryLookupDirection.JA_TO_VI -> DictionaryLookupDirectionDto.JA_TO_VI
+    DictionaryLookupDirection.VI_TO_JA -> DictionaryLookupDirectionDto.VI_TO_JA
 }
 
 private fun DictionaryWordResultDto.toDomain() = DictionaryWordResult(

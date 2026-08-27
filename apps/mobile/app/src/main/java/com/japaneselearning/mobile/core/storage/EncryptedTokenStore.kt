@@ -101,6 +101,16 @@ class EncryptedTokenStore @Inject constructor(
 class DataStoreAttemptStore @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : AttemptStore {
+    override val activeAttempts: Flow<Set<String>> = context.attemptDataStore.data.map { preferences ->
+        preferences.asMap()
+            .filter { (key, value) -> key.name.startsWith("active_attempt_") && value is String && value.isNotBlank() }
+            .keys
+            .map { it.name.removePrefix("active_attempt_") }
+            .filter(String::isNotBlank)
+            .take(MAX_ACTIVE_ATTEMPTS)
+            .toSet()
+    }
+
     override suspend fun readActiveAttempt(examId: String): String? {
         return context.attemptDataStore.data.first()[attemptKey(examId)]
     }
@@ -108,6 +118,10 @@ class DataStoreAttemptStore @Inject constructor(
     override suspend fun saveActiveAttempt(examId: String, attemptId: String) {
         context.attemptDataStore.edit { preferences ->
             preferences[attemptKey(examId)] = attemptId
+            val activeKeys = preferences.asMap().keys
+                .filter { key -> key.name.startsWith("active_attempt_") }
+                .sortedBy { it.name }
+            activeKeys.drop(MAX_ACTIVE_ATTEMPTS).forEach { key -> preferences.remove(key) }
         }
     }
 
@@ -118,4 +132,8 @@ class DataStoreAttemptStore @Inject constructor(
     }
 
     private fun attemptKey(examId: String) = stringPreferencesKey("active_attempt_$examId")
+
+    private companion object {
+        const val MAX_ACTIVE_ATTEMPTS = 8
+    }
 }
