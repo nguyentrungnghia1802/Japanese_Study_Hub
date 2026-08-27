@@ -69,6 +69,19 @@ class StudyReadCacheTest {
         assertEquals(1, cached?.data?.totalExams)
         assertTrue(cached!!.data.recentExams.single().questions.isEmpty())
     }
+
+    @Test
+    fun `created card updates only the cached set count and stays metadata-only`() = runTest {
+        val dao = FakeStudyReadCacheDao()
+        val cache = StudyReadCache(dao)
+        cache.saveFlashcardSets(listOf(FlashcardSet("set", "Set", null, 2, false)))
+
+        cache.markFlashcardCreated("set")
+
+        val cached = cache.readFlashcardSets()!!.data.single()
+        assertEquals(3, cached.cardCount)
+        assertTrue(cached.cards.isEmpty())
+    }
 }
 
 private class FakeStudyReadCacheDao : StudyReadCacheDao {

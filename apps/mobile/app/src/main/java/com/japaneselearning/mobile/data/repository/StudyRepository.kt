@@ -402,7 +402,9 @@ class StudyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun createFlashcard(setId: String, front: String, back: String): Flashcard = request {
-        mapCard(api.createFlashcard(setId, CreateFlashcardRequest(front = front, back = back)))
+        val card = mapCard(api.createFlashcard(setId, CreateFlashcardRequest(front = front, back = back)))
+        runCatching { readCache.markFlashcardCreated(setId) }
+        card
     }
 
     override suspend fun getDashboard(): DashboardSummary {

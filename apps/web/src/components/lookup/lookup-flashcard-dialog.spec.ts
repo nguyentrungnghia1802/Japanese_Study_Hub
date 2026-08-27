@@ -15,4 +15,16 @@ describe('LookupFlashcardDialog (TASK-440)', () => {
       back: 'ngôn ngữ Nhật Bản\n\n日本語を勉強します。\nTôi học tiếng Nhật.',
     });
   });
+
+  it('accepts a concise mistake draft without adding provider option payloads', () => {
+    expect(
+      createFlashcardDraftText({
+        front: '日本へ行く前に何をしましたか。',
+        back: 'Đáp án đúng: 勉強しました\nĐã chọn: 寝ました',
+      }),
+    ).toEqual({
+      front: '日本へ行く前に何をしましたか。',
+      back: 'Đáp án đúng: 勉強しました\nĐã chọn: 寝ました',
+    });
+  });
 });

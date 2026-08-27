@@ -164,6 +164,16 @@ class StudyReadCache @Inject constructor(
         dao.trimFlashcardSets()
     }
 
+    suspend fun markFlashcardCreated(setId: String) {
+        val cached = readFlashcardSets()?.data ?: return
+        if (cached.none { it.id == setId }) return
+        saveFlashcardSets(
+            cached.map { set ->
+                if (set.id == setId) set.copy(cardCount = set.cardCount + 1) else set
+            },
+        )
+    }
+
     suspend fun saveExams(items: List<Exam>) {
         val now = System.currentTimeMillis()
         dao.insertExams(items.take(STUDY_CACHE_MAX_ROWS).map { toEntity(it, now) })

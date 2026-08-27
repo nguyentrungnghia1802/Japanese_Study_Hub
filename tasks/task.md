@@ -1113,22 +1113,29 @@ Commit: `feat(android): add last three mistake review`
 
 ## TASK-490 — Add “Create Flashcard from Mistake”
 
-- [ ] Add action from wrong/unanswered review item.
-- [ ] Let user select target Flashcard Set.
-- [ ] Prefill editable content.
-- [ ] Recommended Front: question/prompt context.
-- [ ] Recommended Back: correct answer + concise context.
-- [ ] Optionally include selected wrong answer.
-- [ ] Avoid noisy auto-generated cards containing unnecessary option lists.
-- [ ] Preserve Markdown safety.
-- [ ] Reuse existing Flashcard API.
-- [ ] Invalidate/update relevant Web/Android caches.
-- [ ] Add tests.
-- [ ] Do not add fuzzy duplicate infrastructure unless a simple reliable check already exists.
+- [x] Add action from wrong/unanswered review item.
+- [x] Let user select target Flashcard Set.
+- [x] Prefill editable content.
+- [x] Recommended Front: question/prompt context.
+- [x] Recommended Back: correct answer + concise context.
+- [x] Optionally include selected wrong answer.
+- [x] Avoid noisy auto-generated cards containing unnecessary option lists.
+- [x] Preserve Markdown safety.
+- [x] Reuse existing Flashcard API.
+- [x] Invalidate/update relevant Web/Android caches.
+- [x] Add tests.
+- [x] Do not add fuzzy duplicate infrastructure unless a simple reliable check already exists.
 
 Acceptance criteria:
 
 - Mistakes can become study material with minimal manual work.
+
+Verification (2026-08-27): Web and Android review cards use concise
+question/answer drafts, optionally include the selected wrong answer, keep the
+draft editable, require an existing target set, and reuse the existing card
+creation endpoint. Web query/draft tests and Android cache/logic tests cover
+the path; Web invalidates set/dashboard/search/tag queries and Android updates
+only its bounded set-count metadata cache.
 
 Commit: `feat(flashcards): create cards from exam mistakes`
 
