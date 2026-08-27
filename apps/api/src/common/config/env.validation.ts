@@ -9,10 +9,16 @@ export enum Environment {
 }
 
 export const LOCAL_CORS_ORIGIN = 'http://localhost:3000';
+export const LOCAL_CORS_ORIGINS = [
+  LOCAL_CORS_ORIGIN,
+  'http://127.0.0.1:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
+].join(',');
 export const PRODUCTION_CORS_ORIGIN = 'http://157.173.127.217:3000';
 
 export function getDefaultCorsOrigins(nodeEnv?: string): string {
-  return nodeEnv === Environment.Production ? PRODUCTION_CORS_ORIGIN : LOCAL_CORS_ORIGIN;
+  return nodeEnv === Environment.Production ? PRODUCTION_CORS_ORIGIN : LOCAL_CORS_ORIGINS;
 }
 
 export class EnvironmentVariables {
@@ -44,7 +50,7 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsOptional()
-  CORS_ORIGINS = LOCAL_CORS_ORIGIN;
+  CORS_ORIGINS = LOCAL_CORS_ORIGINS;
 
   @Type(() => Number)
   @IsNumber()

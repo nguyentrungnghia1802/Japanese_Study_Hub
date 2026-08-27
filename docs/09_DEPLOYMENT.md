@@ -134,7 +134,7 @@ the deployment endpoint supports it.
 Local values:
 
 ```text
-CORS_ORIGINS=http://localhost:3000
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000/api/v1
 ```
 
@@ -150,8 +150,11 @@ Production API CORS must allow `http://157.173.127.217:3000` for the Web client;
 Android native requests do not send a browser Origin header.
 
 The GHCR publish workflow passes the production Web value to the Docker build.
-When `CORS_ORIGINS` is omitted, the API defaults to localhost outside
-production and to `http://157.173.127.217:3000` in production.
+When `CORS_ORIGINS` is omitted, the API defaults to the four explicit local
+development origins (`localhost` and `127.0.0.1` on ports 3000 and 3001)
+outside production and to `http://157.173.127.217:3000` in production. An
+explicit `CORS_ORIGINS` value remains authoritative and must include the exact
+origin used by the Web browser.
 
 ---
 
@@ -164,7 +167,7 @@ DATABASE_URL=postgresql://user:password@localhost:5432/japanese_learning
 AUTH_USERNAME=admin
 AUTH_PASSWORD_HASH=<generated-hash>
 AUTH_TOKEN_SECRET=<replace-me>
-CORS_ORIGINS=http://localhost:3000
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000/api/v1
 ```
 

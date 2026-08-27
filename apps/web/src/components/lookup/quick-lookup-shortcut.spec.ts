@@ -7,7 +7,9 @@ import QuickLookupShortcut, {
 describe('QuickLookupShortcut (TASK-433)', () => {
   it('exports the lightweight authenticated shortcut and preserves only bounded same-origin paths', () => {
     expect(typeof QuickLookupShortcut).toBe('function');
-    expect(createLookupReturnPath('/flashcards/one', '?tab=study')).toBe('/flashcards/one?tab=study');
+    expect(createLookupReturnPath('/flashcards/one', '?tab=study')).toBe(
+      '/flashcards/one?tab=study',
+    );
     expect(createLookupReturnPath('//external.example', '')).toBe('/');
     expect(createLookupReturnPath('/'.repeat(600), '')).toBe('/');
   });

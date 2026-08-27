@@ -25,6 +25,7 @@ import { invalidateFlashcardQueries } from '@/lib/query-invalidation';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
 import { getUiPreference, setUiPreference, UiSortValue } from '@/lib/ui-preferences';
+import { StudySectionTabs } from '@/components/layout/study-section-tabs';
 
 const FlashcardImportModal = dynamic(
   () =>
@@ -202,6 +203,7 @@ export default function FlashcardsPage() {
       aria-busy={isLoading}
       style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1.5rem' }}
     >
+      <StudySectionTabs section="flashcards" />
       {isRefreshing && (
         <div
           role="status"

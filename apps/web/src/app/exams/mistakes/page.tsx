@@ -10,6 +10,8 @@ import { invalidateMistakeQueries } from '@/lib/query-invalidation';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { StudySectionTabs } from '@/components/layout/study-section-tabs';
+import { groupMistakesByExam } from '@/lib/mistake-groups';
 
 const MISTAKE_QUEUE_LIMIT = 20;
 const MISTAKE_QUERY_KEY = queryKeys.mistakes(MISTAKE_QUEUE_LIMIT);
@@ -23,6 +25,7 @@ export default function ExamMistakesPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const mistakes = mistakesQuery.data?.items ?? [];
+  const mistakeGroups = groupMistakesByExam(mistakes);
 
   const dismiss = async (mistakeId: string) => {
     setBusyId(mistakeId);
@@ -103,6 +106,7 @@ export default function ExamMistakesPage() {
 
   return (
     <main style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 1.5rem 4rem' }}>
+      <StudySectionTabs section="exams" />
       <div
         style={{
           display: 'flex',
@@ -132,7 +136,7 @@ export default function ExamMistakesPage() {
           </div>
           <p style={{ color: 'var(--text-muted)', marginTop: '0.75rem' }}>
             Revisit incorrect or unanswered questions from submitted exams. This queue never changes
-            official scores.
+            official scores. Each Exam keeps its own three most recent official attempts.
           </p>
         </div>
         {mistakes.length > 0 && (
@@ -183,125 +187,159 @@ export default function ExamMistakesPage() {
       ) : (
         <div style={{ display: 'grid', gap: '1rem', marginTop: '2rem' }}>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-            Showing {mistakes.length} of at most {MISTAKE_QUEUE_LIMIT} queued mistakes.
+            Showing {mistakes.length} of at most {MISTAKE_QUEUE_LIMIT} queued mistakes across{' '}
+            {mistakeGroups.length} Exam{mistakeGroups.length === 1 ? '' : 's'}. Each Exam has an
+            independent retention window.
           </p>
-          {mistakes.map((mistake) => (
-            <article key={mistake.id} className="glass-panel" style={{ padding: '1.25rem' }}>
+          {mistakeGroups.map((group) => (
+            <section
+              key={`${group.examId}:${group.examVersion}`}
+              aria-labelledby={`mistake-group-${group.examId}-${group.examVersion}`}
+              style={{ display: 'grid', gap: '0.75rem' }}
+            >
               <div
+                className="glass-panel"
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'center',
                   gap: '1rem',
-                  alignItems: 'flex-start',
+                  flexWrap: 'wrap',
+                  padding: '1rem 1.25rem',
                 }}
               >
                 <div>
-                  <div style={{ color: 'var(--accent-cyan)', fontWeight: 700 }}>
-                    {mistake.examTitle}
-                  </div>
-                  <div
-                    style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.25rem' }}
+                  <h2
+                    id={`mistake-group-${group.examId}-${group.examVersion}`}
+                    style={{ color: 'var(--accent-cyan)', fontSize: '1rem', margin: 0 }}
                   >
-                    Content version {mistake.examVersion}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => void dismiss(mistake.id)}
-                  disabled={busyId !== null}
-                  aria-label={`Dismiss mistake from ${mistake.examTitle}`}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    padding: '0.45rem 0.65rem',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 'var(--radius-md)',
-                    background: 'transparent',
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  <Trash2 size={14} />
-                  Dismiss
-                </button>
-                <Link
-                  href={`/exams/practice?examId=${encodeURIComponent(mistake.examId)}&mistakeIds=${encodeURIComponent(mistake.id)}`}
-                  style={{
-                    color: 'var(--accent-cyan)',
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    alignSelf: 'center',
-                  }}
-                >
-                  Practice
-                </Link>
-                <Link
-                  href={`/exams/${mistake.examId}/mistakes`}
-                  style={{
-                    color: 'var(--accent-purple)',
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    alignSelf: 'center',
-                  }}
-                >
-                  3 recent histories
-                </Link>
-              </div>
-              <h2
-                style={{
-                  color: 'var(--text-primary)',
-                  fontSize: '1.1rem',
-                  lineHeight: 1.5,
-                  margin: '1rem 0',
-                }}
-              >
-                {mistake.questionContent}
-              </h2>
-              <div style={{ display: 'grid', gap: '0.5rem' }}>
-                {mistake.options.map((option) => (
-                  <div
-                    key={option.id}
+                    {group.examTitle}
+                  </h2>
+                  <p
                     style={{
-                      padding: '0.7rem 0.8rem',
-                      borderRadius: 'var(--radius-md)',
-                      border:
-                        option.id === mistake.selectedOptionId
-                          ? '1px solid rgba(251, 191, 36, 0.55)'
-                          : '1px solid var(--border-subtle)',
-                      background:
-                        option.id === mistake.selectedOptionId
-                          ? 'rgba(251, 191, 36, 0.1)'
-                          : 'rgba(15, 23, 42, 0.28)',
-                      color: 'var(--text-secondary)',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.8rem',
+                      margin: '0.25rem 0 0',
                     }}
                   >
-                    {option.content}
-                    {option.id === mistake.selectedOptionId && (
-                      <span
+                    {group.items.length} câu · Content version {group.examVersion} · 3 lần thi chính
+                    thức gần nhất
+                  </p>
+                </div>
+                <Link
+                  href={`/exams/${group.examId}/mistakes`}
+                  style={{ color: 'var(--accent-purple)', fontWeight: 600, fontSize: '0.85rem' }}
+                >
+                  Xem 3 lịch sử gần nhất
+                </Link>
+              </div>
+
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {group.items.map((mistake) => (
+                  <article key={mistake.id} className="glass-panel" style={{ padding: '1.25rem' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        gap: '1rem',
+                        alignItems: 'flex-start',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                        Câu hỏi trong {mistake.examTitle}
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => void dismiss(mistake.id)}
+                          disabled={busyId !== null}
+                          aria-label={`Dismiss mistake from ${mistake.examTitle}`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            padding: '0.45rem 0.65rem',
+                            border: '1px solid var(--border-subtle)',
+                            borderRadius: 'var(--radius-md)',
+                            background: 'transparent',
+                            color: 'var(--text-muted)',
+                          }}
+                        >
+                          <Trash2 size={14} />
+                          Dismiss
+                        </button>
+                        <Link
+                          href={`/exams/practice?examId=${encodeURIComponent(mistake.examId)}&mistakeIds=${encodeURIComponent(mistake.id)}`}
+                          style={{
+                            color: 'var(--accent-cyan)',
+                            fontWeight: 600,
+                            fontSize: '0.85rem',
+                            alignSelf: 'center',
+                          }}
+                        >
+                          Practice
+                        </Link>
+                      </div>
+                    </div>
+                    <h3
+                      style={{
+                        color: 'var(--text-primary)',
+                        fontSize: '1.1rem',
+                        lineHeight: 1.5,
+                        margin: '1rem 0',
+                      }}
+                    >
+                      {mistake.questionContent}
+                    </h3>
+                    <div style={{ display: 'grid', gap: '0.5rem' }}>
+                      {mistake.options.map((option) => (
+                        <div
+                          key={option.id}
+                          style={{
+                            padding: '0.7rem 0.8rem',
+                            borderRadius: 'var(--radius-md)',
+                            border:
+                              option.id === mistake.selectedOptionId
+                                ? '1px solid rgba(251, 191, 36, 0.55)'
+                                : '1px solid var(--border-subtle)',
+                            background:
+                              option.id === mistake.selectedOptionId
+                                ? 'rgba(251, 191, 36, 0.1)'
+                                : 'rgba(15, 23, 42, 0.28)',
+                            color: 'var(--text-secondary)',
+                          }}
+                        >
+                          {option.content}
+                          {option.id === mistake.selectedOptionId && (
+                            <span
+                              style={{
+                                color: 'var(--accent-amber)',
+                                fontSize: '0.8rem',
+                                marginLeft: '0.5rem',
+                              }}
+                            >
+                              Your answer
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {mistake.selectedOptionId === null && (
+                      <p
                         style={{
                           color: 'var(--accent-amber)',
                           fontSize: '0.8rem',
-                          marginLeft: '0.5rem',
+                          margin: '0.75rem 0 0',
                         }}
                       >
-                        Your answer
-                      </span>
+                        Unanswered in the submitted attempt.
+                      </p>
                     )}
-                  </div>
+                  </article>
                 ))}
               </div>
-              {mistake.selectedOptionId === null && (
-                <p
-                  style={{
-                    color: 'var(--accent-amber)',
-                    fontSize: '0.8rem',
-                    margin: '0.75rem 0 0',
-                  }}
-                >
-                  Unanswered in the submitted attempt.
-                </p>
-              )}
-            </article>
+            </section>
           ))}
         </div>
       )}

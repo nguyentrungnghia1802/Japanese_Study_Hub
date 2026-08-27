@@ -36,6 +36,7 @@ import {
   createMistakeFlashcardDraft,
 } from '@/lib/exam-mistake-flashcard';
 import { useQuery } from '@tanstack/react-query';
+import { StudySectionTabs } from '@/components/layout/study-section-tabs';
 
 const FILTERS: Array<{ value: ExamReviewFilter; label: string }> = [
   { value: 'ALL', label: 'Tất cả' },
@@ -262,6 +263,7 @@ export default function ExamMistakeHistoryPage() {
 
   return (
     <main style={{ maxWidth: '980px', margin: '0 auto', padding: '2rem 1.5rem 5rem' }}>
+      <StudySectionTabs section="exams" />
       <header
         style={{
           display: 'flex',

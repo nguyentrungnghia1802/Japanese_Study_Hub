@@ -2,10 +2,7 @@ import { Module } from '@nestjs/common';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { KanjiApiProvider } from './kanjiapi.provider.js';
 import { MinhqndDictionaryProvider } from './minhqnd.provider.js';
-import {
-  ProviderHttpClient,
-  PROVIDER_HTTP_CLIENT_OPTIONS,
-} from './provider-http-client.js';
+import { ProviderHttpClient, PROVIDER_HTTP_CLIENT_OPTIONS } from './provider-http-client.js';
 import { TatoebaProvider } from './tatoeba.provider.js';
 import { VietnameseWiktionaryProvider } from './wiktionary.provider.js';
 import {

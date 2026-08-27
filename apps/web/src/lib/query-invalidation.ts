@@ -65,7 +65,5 @@ export async function invalidateMistakeQueries(queryClient: QueryClient): Promis
 }
 
 export async function invalidateDictionaryQueries(queryClient: QueryClient): Promise<void> {
-  await Promise.all([
-    queryClient.invalidateQueries({ queryKey: queryKeys.dictionaryRoot() }),
-  ]);
+  await Promise.all([queryClient.invalidateQueries({ queryKey: queryKeys.dictionaryRoot() })]);
 }

@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import {
   getDefaultCorsOrigins,
   LOCAL_CORS_ORIGIN,
+  LOCAL_CORS_ORIGINS,
   PRODUCTION_CORS_ORIGIN,
   validateEnvironment,
 } from './env.validation.js';
@@ -49,8 +50,10 @@ describe('Environment Validation (TASK-011)', () => {
   });
 
   it('uses the local CORS origin outside production', () => {
-    expect(getDefaultCorsOrigins('development')).toBe(LOCAL_CORS_ORIGIN);
-    expect(getDefaultCorsOrigins('test')).toBe(LOCAL_CORS_ORIGIN);
+    expect(getDefaultCorsOrigins('development')).toBe(LOCAL_CORS_ORIGINS);
+    expect(getDefaultCorsOrigins('test')).toBe(LOCAL_CORS_ORIGINS);
+    expect(LOCAL_CORS_ORIGINS).toContain(LOCAL_CORS_ORIGIN);
+    expect(LOCAL_CORS_ORIGINS).toContain('http://127.0.0.1:3001');
   });
 
   it('uses the production web origin when NODE_ENV is production', () => {

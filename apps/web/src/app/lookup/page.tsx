@@ -116,20 +116,9 @@ export default function LookupPage() {
   });
 
   const lookupQuery = useQuery<DictionaryLookupResponseDto>({
-    queryKey: queryKeys.dictionaryLookup(
-      submittedQuery,
-      direction,
-      LOOKUP_LIMIT,
-      includeExamples,
-    ),
+    queryKey: queryKeys.dictionaryLookup(submittedQuery, direction, LOOKUP_LIMIT, includeExamples),
     queryFn: ({ signal }) =>
-      studyApi.dictionaryLookup(
-        submittedQuery,
-        direction,
-        LOOKUP_LIMIT,
-        includeExamples,
-        signal,
-      ),
+      studyApi.dictionaryLookup(submittedQuery, direction, LOOKUP_LIMIT, includeExamples, signal),
     enabled: !attemptBlocked && submittedQuery.length > 0,
     staleTime: CACHE_POLICY.search.staleTime,
     gcTime: CACHE_POLICY.search.gcTime,
@@ -150,8 +139,7 @@ export default function LookupPage() {
     gcTime: 5 * 60_000,
   });
 
-  const submitLookup = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const performLookup = () => {
     if (hasAnyActiveExamAttempt()) {
       setAttemptBlocked(true);
       return;
@@ -164,6 +152,11 @@ export default function LookupPage() {
     setSubmittedQuery(nextQuery);
     setSuggestionsOpen(false);
     updateLookupUrl(router, nextQuery, direction, returnTo);
+  };
+
+  const submitLookup = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    performLookup();
   };
 
   const selectSuggestion = (value: string) => {
@@ -247,7 +240,10 @@ export default function LookupPage() {
             current
               ? {
                   ...current,
-                  items: [saved, ...current.items.filter((item) => item.id !== saved.id)].slice(0, 20),
+                  items: [saved, ...current.items.filter((item) => item.id !== saved.id)].slice(
+                    0,
+                    20,
+                  ),
                   total: current.total + 1,
                 }
               : current,
@@ -411,6 +407,12 @@ export default function LookupPage() {
               onChange={(event) => setQuery(event.target.value)}
               onFocus={() => setSuggestionsOpen(true)}
               onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  if (event.nativeEvent.isComposing) return;
+                  event.preventDefault();
+                  performLookup();
+                  return;
+                }
                 if (event.key === 'Escape') setSuggestionsOpen(false);
               }}
               placeholder="Nhập 日本語 hoặc tiếng Việt…"
@@ -555,7 +557,10 @@ export default function LookupPage() {
         isLoading={historyQuery.isLoading || favoritesQuery.isLoading}
         error={
           historyQuery.error || favoritesQuery.error
-            ? getApiErrorMessage(historyQuery.error ?? favoritesQuery.error, 'Không thể tải mục đã lưu.')
+            ? getApiErrorMessage(
+                historyQuery.error ?? favoritesQuery.error,
+                'Không thể tải mục đã lưu.',
+              )
             : null
         }
         onHistorySelect={selectSavedLookup}
@@ -577,7 +582,11 @@ export default function LookupPage() {
       )}
 
       {lookupQuery.isPending && submittedQuery.length > 0 && (
-        <section role="status" className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
+        <section
+          role="status"
+          className="glass-panel"
+          style={{ padding: '2rem', textAlign: 'center' }}
+        >
           <RotateCw size={24} className="lookup-spin" style={{ color: 'var(--accent-cyan)' }} />
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.75rem' }}>Đang tra cứu…</p>
         </section>

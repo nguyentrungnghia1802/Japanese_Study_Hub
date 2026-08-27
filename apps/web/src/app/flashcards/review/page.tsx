@@ -14,6 +14,7 @@ import { getApiErrorMessage } from '@/lib/api-client';
 import { invalidateReviewQueries } from '@/lib/query-invalidation';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
+import { StudySectionTabs } from '@/components/layout/study-section-tabs';
 
 const REVIEW_QUEUE_LIMIT = 20;
 const REVIEW_QUEUE_QUERY_KEY = queryKeys.reviewQueue(REVIEW_QUEUE_LIMIT);
@@ -178,7 +179,10 @@ export default function FlashcardReviewPage() {
 
   if (isLoading) {
     return (
-      <div aria-busy="true" style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 1.5rem' }}>
+      <div
+        aria-busy="true"
+        style={{ maxWidth: '1040px', margin: '0 auto', padding: '4rem 1.5rem' }}
+      >
         <SkeletonBlock height="24rem" />
       </div>
     );
@@ -187,7 +191,12 @@ export default function FlashcardReviewPage() {
   if (queueQuery.isError) {
     return (
       <div
-        style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 1.5rem', textAlign: 'center' }}
+        style={{
+          maxWidth: '1040px',
+          margin: '0 auto',
+          padding: '4rem 1.5rem',
+          textAlign: 'center',
+        }}
       >
         <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>
           {getApiErrorMessage(queueQuery.error, 'Unable to load review queue')}
@@ -213,7 +222,7 @@ export default function FlashcardReviewPage() {
   return (
     <div
       style={{
-        maxWidth: '800px',
+        maxWidth: '1040px',
         margin: '0 auto',
         padding: '2rem 1.5rem 4rem',
         minHeight: 'calc(100vh - 80px)',
@@ -221,6 +230,7 @@ export default function FlashcardReviewPage() {
         flexDirection: 'column',
       }}
     >
+      <StudySectionTabs section="flashcards" />
       <div
         style={{
           display: 'flex',

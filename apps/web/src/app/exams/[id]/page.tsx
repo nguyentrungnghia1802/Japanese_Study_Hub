@@ -20,6 +20,7 @@ import { API_BASE_URL, getApiErrorMessage } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
 import { TagEditor } from '@/components/tags/tag-editor';
+import { StudySectionTabs } from '@/components/layout/study-section-tabs';
 
 export default function ExamDetailPage() {
   const params = useParams();
@@ -158,6 +159,7 @@ export default function ExamDetailPage() {
       aria-busy={isLoading}
       style={{ maxWidth: '800px', margin: '2rem auto', padding: '0 1.5rem' }}
     >
+      <StudySectionTabs section="exams" />
       {/* Back button */}
       <Link
         href="/exams"

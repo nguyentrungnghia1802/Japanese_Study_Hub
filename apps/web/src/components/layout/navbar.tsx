@@ -9,8 +9,6 @@ import {
   LayoutDashboard,
   LogOut,
   User,
-  RotateCw,
-  TriangleAlert,
   Languages,
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
@@ -36,8 +34,6 @@ export function Navbar() {
   const navLinks = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/flashcards', label: 'Flashcards', icon: BookOpen },
-    { href: '/flashcards/review', label: 'Review', icon: RotateCw },
-    { href: '/exams/mistakes', label: 'Mistakes', icon: TriangleAlert },
     { href: '/exams', label: 'Exams', icon: FileCheck },
     { href: '/search', label: 'Search', icon: Search },
     { href: '/lookup', label: 'Tra cứu', icon: Languages },

@@ -29,6 +29,7 @@ import { PrefetchLink } from '@/components/navigation/prefetch-link';
 import { invalidateExamQueries } from '@/lib/query-invalidation';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
+import { StudySectionTabs } from '@/components/layout/study-section-tabs';
 import { getUiPreference, setUiPreference, UiSortValue } from '@/lib/ui-preferences';
 
 const ExamImportModal = dynamic(
@@ -274,6 +275,7 @@ export default function ExamsPage() {
       aria-busy={isLoading}
       style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}
     >
+      <StudySectionTabs section="exams" />
       {isRefreshing && (
         <div
           role="status"

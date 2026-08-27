@@ -23,6 +23,12 @@ Web recommended primary navigation:
 - Search
 - Settings/Logout
 
+Flashcards and Exams are the two study-area parents. `Review` is a subsection
+inside Flashcards, while `Mistakes` is a subsection inside Exams; these two
+destinations are not duplicated as top-level navigation items. The same
+subsection tabs remain available on their related list, detail, and review
+screens.
+
 Mobile recommended bottom/tab or stack navigation:
 
 - Home
@@ -163,9 +169,9 @@ Keyboard web:
 
 ### Review due mode
 
-The Dashboard and primary navigation expose a `Review due` entry point. The
-review screen shows server-provided Due/New counts, loads at most 20 cards into
-the active session, and keeps Study All / Shuffle available through the
+The Flashcards area exposes a `Review due` subsection entry point. The review
+screen shows server-provided Due/New counts, loads at most 20 cards into the
+active session, and keeps Study All / Shuffle available through the
 Flashcards page.
 
 Review interaction:
@@ -330,10 +336,13 @@ Starting creates a server attempt.
 
 ## 13.1 Review mistakes and Practice
 
-The Exams area exposes a `Review mistakes` destination. It displays no more than
-20 incorrect/unanswered prompts from submitted attempts, shows the selected
-answer when present, and offers per-item dismiss, clear-all, and `Practice`
-actions. The pre-submit view never shows correctness or the answer key.
+The Exams area exposes a `Review mistakes` subsection. It displays no more than
+20 incorrect/unanswered prompts from submitted attempts, grouped by Exam. Each
+Exam owns an independent retention window containing the three newest official
+attempts for the current content version; Practice submissions and other Exams
+never shift that window. The page shows the selected answer when present and
+offers per-item dismiss, clear-all, and `Practice` actions. The pre-submit view
+never shows correctness or the answer key.
 
 Practice is visibly labeled `PRACTICE MODE`, has no countdown, and contains only
 the selected weak questions. After submission it may show grading feedback, but
@@ -507,8 +516,10 @@ visits Lookup and returns.
 
 Web exposes `/lookup` for authenticated Japanese↔Vietnamese lookup, bounded
 suggestions, single-kanji detail, optional examples, history, favorites, and
-editable Flashcard creation. Results show compact provider attribution and
-graceful typed error/empty states; the UI never renders raw provider payloads.
+editable Flashcard creation. Submit works through the visible button or the
+Enter key. Results show compact provider attribution and graceful typed
+error/empty states; a history/favorites failure does not disable core lookup,
+and the UI never renders raw provider payloads.
 
 Lookup is disabled by the active-attempt marker while an official exam is
 `IN_PROGRESS`. The marker is only an in-app integrity gate and does not replace

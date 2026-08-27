@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { DictionaryLookupDirection, DictionaryLookupResponseDto } from '@japanese-learning/contracts';
+import {
+  DictionaryLookupDirection,
+  DictionaryLookupResponseDto,
+} from '@japanese-learning/contracts';
 import LookupResults, { getLookupPrimaryCard } from './lookup-results.js';
 
 const result: DictionaryLookupResponseDto = {

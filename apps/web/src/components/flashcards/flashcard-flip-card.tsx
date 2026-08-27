@@ -35,7 +35,7 @@ export function FlashcardFlipCard({
       onKeyDown={handleKeyDown}
       style={{
         flex: 1,
-        minHeight: '340px',
+        minHeight: 'clamp(400px, 56vh, 620px)',
         perspective: '1000px',
         position: 'relative',
         cursor: 'pointer',
@@ -48,9 +48,9 @@ export function FlashcardFlipCard({
         style={{
           width: '100%',
           height: '100%',
-          minHeight: '340px',
+          minHeight: 'clamp(400px, 56vh, 620px)',
           borderRadius: 'var(--radius-lg)',
-          padding: '2.5rem',
+          padding: '3.25rem',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -87,7 +87,7 @@ export function FlashcardFlipCard({
           {!isFlipped ? (
             <div
               style={{
-                fontSize: '2.5rem',
+                fontSize: 'clamp(2.5rem, 5vw, 4rem)',
                 fontWeight: '800',
                 color: 'var(--text-primary)',
                 letterSpacing: '0.02em',
@@ -99,7 +99,7 @@ export function FlashcardFlipCard({
           ) : (
             <div
               style={{
-                fontSize: '1.5rem',
+                fontSize: 'clamp(1.5rem, 2.5vw, 2.25rem)',
                 fontWeight: '600',
                 color: '#f1f5f9',
                 lineHeight: '1.6',

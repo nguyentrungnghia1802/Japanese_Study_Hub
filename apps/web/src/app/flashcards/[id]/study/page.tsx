@@ -16,12 +16,18 @@ import {
 } from 'lucide-react';
 import { FlashcardDto } from '@japanese-learning/contracts';
 import { getApiErrorMessage } from '@/lib/api-client';
-import { clearFlashcardStudyContinuity, readFlashcardStudyContinuity, resolveFlashcardStudyOrder, writeFlashcardStudyContinuity } from '@/lib/continuity';
+import {
+  clearFlashcardStudyContinuity,
+  readFlashcardStudyContinuity,
+  resolveFlashcardStudyOrder,
+  writeFlashcardStudyContinuity,
+} from '@/lib/continuity';
 import { CACHE_POLICY } from '@/lib/cache-policy';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
 import { SkeletonBlock } from '@/components/ui/skeleton';
 import { FlashcardFlipCard } from '@/components/flashcards/flashcard-flip-card';
+import { StudySectionTabs } from '@/components/layout/study-section-tabs';
 
 export default function FlashcardStudyPage() {
   const { id } = useParams<{ id: string }>();
@@ -169,7 +175,10 @@ export default function FlashcardStudyPage() {
 
   if (isLoading) {
     return (
-      <div aria-busy="true" style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 1.5rem' }}>
+      <div
+        aria-busy="true"
+        style={{ maxWidth: '1040px', margin: '0 auto', padding: '4rem 1.5rem' }}
+      >
         <SkeletonBlock height="24rem" />
       </div>
     );
@@ -178,7 +187,12 @@ export default function FlashcardStudyPage() {
   if (setQuery.isError || !set || cards.length === 0) {
     return (
       <div
-        style={{ maxWidth: '800px', margin: '0 auto', padding: '4rem 1.5rem', textAlign: 'center' }}
+        style={{
+          maxWidth: '1040px',
+          margin: '0 auto',
+          padding: '4rem 1.5rem',
+          textAlign: 'center',
+        }}
       >
         <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>
           {setQuery.isError
@@ -219,7 +233,7 @@ export default function FlashcardStudyPage() {
   return (
     <div
       style={{
-        maxWidth: '800px',
+        maxWidth: '1040px',
         margin: '0 auto',
         padding: '2rem 1.5rem',
         minHeight: 'calc(100vh - 80px)',
@@ -227,6 +241,7 @@ export default function FlashcardStudyPage() {
         flexDirection: 'column',
       }}
     >
+      <StudySectionTabs section="flashcards" />
       {/* Top Header Bar */}
       <div
         style={{
@@ -264,9 +279,7 @@ export default function FlashcardStudyPage() {
                 isFlipped,
                 isShuffled,
                 isCompleted,
-                progress: isCompleted
-                  ? 100
-                  : Math.round(((currentIndex + 1) / cards.length) * 100),
+                progress: isCompleted ? 100 : Math.round(((currentIndex + 1) / cards.length) * 100),
                 returnTo: `/flashcards/${id}/study`,
               });
             }}

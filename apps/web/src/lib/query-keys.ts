@@ -35,14 +35,16 @@ export const queryKeys = {
   searchRoot: () => [...root, 'search'] as const,
   search: (query: string, limit = 30) => [...root, 'search', { query, limit }] as const,
   liveAttempt: (attemptId: string) => [...root, 'live-attempt', attemptId] as const,
-  submittedAttemptResult: (attemptId: string) => [...root, 'submitted-attempt-result', attemptId] as const,
+  submittedAttemptResult: (attemptId: string) =>
+    [...root, 'submitted-attempt-result', attemptId] as const,
   reviewRoot: () => [...root, 'review'] as const,
   reviewQueue: (limit = 20) => [...root, 'review', 'queue', { limit }] as const,
   reviewSummary: () => [...root, 'review', 'summary'] as const,
   mistakesRoot: () => [...root, 'exam-mistakes'] as const,
   mistakes: (limit = 20) => [...root, 'exam-mistakes', { limit }] as const,
   mistakeAttempts: (examId: string) => [...root, 'exam-mistakes', 'attempts', examId] as const,
-  mistakeAttemptDetail: (attemptId: string) => [...root, 'exam-mistakes', 'attempt', attemptId] as const,
+  mistakeAttemptDetail: (attemptId: string) =>
+    [...root, 'exam-mistakes', 'attempt', attemptId] as const,
   frequentMistakes: (examId: string) => [...root, 'exam-mistakes', 'frequent', examId] as const,
   dictionaryRoot: () => [...root, 'dictionary'] as const,
   dictionaryLookup: (query: string, direction: string, limit = 20, includeExamples = false) =>

@@ -103,8 +103,7 @@ export interface DictionarySuggestionResponseDto {
 }
 
 export type ResolvedDictionaryLookupDirection =
-  | DictionaryLookupDirection.JA_TO_VI
-  | DictionaryLookupDirection.VI_TO_JA;
+  DictionaryLookupDirection.JA_TO_VI | DictionaryLookupDirection.VI_TO_JA;
 
 export interface DictionaryLookupHistoryItemDto {
   id: string;

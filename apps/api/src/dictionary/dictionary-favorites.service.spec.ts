@@ -100,7 +100,11 @@ describe('DictionaryFavoritesService (TASK-421)', () => {
     dictionaryFavorite.count.mockResolvedValue(3);
 
     const result = await service.list(999, 14);
-    expect(result).toMatchObject({ total: 3, limit: MAX_DICTIONARY_FAVORITE_PAGE_SIZE, offset: 14 });
+    expect(result).toMatchObject({
+      total: 3,
+      limit: MAX_DICTIONARY_FAVORITE_PAGE_SIZE,
+      offset: 14,
+    });
     expect(result.items[0]).toEqual(
       expect.objectContaining({
         term: '本',

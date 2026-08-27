@@ -23,7 +23,10 @@ export default function SubmittedExamReviewPage() {
 
   if (resultQuery.isLoading) {
     return (
-      <main aria-busy="true" style={{ maxWidth: '920px', margin: '0 auto', padding: '2rem 1.5rem' }}>
+      <main
+        aria-busy="true"
+        style={{ maxWidth: '920px', margin: '0 auto', padding: '2rem 1.5rem' }}
+      >
         <SkeletonBlock height="24rem" />
       </main>
     );
@@ -38,7 +41,10 @@ export default function SubmittedExamReviewPage() {
         <AlertTriangle size={36} style={{ color: 'var(--accent-amber)' }} />
         <h1 style={{ color: 'var(--text-primary)' }}>Review is unavailable</h1>
         <p style={{ color: 'var(--text-secondary)' }}>
-          {getApiErrorMessage(resultQuery.error, 'This submitted attempt no longer exists or is not finalized.')}
+          {getApiErrorMessage(
+            resultQuery.error,
+            'This submitted attempt no longer exists or is not finalized.',
+          )}
         </p>
       </main>
     );

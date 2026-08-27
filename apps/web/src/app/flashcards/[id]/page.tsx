@@ -26,6 +26,7 @@ import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
 import { SkeletonBlock } from '@/components/ui/skeleton';
 import { TagEditor } from '@/components/tags/tag-editor';
+import { StudySectionTabs } from '@/components/layout/study-section-tabs';
 
 export default function FlashcardSetDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -271,6 +272,7 @@ export default function FlashcardSetDetailPage() {
       aria-busy={isLoading}
       style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 1.5rem' }}
     >
+      <StudySectionTabs section="flashcards" />
       {isRefreshing && (
         <div
           role="status"

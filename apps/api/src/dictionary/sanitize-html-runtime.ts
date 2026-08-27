@@ -11,9 +11,6 @@ const sanitizeHtml: SanitizeHtml =
     : ((sanitizeHtmlModule as unknown as { default?: SanitizeHtml }).default ??
       (sanitizeHtmlModule as unknown as SanitizeHtml));
 
-export function sanitizeProviderHtml(
-  value: string,
-  options?: Parameters<SanitizeHtml>[1],
-): string {
+export function sanitizeProviderHtml(value: string, options?: Parameters<SanitizeHtml>[1]): string {
   return sanitizeHtml(value, options);
 }
