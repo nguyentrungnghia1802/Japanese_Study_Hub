@@ -13,6 +13,8 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
     examAttempt: {
       create: ReturnType<typeof vi.fn>;
       findUnique: ReturnType<typeof vi.fn>;
+      findMany: ReturnType<typeof vi.fn>;
+      updateMany: ReturnType<typeof vi.fn>;
       update: ReturnType<typeof vi.fn>;
     };
     examAttemptAnswer: {
@@ -20,7 +22,8 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
       findMany: ReturnType<typeof vi.fn>;
     };
     examMistake: {
-      upsert: ReturnType<typeof vi.fn>;
+      create: ReturnType<typeof vi.fn>;
+      deleteMany: ReturnType<typeof vi.fn>;
     };
     examBestResult: {
       findUnique: ReturnType<typeof vi.fn>;
@@ -73,6 +76,8 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
           id: 'attempt-1',
           examId: 'exam-1',
           examVersion: 1,
+          userKey: 'primary_user',
+          isPractice: false,
           status: AttemptStatus.IN_PROGRESS,
           startedAt: sampleDate,
           expiresAt: new Date(sampleDate.getTime() + 1800 * 1000),
@@ -100,12 +105,16 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
           },
           answers: [{ questionId: 'q-1', selectedOptionId: 'opt-1' }],
         }),
+        findMany: vi.fn().mockResolvedValue([{ id: 'attempt-1' }]),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
         update: vi.fn().mockResolvedValue({
           id: 'attempt-1',
           examId: 'exam-1',
           examVersion: 1,
           status: AttemptStatus.SUBMITTED,
           score: 100,
+          correctCount: 2,
+          totalQuestions: 2,
           durationSeconds: 120,
           startedAt: sampleDate,
           submittedAt: new Date(),
@@ -123,7 +132,8 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
         ]),
       },
       examMistake: {
-        upsert: vi.fn().mockResolvedValue({}),
+        create: vi.fn().mockResolvedValue({}),
+        deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
       },
       examBestResult: {
         findUnique: vi.fn().mockResolvedValue(null),
@@ -229,25 +239,28 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
 
       await service.submitAttempt('attempt-1');
 
-      expect(prismaMock.examMistake.upsert).toHaveBeenCalledTimes(2);
-      expect(prismaMock.examMistake.upsert).toHaveBeenNthCalledWith(
+      expect(prismaMock.examMistake.create).toHaveBeenCalledTimes(2);
+      expect(prismaMock.examMistake.create).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
-          create: expect.objectContaining({
+          data: expect.objectContaining({
             examId: 'exam-1',
             examVersion: 1,
             questionId: 'q-1',
             selectedOptionId: 'opt-2',
             sourceAttemptId: 'attempt-1',
+            isUnanswered: false,
+            questionContentSnapshot: sampleExam.questions[0].content,
           }),
         }),
       );
-      expect(prismaMock.examMistake.upsert).toHaveBeenNthCalledWith(
+      expect(prismaMock.examMistake.create).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
-          create: expect.objectContaining({
+          data: expect.objectContaining({
             questionId: 'q-2',
             selectedOptionId: null,
+            isUnanswered: true,
           }),
         }),
       );
@@ -359,7 +372,191 @@ describe('AttemptsService (Phase 6 / TASK-060..063)', () => {
       expect(prismaMock.examBestResult.findUnique).not.toHaveBeenCalled();
       expect(prismaMock.examBestResult.create).not.toHaveBeenCalled();
       expect(prismaMock.examBestResult.update).not.toHaveBeenCalled();
-      expect(prismaMock.examMistake.upsert).not.toHaveBeenCalled();
+      expect(prismaMock.examMistake.create).not.toHaveBeenCalled();
+      expect(prismaMock.examMistake.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it('retains exactly the newest three official histories and prunes only older detail', async () => {
+      const attemptIds = ['attempt-1', 'attempt-2', 'attempt-3', 'attempt-4', 'attempt-5'];
+      const retainedAfterEach = [
+        ['attempt-1'],
+        ['attempt-2', 'attempt-1'],
+        ['attempt-3', 'attempt-2', 'attempt-1'],
+        ['attempt-4', 'attempt-3', 'attempt-2'],
+        ['attempt-5', 'attempt-4', 'attempt-3'],
+      ];
+
+      prismaMock.examAttempt.findUnique.mockImplementation(
+        async ({ where }: { where: { id: string } }) => ({
+          id: where.id,
+          examId: 'exam-1',
+          examVersion: 1,
+          userKey: 'primary_user',
+          isPractice: false,
+          status: AttemptStatus.IN_PROGRESS,
+          score: null,
+          durationSeconds: null,
+          startedAt: sampleDate,
+          submittedAt: null,
+          questionOrderSnapshot: {
+            examId: 'exam-1',
+            examTitle: 'JLPT N3 Grammar Mock',
+            examVersion: 1,
+            timeLimitSeconds: 1800,
+            questions: sampleExam.questions,
+          },
+          answers: [],
+        }),
+      );
+      prismaMock.examAttempt.update.mockImplementation(
+        async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => ({
+          id: where.id,
+          examId: 'exam-1',
+          examVersion: 1,
+          userKey: 'primary_user',
+          isPractice: false,
+          status: AttemptStatus.SUBMITTED,
+          score: data.score,
+          correctCount: data.correctCount,
+          totalQuestions: 2,
+          durationSeconds: data.durationSeconds,
+          startedAt: sampleDate,
+          submittedAt: data.submittedAt,
+          answers: [
+            { questionId: 'q-1', selectedOptionId: 'opt-2' },
+            { questionId: 'q-2', selectedOptionId: null },
+          ],
+        }),
+      );
+      prismaMock.examAttemptAnswer.findMany.mockResolvedValue([
+        { questionId: 'q-1', selectedOptionId: 'opt-2' },
+      ]);
+      prismaMock.examAttempt.findMany.mockImplementation(async () => {
+        const index =
+          Math.min(prismaMock.examAttempt.findMany.mock.calls.length, retainedAfterEach.length) - 1;
+        return retainedAfterEach[index].map((id) => ({ id }));
+      });
+
+      for (const attemptId of attemptIds) {
+        await service.submitAttempt(attemptId);
+      }
+
+      expect(prismaMock.examMistake.create).toHaveBeenCalledTimes(10);
+      expect(prismaMock.examMistake.deleteMany).toHaveBeenCalledTimes(5);
+      expect(prismaMock.examMistake.deleteMany).toHaveBeenNthCalledWith(1, {
+        where: {
+          userKey: 'primary_user',
+          examId: 'exam-1',
+          examVersion: 1,
+          sourceAttemptId: { notIn: ['attempt-1'] },
+        },
+      });
+      expect(prismaMock.examMistake.deleteMany).toHaveBeenNthCalledWith(4, {
+        where: {
+          userKey: 'primary_user',
+          examId: 'exam-1',
+          examVersion: 1,
+          sourceAttemptId: { notIn: ['attempt-4', 'attempt-3', 'attempt-2'] },
+        },
+      });
+      expect(prismaMock.examMistake.deleteMany).toHaveBeenNthCalledWith(5, {
+        where: {
+          userKey: 'primary_user',
+          examId: 'exam-1',
+          examVersion: 1,
+          sourceAttemptId: { notIn: ['attempt-5', 'attempt-4', 'attempt-3'] },
+        },
+      });
+    });
+
+    it('does not prune another exam or content version when retaining an attempt', async () => {
+      prismaMock.examAttempt.findUnique.mockResolvedValueOnce({
+        id: 'attempt-other-scope',
+        examId: 'exam-2',
+        examVersion: 7,
+        userKey: 'primary_user',
+        isPractice: false,
+        status: AttemptStatus.IN_PROGRESS,
+        score: null,
+        durationSeconds: null,
+        startedAt: sampleDate,
+        submittedAt: null,
+        questionOrderSnapshot: {
+          examId: 'exam-2',
+          examTitle: 'Other exam',
+          examVersion: 7,
+          timeLimitSeconds: 1800,
+          questions: sampleExam.questions,
+        },
+        answers: [],
+      });
+      prismaMock.examAttemptAnswer.findMany.mockResolvedValueOnce([
+        { questionId: 'q-1', selectedOptionId: 'opt-2' },
+      ]);
+      prismaMock.examAttempt.findMany.mockResolvedValueOnce([{ id: 'attempt-other-scope' }]);
+      prismaMock.examAttempt.update.mockResolvedValueOnce({
+        id: 'attempt-other-scope',
+        examId: 'exam-2',
+        examVersion: 7,
+        userKey: 'primary_user',
+        isPractice: false,
+        status: AttemptStatus.SUBMITTED,
+        score: 0,
+        correctCount: 0,
+        totalQuestions: 2,
+        durationSeconds: 1,
+        startedAt: sampleDate,
+        submittedAt: sampleDate,
+        answers: [{ questionId: 'q-1', selectedOptionId: 'opt-2' }],
+      });
+
+      await service.submitAttempt('attempt-other-scope');
+
+      expect(prismaMock.examMistake.deleteMany).toHaveBeenCalledWith({
+        where: {
+          userKey: 'primary_user',
+          examId: 'exam-2',
+          examVersion: 7,
+          sourceAttemptId: { notIn: ['attempt-other-scope'] },
+        },
+      });
+    });
+
+    it('returns the committed result when a concurrent submit loses the database claim', async () => {
+      const submittedAttempt = {
+        id: 'attempt-1',
+        examId: 'exam-1',
+        examVersion: 1,
+        userKey: 'primary_user',
+        isPractice: false,
+        status: AttemptStatus.SUBMITTED,
+        score: 50,
+        correctCount: 1,
+        totalQuestions: 2,
+        durationSeconds: 123,
+        startedAt: sampleDate,
+        submittedAt: sampleDate,
+        questionOrderSnapshot: {
+          examId: 'exam-1',
+          examTitle: 'JLPT N3 Grammar Mock',
+          examVersion: 1,
+          timeLimitSeconds: 1800,
+          questions: sampleExam.questions,
+        },
+        answers: [{ questionId: 'q-1', selectedOptionId: 'opt-2' }],
+      };
+      prismaMock.examAttempt.findUnique
+        .mockReset()
+        .mockResolvedValueOnce({ ...submittedAttempt, status: AttemptStatus.IN_PROGRESS })
+        .mockResolvedValueOnce(submittedAttempt);
+      prismaMock.examAttempt.updateMany.mockResolvedValueOnce({ count: 0 });
+
+      const result = await service.submitAttempt('attempt-1');
+
+      expect(result.score).toBe(50);
+      expect(prismaMock.examAttempt.update).not.toHaveBeenCalled();
+      expect(prismaMock.examMistake.create).not.toHaveBeenCalled();
+      expect(prismaMock.examMistake.deleteMany).not.toHaveBeenCalled();
     });
   });
 });

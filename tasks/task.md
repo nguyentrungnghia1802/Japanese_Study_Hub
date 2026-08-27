@@ -956,28 +956,28 @@ Commit: `feat(db): add bounded exam mistake retention`
 
 ## TASK-472 — Implement transactional last-3 pruning
 
-- [ ] Integrate pruning into official attempt finalization or equivalent safe transaction.
-- [ ] Identify newest 3 official submitted attempts in scope.
-- [ ] Preserve detailed wrong/unanswered review data for those 3.
-- [ ] Prune detailed review data older than 3.
-- [ ] Never delete best-result summary.
-- [ ] Never prune in-progress attempt.
-- [ ] Never count practice attempt.
-- [ ] Keep duplicate/idempotent submit safe.
-- [ ] Handle retry/concurrency safely.
+- [x] Integrate pruning into official attempt finalization or equivalent safe transaction.
+- [x] Identify newest 3 official submitted attempts in scope.
+- [x] Preserve detailed wrong/unanswered review data for those 3.
+- [x] Prune detailed review data older than 3.
+- [x] Never delete best-result summary.
+- [x] Never prune in-progress attempt.
+- [x] Never count practice attempt.
+- [x] Keep duplicate/idempotent submit safe.
+- [x] Handle retry/concurrency safely.
 
 Mandatory tests:
 
-- [ ] Attempt 1 retained.
-- [ ] Attempt 2 retained.
-- [ ] Attempt 3 retained.
-- [ ] Attempt 4 prunes attempt 1 detailed review.
-- [ ] Attempt 5 prunes attempt 2 detailed review.
-- [ ] Practice attempt does not shift window.
-- [ ] Another exam is unaffected.
-- [ ] Another exam version is not mixed.
-- [ ] Duplicate submit does not corrupt/prune twice.
-- [ ] Best score remains correct.
+- [x] Attempt 1 retained.
+- [x] Attempt 2 retained.
+- [x] Attempt 3 retained.
+- [x] Attempt 4 prunes attempt 1 detailed review.
+- [x] Attempt 5 prunes attempt 2 detailed review.
+- [x] Practice attempt does not shift window.
+- [x] Another exam is unaffected.
+- [x] Another exam version is not mixed.
+- [x] Duplicate submit does not corrupt/prune twice.
+- [x] Best score remains correct.
 
 Acceptance criteria:
 

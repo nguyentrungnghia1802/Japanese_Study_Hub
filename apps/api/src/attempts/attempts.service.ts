@@ -229,30 +229,23 @@ export class AttemptsService {
     }
 
     const snapshot = attempt.questionOrderSnapshot as unknown as AttemptSnapshot;
-    const questionMap = new Map<string, SnapshotQuestion>();
-    snapshot.questions.forEach((q) => questionMap.set(q.id, q));
-
-    // Validate questions and options
-    for (const ans of dto.answers) {
-      const q = questionMap.get(ans.questionId);
-      if (!q) {
-        throw new BadRequestException(
-          `Question '${ans.questionId}' does not belong to this attempt`,
-        );
-      }
-
-      if (ans.selectedOptionId) {
-        const optExists = q.options.some((o) => o.id === ans.selectedOptionId);
-        if (!optExists) {
-          throw new BadRequestException(
-            `Option '${ans.selectedOptionId}' does not belong to question '${ans.questionId}'`,
-          );
-        }
-      }
-    }
+    this.validateAnswers(snapshot, dto.answers);
 
     // Upsert answers transactionally
     await this.prisma.$transaction(async (tx) => {
+      // Claim the in-progress row before writing answers. This prevents an
+      // answer-save request that started before submit from mutating a
+      // finalized attempt after the submit transaction commits.
+      const claim = await tx.examAttempt.updateMany({
+        where: { id: attemptId, status: AttemptStatus.IN_PROGRESS },
+        data: { updatedAt: new Date() },
+      });
+      if (claim.count === 0) {
+        throw new BadRequestException(
+          'Cannot save answers on an attempt that is no longer in progress',
+        );
+      }
+
       for (const ans of dto.answers) {
         await tx.examAttemptAnswer.upsert({
           where: {
@@ -274,6 +267,31 @@ export class AttemptsService {
     });
 
     return { success: true };
+  }
+
+  private validateAnswers(snapshot: AttemptSnapshot, answers: SaveAnswersBodyDto['answers']): void {
+    const questionMap = new Map<string, SnapshotQuestion>();
+    snapshot.questions.forEach((question) => questionMap.set(question.id, question));
+
+    for (const answer of answers) {
+      const question = questionMap.get(answer.questionId);
+      if (!question) {
+        throw new BadRequestException(
+          `Question '${answer.questionId}' does not belong to this attempt`,
+        );
+      }
+
+      if (answer.selectedOptionId) {
+        const optionExists = question.options.some(
+          (option) => option.id === answer.selectedOptionId,
+        );
+        if (!optionExists) {
+          throw new BadRequestException(
+            `Option '${answer.selectedOptionId}' does not belong to question '${answer.questionId}'`,
+          );
+        }
+      }
+    }
   }
 
   async submitAttempt(
@@ -298,124 +316,172 @@ export class AttemptsService {
       return this.buildGradedResult(attempt, snapshot);
     }
 
-    // Save any pending answers before final submission
-    if (dto?.answers && dto.answers.length > 0) {
-      await this.saveAnswers(attemptId, { answers: dto.answers });
-    }
-
-    // Refresh answers after saving
-    const currentAnswers = await this.prisma.examAttemptAnswer.findMany({
-      where: { attemptId },
-    });
-    const answerMap = new Map<string, string | null>();
-    currentAnswers.forEach((a) => answerMap.set(a.questionId, a.selectedOptionId));
-
-    // Calculate score
-    let correctCount = 0;
-    const totalQuestions = snapshot.questions.length;
-
-    snapshot.questions.forEach((q) => {
-      const selectedId = answerMap.get(q.id);
-      const correctOpt = q.options.find((o) => o.isCorrect);
-      if (selectedId && correctOpt && selectedId === correctOpt.id) {
-        correctCount++;
-      }
-    });
-
-    const score = calculateExamScore(correctCount, totalQuestions);
     const submittedAt = new Date();
     const durationSeconds = Math.max(
       0,
       Math.round((submittedAt.getTime() - attempt.startedAt.getTime()) / 1000),
     );
+    const totalQuestions = snapshot.questions.length;
 
-    // Finalize attempt and update best result transactionally
-    const { updatedAttempt, isNewBest, bestScore } = await this.prisma.$transaction(async (tx) => {
-      // 1. Update attempt
-      const finalized = await tx.examAttempt.update({
-        where: { id: attemptId },
-        data: {
-          status: AttemptStatus.SUBMITTED,
-          submittedAt,
-          score,
-          durationSeconds,
-          correctCount,
-        },
-        include: { answers: true },
-      });
-
-      let newBestFlag = false;
-      let currentBestScore = score;
-
-      if (!attempt.isPractice) {
-        // 2. Derive mistakes from the immutable submitted snapshot. Practice
-        // attempts never create mistakes or official learning history.
-        await this.persistMistakes(tx, attempt, snapshot, answerMap);
-
-        // 3. Best-result service (TASK-063)
-        const existingBest = await tx.examBestResult.findUnique({
-          where: {
-            userKey_examId_examVersion: {
-              userKey: 'primary_user',
-              examId: attempt.examId,
-              examVersion: attempt.examVersion,
-            },
-          },
+    // Claim and finalize the attempt in one transaction. The conditional update
+    // serializes concurrent submit requests at the database row, so only the
+    // winner can persist mistakes and update the best-result aggregate.
+    const { updatedAttempt, isNewBest, bestScore, score, correctCount } =
+      await this.prisma.$transaction(async (tx) => {
+        const claim = await tx.examAttempt.updateMany({
+          where: { id: attemptId, status: AttemptStatus.IN_PROGRESS },
+          data: { updatedAt: new Date() },
         });
 
-        if (!existingBest) {
-          await tx.examBestResult.create({
-            data: {
-              examId: attempt.examId,
-              examVersion: attempt.examVersion,
-              userKey: 'primary_user',
-              bestScore: score,
-              correctCount,
-              totalQuestions,
-              durationSeconds,
-              attemptCount: 1,
-              achievedAt: submittedAt,
-              lastAttemptAt: submittedAt,
+        if (claim.count === 0) {
+          const submittedAttempt = await tx.examAttempt.findUnique({
+            where: { id: attemptId },
+            include: { answers: true },
+          });
+          if (!submittedAttempt) {
+            throw new NotFoundException(`Attempt with ID '${attemptId}' not found`);
+          }
+          if (submittedAttempt.status !== AttemptStatus.SUBMITTED) {
+            throw new BadRequestException('Attempt cannot be submitted in its current state');
+          }
+          return {
+            updatedAttempt: submittedAttempt,
+            isNewBest: false,
+            bestScore: Number(submittedAttempt.score ?? 0),
+            score: Number(submittedAttempt.score ?? 0),
+            correctCount: submittedAttempt.correctCount ?? 0,
+          };
+        }
+
+        if (dto?.answers && dto.answers.length > 0) {
+          this.validateAnswers(snapshot, dto.answers);
+          for (const answer of dto.answers) {
+            await tx.examAttemptAnswer.upsert({
+              where: {
+                attemptId_questionId: {
+                  attemptId,
+                  questionId: answer.questionId,
+                },
+              },
+              update: {
+                selectedOptionId: answer.selectedOptionId || null,
+              },
+              create: {
+                attemptId,
+                questionId: answer.questionId,
+                selectedOptionId: answer.selectedOptionId || null,
+              },
+            });
+          }
+        }
+
+        const currentAnswers = await tx.examAttemptAnswer.findMany({
+          where: { attemptId },
+        });
+        const answerMap = new Map<string, string | null>();
+        currentAnswers.forEach((answer) =>
+          answerMap.set(answer.questionId, answer.selectedOptionId),
+        );
+
+        let correctCount = 0;
+        snapshot.questions.forEach((question) => {
+          const selectedId = answerMap.get(question.id);
+          const correctOption = question.options.find((option) => option.isCorrect);
+          if (selectedId && correctOption && selectedId === correctOption.id) {
+            correctCount++;
+          }
+        });
+
+        const score = calculateExamScore(correctCount, totalQuestions);
+
+        // 1. Update attempt after the conditional claim.
+        const finalized = await tx.examAttempt.update({
+          where: { id: attemptId },
+          data: {
+            status: AttemptStatus.SUBMITTED,
+            submittedAt,
+            score,
+            durationSeconds,
+            correctCount,
+          },
+          include: { answers: true },
+        });
+
+        let newBestFlag = false;
+        let currentBestScore = score;
+
+        if (!attempt.isPractice) {
+          // 2. Derive mistakes from the immutable submitted snapshot. Practice
+          // attempts never create mistakes or official learning history.
+          await this.persistMistakes(tx, attempt, snapshot, answerMap, submittedAt);
+          await this.pruneMistakes(tx, attempt);
+
+          // 3. Best-result service (TASK-063)
+          const existingBest = await tx.examBestResult.findUnique({
+            where: {
+              userKey_examId_examVersion: {
+                userKey: attempt.userKey,
+                examId: attempt.examId,
+                examVersion: attempt.examVersion,
+              },
             },
           });
-          newBestFlag = true;
-        } else {
-          const prevScore = Number(existingBest.bestScore);
 
-          if (score > prevScore) {
-            await tx.examBestResult.update({
-              where: { id: existingBest.id },
+          if (!existingBest) {
+            await tx.examBestResult.create({
               data: {
+                examId: attempt.examId,
+                examVersion: attempt.examVersion,
+                userKey: attempt.userKey,
                 bestScore: score,
                 correctCount,
                 totalQuestions,
                 durationSeconds,
-                attemptCount: { increment: 1 },
+                attemptCount: 1,
                 achievedAt: submittedAt,
                 lastAttemptAt: submittedAt,
               },
             });
             newBestFlag = true;
           } else {
-            // Lower or equal score does not replace best score
-            await tx.examBestResult.update({
-              where: { id: existingBest.id },
-              data: {
-                attemptCount: { increment: 1 },
-                lastAttemptAt: submittedAt,
-              },
-            });
-            currentBestScore = prevScore;
+            const prevScore = Number(existingBest.bestScore);
+
+            if (score > prevScore) {
+              await tx.examBestResult.update({
+                where: { id: existingBest.id },
+                data: {
+                  bestScore: score,
+                  correctCount,
+                  totalQuestions,
+                  durationSeconds,
+                  attemptCount: { increment: 1 },
+                  achievedAt: submittedAt,
+                  lastAttemptAt: submittedAt,
+                },
+              });
+              newBestFlag = true;
+            } else {
+              // Lower or equal score does not replace best score
+              await tx.examBestResult.update({
+                where: { id: existingBest.id },
+                data: {
+                  attemptCount: { increment: 1 },
+                  lastAttemptAt: submittedAt,
+                },
+              });
+              currentBestScore = prevScore;
+            }
           }
         }
-      }
 
-      return {
-        updatedAttempt: finalized,
-        isNewBest: newBestFlag,
-        bestScore: currentBestScore,
-      };
-    });
+        return {
+          updatedAttempt: finalized,
+          isNewBest: newBestFlag,
+          bestScore: currentBestScore,
+          score,
+          correctCount,
+        };
+      });
 
     this.logger.log(
       `Attempt '${attemptId}' submitted. Score: ${score}% (${correctCount}/${totalQuestions}). Best: ${bestScore}%`,
@@ -500,9 +566,10 @@ export class AttemptsService {
 
   private async persistMistakes(
     tx: Prisma.TransactionClient,
-    attempt: { id: string; examId: string; examVersion: number },
+    attempt: { id: string; examId: string; examVersion: number; userKey: string },
     snapshot: AttemptSnapshot,
     answerMap: Map<string, string | null>,
+    submittedAt: Date,
   ): Promise<void> {
     for (const question of snapshot.questions) {
       const selectedOptionId = answerMap.get(question.id) ?? null;
@@ -512,26 +579,57 @@ export class AttemptsService {
       );
       if (isCorrect) continue;
 
-      await tx.examMistake.upsert({
-        where: {
-          examId_examVersion_questionId: {
-            examId: attempt.examId,
-            examVersion: attempt.examVersion,
-            questionId: question.id,
-          },
-        },
-        update: {
-          sourceAttemptId: attempt.id,
-          selectedOptionId,
-        },
-        create: {
+      await tx.examMistake.create({
+        data: {
+          userKey: attempt.userKey,
           examId: attempt.examId,
           examVersion: attempt.examVersion,
           questionId: question.id,
           sourceAttemptId: attempt.id,
+          questionTypeSnapshot: question.type,
+          questionContentSnapshot: question.content,
+          optionSnapshot: question.options.map((option) => ({
+            id: option.id,
+            content: option.content,
+            position: option.position,
+          })),
+          questionPosition: question.position,
           selectedOptionId,
+          correctOptionId: correctOption?.id ?? null,
+          isCorrect,
+          isUnanswered: selectedOptionId === null,
+          submittedAt,
         },
       });
     }
+  }
+
+  private async pruneMistakes(
+    tx: Prisma.TransactionClient,
+    attempt: { id: string; examId: string; examVersion: number; userKey: string },
+  ): Promise<void> {
+    const retainedAttempts = await tx.examAttempt.findMany({
+      where: {
+        examId: attempt.examId,
+        examVersion: attempt.examVersion,
+        userKey: attempt.userKey,
+        status: AttemptStatus.SUBMITTED,
+        isPractice: false,
+      },
+      orderBy: [{ submittedAt: 'desc' }, { id: 'desc' }],
+      take: 3,
+      select: { id: true },
+    });
+    const retainedAttemptIds = retainedAttempts.map(({ id }) => id);
+    if (retainedAttemptIds.length === 0) return;
+
+    await tx.examMistake.deleteMany({
+      where: {
+        userKey: attempt.userKey,
+        examId: attempt.examId,
+        examVersion: attempt.examVersion,
+        sourceAttemptId: { notIn: retainedAttemptIds },
+      },
+    });
   }
 }
