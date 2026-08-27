@@ -108,6 +108,12 @@ describe('bounded lookup continuity', () => {
       1000,
     );
     expect(readExamReviewContinuity(attemptId, 1000)?.filter).toBe('WRONG');
+    expect(readExamReviewContinuity(attemptId, 1000)).toMatchObject({
+      examId,
+      examVersion: 2,
+      currentQuestionId: cardIds[0],
+      returnTo: `/exams/${examId}/review/${attemptId}`,
+    });
     expect(readExamReviewContinuity(attemptId, 1000 + CONTINUITY_TTL_MS + 1)).toBeNull();
     clearExamReviewContinuity(attemptId);
     clearFlashcardStudyContinuity(setId);

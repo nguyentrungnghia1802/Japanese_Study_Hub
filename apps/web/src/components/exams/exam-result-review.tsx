@@ -6,10 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, Languages, XCircle } from 'lucide-react';
 import type { ExamAttemptResultDto, QuestionGradedResultDto } from '@japanese-learning/contracts';
 import type { ExamReviewFilter } from '@/lib/continuity';
-import {
-  readExamReviewContinuity,
-  writeExamReviewContinuity,
-} from '@/lib/continuity';
+import { readExamReviewContinuity, writeExamReviewContinuity } from '@/lib/continuity';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 const FILTERS: Array<{ value: ExamReviewFilter; label: string }> = [
@@ -28,7 +25,7 @@ function isVisible(question: QuestionGradedResultDto, filter: ExamReviewFilter):
   return true;
 }
 
-function getReviewPath(
+export function getReviewPath(
   attemptId: string,
   filter: ExamReviewFilter,
   questionId: string | null,
@@ -75,19 +72,25 @@ export default function ExamResultReview({ result }: { result: ExamAttemptResult
     const candidateQuestion = requestedQuestion ?? savedQuestion;
     setFilter(nextFilter);
     setCurrentQuestionId(
-      candidateQuestion && result.questions.some((question) => question.questionId === candidateQuestion)
+      candidateQuestion &&
+        result.questions.some((question) => question.questionId === candidateQuestion)
         ? candidateQuestion
-        : result.questions[0]?.questionId ?? null,
+        : (result.questions[0]?.questionId ?? null),
     );
     initialized.current = true;
     if (saved && saved.examId === result.examId && saved.examVersion === result.examVersion) {
-      window.requestAnimationFrame(() => window.scrollTo({ top: saved.scrollTop, behavior: 'auto' }));
+      window.requestAnimationFrame(() =>
+        window.scrollTo({ top: saved.scrollTop, behavior: 'auto' }),
+      );
     }
   }, [result, searchParams]);
 
   useEffect(() => {
     if (!initialized.current) return;
-    if (currentQuestionId && visibleQuestions.some((question) => question.questionId === currentQuestionId)) {
+    if (
+      currentQuestionId &&
+      visibleQuestions.some((question) => question.questionId === currentQuestionId)
+    ) {
       return;
     }
     setCurrentQuestionId(visibleQuestions[0]?.questionId ?? null);
@@ -142,7 +145,11 @@ export default function ExamResultReview({ result }: { result: ExamAttemptResult
     router.replace(getReviewPath(result.attemptId, filter, questionId), { scroll: false });
   };
 
-  const lookupReturnPath = getReviewPath(result.attemptId, filter, currentQuestion?.questionId ?? null);
+  const lookupReturnPath = getReviewPath(
+    result.attemptId,
+    filter,
+    currentQuestion?.questionId ?? null,
+  );
   const lookupHref = `/lookup?returnTo=${encodeURIComponent(lookupReturnPath)}`;
 
   return (
@@ -173,7 +180,8 @@ export default function ExamResultReview({ result }: { result: ExamAttemptResult
           </Link>
           <h1 style={{ color: 'var(--text-primary)', margin: 0 }}>Submitted exam review</h1>
           <p style={{ color: 'var(--text-secondary)', margin: '0.5rem 0 0' }}>
-            {result.examTitle} · {result.score}% · {result.correctCount}/{result.totalQuestions} correct
+            {result.examTitle} · {result.score}% · {result.correctCount}/{result.totalQuestions}{' '}
+            correct
           </p>
         </div>
         <Link
@@ -203,7 +211,9 @@ export default function ExamResultReview({ result }: { result: ExamAttemptResult
           style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}
         >
           {FILTERS.map((option) => {
-            const count = result.questions.filter((question) => isVisible(question, option.value)).length;
+            const count = result.questions.filter((question) =>
+              isVisible(question, option.value),
+            ).length;
             return (
               <button
                 key={option.value}
@@ -218,8 +228,7 @@ export default function ExamResultReview({ result }: { result: ExamAttemptResult
                     filter === option.value
                       ? '1px solid rgba(56, 189, 248, 0.55)'
                       : '1px solid var(--border-subtle)',
-                  background:
-                    filter === option.value ? 'rgba(56, 189, 248, 0.13)' : 'transparent',
+                  background: filter === option.value ? 'rgba(56, 189, 248, 0.13)' : 'transparent',
                   color: filter === option.value ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                   fontWeight: 700,
                 }}

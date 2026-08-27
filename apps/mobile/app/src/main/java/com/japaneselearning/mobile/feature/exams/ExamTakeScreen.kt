@@ -57,7 +57,7 @@ import com.japaneselearning.mobile.data.model.GradedQuestion
 @Composable
 fun ExamTakeScreen(
     onBack: () -> Unit,
-    onOpenLookup: () -> Unit,
+    onOpenLookup: (query: String) -> Unit,
     viewModel: ExamTakeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -199,7 +199,7 @@ fun ExamTakeScreen(
 private fun ExamResultScreen(
     result: ExamResult,
     onBack: () -> Unit,
-    onOpenLookup: () -> Unit,
+    onOpenLookup: (query: String) -> Unit,
     filter: ReviewFilter,
     reviewIndex: Int,
     onFilterChanged: (ReviewFilter) -> Unit,
@@ -215,7 +215,13 @@ private fun ExamResultScreen(
                 title = { Text("Kết quả") },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.Close, "Đóng") } },
                 actions = {
-                    IconButton(onClick = onOpenLookup) {
+                    IconButton(
+                        onClick = {
+                            selectedQuestion?.value?.content?.let { content ->
+                                onOpenLookup(ExamSessionLogic.lookupQuery(content))
+                            }
+                        },
+                    ) {
                         Icon(Icons.Default.Search, "Tra cứu")
                     }
                 },
@@ -289,7 +295,11 @@ private fun ExamResultScreen(
 }
 
 @Composable
-private fun GradedQuestionCard(index: Int, question: GradedQuestion, onOpenLookup: (() -> Unit)? = null) {
+private fun GradedQuestionCard(
+    index: Int,
+    question: GradedQuestion,
+    onOpenLookup: ((query: String) -> Unit)? = null,
+) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -320,7 +330,10 @@ private fun GradedQuestionCard(index: Int, question: GradedQuestion, onOpenLooku
                 )
             }
             if (onOpenLookup != null) {
-                OutlinedButton(onClick = onOpenLookup, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(
+                    onClick = { onOpenLookup(ExamSessionLogic.lookupQuery(question.content)) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     Icon(Icons.Default.Search, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
                     Text("Tra cứu thêm")

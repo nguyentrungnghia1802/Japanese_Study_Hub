@@ -205,7 +205,9 @@ private fun StudyNavHost(
         ) {
             ExamTakeScreen(
                 onBack = { navController.popBackStack() },
-                onOpenLookup = { navController.navigate(Routes.LOOKUP) },
+                onOpenLookup = { query ->
+                    navController.navigate("lookup/${Uri.encode(query)}")
+                },
             )
         }
         composable(Routes.SEARCH) {

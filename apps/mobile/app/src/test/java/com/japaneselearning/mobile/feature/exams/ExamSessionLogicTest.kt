@@ -38,6 +38,12 @@ class ExamSessionLogicTest {
         assertEquals(listOf(true, true, true), questions.map { ReviewFilterLogic.matches(ReviewFilter.ALL, it) })
     }
 
+    @Test
+    fun `review lookup query is trimmed and bounded for safe navigation`() {
+        assertEquals("Question text", ExamSessionLogic.lookupQuery("  Question text  "))
+        assertEquals(120, ExamSessionLogic.lookupQuery("x".repeat(140)).length)
+    }
+
     private fun options() = listOf(
         GradedOption("a", "A", false),
         GradedOption("b", "B", true),

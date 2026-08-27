@@ -17,4 +17,6 @@ object ExamSessionLogic {
         val remaining = seconds % 60
         return "%02d:%02d".format(minutes, remaining)
     }
+
+    fun lookupQuery(questionContent: String): String = questionContent.trim().take(120)
 }

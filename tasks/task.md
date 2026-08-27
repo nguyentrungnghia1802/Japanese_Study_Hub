@@ -1250,19 +1250,28 @@ Commit: `test(dictionary): add integration coverage`
 
 Web:
 
-- [ ] Flashcard normal session → Lookup → exact return.
-- [ ] Flashcard shuffle session → Lookup → exact return.
-- [ ] Front/Back state preserved.
-- [ ] Active Exam blocks in-app Lookup.
-- [ ] Submitted Exam review → Lookup → exact return question/filter.
-- [ ] Browser Back behavior.
-- [ ] Changed/deleted resource fallback.
+- [x] Flashcard normal session → Lookup → exact return.
+- [x] Flashcard shuffle session → Lookup → exact return.
+- [x] Front/Back state preserved.
+- [x] Active Exam blocks in-app Lookup.
+- [x] Submitted Exam review → Lookup → exact return question/filter.
+- [x] Browser Back behavior.
+- [x] Changed/deleted resource fallback.
 
 Android:
 
-- [ ] Same Flashcard continuity.
-- [ ] Active Exam Lookup restriction.
-- [ ] Submitted review continuity.
+- [x] Same Flashcard continuity.
+- [x] Active Exam Lookup restriction.
+- [x] Submitted review continuity.
+
+Verification (2026-08-27): Web continuity specs cover normal and shuffled card
+order, front/back state, TTL/changed-resource fallback, bounded return paths,
+active-attempt gating, and submitted-review question/filter restoration. The
+Web review component routes Lookup with an exact same-origin return path and
+uses router back for browser history. Android unit tests cover SavedStateHandle
+card order/index/front-back restoration, active-exam lookup suppression, and
+bounded submitted-question lookup navigation; Android compile, unit tests, and
+lint passed.
 
 Commit: `test(ux): cover lookup continuity`
 

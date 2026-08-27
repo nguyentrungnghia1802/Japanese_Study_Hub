@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { DictionaryLookupDirection } from '@japanese-learning/contracts';
 import LookupPage from './page.js';
-import { hasDictionaryResult, parseLookupDirection } from '@/lib/lookup-helpers.js';
+import {
+  hasDictionaryResult,
+  normalizeLookupReturnPath,
+  parseLookupDirection,
+} from '@/lib/lookup-helpers.js';
 
 describe('LookupPage (TASK-430)', () => {
   it('is a client route component and parses only supported URL directions', () => {
@@ -49,5 +53,14 @@ describe('LookupPage (TASK-430)', () => {
         sources: [],
       }),
     ).toBe(true);
+  });
+
+  it('keeps only same-origin bounded return paths for continuity', () => {
+    const reviewPath =
+      '/exams/review/33333333-3333-4333-8333-333333333333?filter=WRONG&question=44444444-4444-4444-8444-444444444444';
+    expect(normalizeLookupReturnPath(reviewPath)).toBe(reviewPath);
+    expect(normalizeLookupReturnPath('https://example.test/steal-context')).toBeNull();
+    expect(normalizeLookupReturnPath('//example.test/steal-context')).toBeNull();
+    expect(normalizeLookupReturnPath(`/${'x'.repeat(512)}`)).toBeNull();
   });
 });
