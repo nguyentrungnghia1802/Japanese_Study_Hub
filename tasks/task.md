@@ -1308,21 +1308,29 @@ Commit: `test(exams): cover recent mistake retention`
 
 ## TASK-514 — Web Phase 3 E2E
 
-- [ ] Login.
-- [ ] Lookup Japanese → Vietnamese.
-- [ ] Lookup Vietnamese → Japanese.
-- [ ] Lookup single kanji.
-- [ ] Favorite/unfavorite.
-- [ ] History.
-- [ ] Create Flashcard from Lookup.
-- [ ] Flashcard → Lookup → exact return state.
-- [ ] Start Exam.
-- [ ] Verify Lookup disabled during active attempt.
-- [ ] Submit Exam.
-- [ ] Wrong-answer review → Lookup → exact return state.
-- [ ] Complete enough official attempts to verify only latest 3 mistake histories remain.
-- [ ] Create Flashcard from mistake.
-- [ ] Verify no live answer leakage.
+- [x] Login.
+- [x] Lookup Japanese → Vietnamese.
+- [x] Lookup Vietnamese → Japanese.
+- [x] Lookup single kanji.
+- [x] Favorite/unfavorite.
+- [x] History.
+- [x] Create Flashcard from Lookup.
+- [x] Flashcard → Lookup → exact return state.
+- [x] Start Exam.
+- [x] Verify Lookup disabled during active attempt.
+- [x] Submit Exam.
+- [x] Wrong-answer review → Lookup → exact return state.
+- [x] Complete enough official attempts to verify only latest 3 mistake histories remain.
+- [x] Create Flashcard from mistake.
+- [x] Verify no live answer leakage.
+
+Verification (2026-08-27): The authenticated localhost journey is recorded in
+`docs/testing/phase3-web-e2e-2026-08-27.md`. It passed both Lookup directions,
+single-kanji enrichment, history/favorites, Lookup and mistake Flashcard
+creation, Flashcard/review continuity, active-attempt restriction, submitted
+review, four additional official submissions with three retained tabs, and
+the active DOM no-answer-leakage check. The client favorite wire-payload
+regression found during this run was fixed and retested in `839ae7b`.
 
 Commit: `test(web): complete phase 3 e2e`
 
@@ -1343,6 +1351,13 @@ Commit: `test(web): complete phase 3 e2e`
 - [ ] Last-3 mistake review.
 - [ ] Add mistake to Flashcard.
 - [ ] Provider failure/retry states.
+
+Verification (2026-08-27): Local `testDebugUnitTest`, `lintDebug`,
+`assembleDebug`, `assembleProduction`, and `verifyApiBaseUrls` passed. The
+connected instrumentation gate was attempted, but `adb devices` had no
+connected emulator/device and Gradle stopped with `DeviceException: No
+connected devices!`. Android UI checklist items remain open and are recorded
+as an owner/device boundary in `docs/testing/phase3-android-e2e-2026-08-27.md`.
 
 Commit: `test(android): complete phase 3 smoke flow`
 
@@ -1410,87 +1425,106 @@ Commit: `docs(dictionary): finalize provider attribution`
 
 Build/test:
 
-- [ ] `pnpm install --frozen-lockfile` succeeds.
-- [ ] Root lint passes.
-- [ ] Root typecheck passes.
-- [ ] Unit tests pass.
-- [ ] Backend integration tests pass.
-- [ ] Web E2E passes.
-- [ ] Web production build passes.
-- [ ] API production build passes.
-- [ ] Android unit tests pass.
-- [ ] Android lint passes.
-- [ ] Android debug APK builds.
-- [ ] Android production APK builds.
+- [x] `pnpm install --frozen-lockfile` succeeds.
+- [x] Root lint passes.
+- [x] Root typecheck passes.
+- [x] Unit tests pass.
+- [x] Backend integration tests pass.
+- [x] Web E2E passes.
+- [x] Web production build passes.
+- [x] API production build passes.
+- [x] Android unit tests pass.
+- [x] Android lint passes.
+- [x] Android debug APK builds.
+- [x] Android production APK builds.
 
 Database/operations:
 
-- [ ] Fresh DB applies all migrations.
-- [ ] Phase 2 DB upgrades to Phase 3.
+- [x] Fresh DB applies all migrations.
+- [x] Phase 2 DB upgrades to Phase 3.
 - [ ] Backup taken before production migration.
 - [ ] Isolated Phase 3 restore succeeds.
 - [ ] Production health checks pass.
 
 Dictionary:
 
-- [ ] Production JA→VI works.
-- [ ] Production VI→JA works.
-- [ ] Production single-kanji works.
-- [ ] Provider failure degrades safely.
-- [ ] Cache bounded.
-- [ ] History bounded.
-- [ ] Attribution correct.
+- [ ] Production JA→VI works. (Local real-provider smoke passed; production
+      deployment still requires the owner/server gate.)
+- [ ] Production VI→JA works. (Local real-provider smoke passed; production
+      deployment still requires the owner/server gate.)
+- [ ] Production single-kanji works. (Local real-provider smoke passed;
+      production deployment still requires the owner/server gate.)
+- [x] Provider failure degrades safely.
+- [x] Cache bounded.
+- [x] History bounded.
+- [x] Attribution correct.
 
 Continuity:
 
-- [ ] Web Flashcard → Lookup → exact return.
+- [x] Web Flashcard → Lookup → exact return.
 - [ ] Android Flashcard → Lookup → exact return.
-- [ ] Active Exam cannot open Lookup through normal in-app navigation.
+- [x] Active Exam cannot open Lookup through normal in-app navigation.
 - [ ] Active attempt still restores safely after refresh/reopen.
-- [ ] Web submitted review → Lookup → exact return.
+- [x] Web submitted review → Lookup → exact return.
 - [ ] Android submitted review → Lookup → exact return.
 
 Last-3 mistakes:
 
-- [ ] Only newest 3 official attempts retain detailed wrong/unanswered review in defined scope.
-- [ ] Fourth attempt prunes oldest detailed review.
-- [ ] Practice does not shift the window.
-- [ ] Best score remains correct.
-- [ ] Attempt count remains correct.
-- [ ] Content versions do not mix.
-- [ ] Frequent-mistake summary uses only retained applicable attempts.
+- [x] Only newest 3 official attempts retain detailed wrong/unanswered review in defined scope.
+- [x] Fourth attempt prunes oldest detailed review.
+- [x] Practice does not shift the window.
+- [x] Best score remains correct.
+- [x] Attempt count remains correct.
+- [x] Content versions do not mix.
+- [x] Frequent-mistake summary uses only retained applicable attempts.
 
 Security/regression:
 
-- [ ] Live attempt payload contains no correct-answer metadata.
-- [ ] Server timer remains authoritative.
-- [ ] Duplicate submit remains idempotent.
-- [ ] Provider payload validated.
-- [ ] No secrets exposed.
-- [ ] No unbounded cache/storage introduced.
-- [ ] Phase 2 features still pass regression.
-- [ ] No critical/high bug remains.
-- [ ] Docs match implementation.
+- [x] Live attempt payload contains no correct-answer metadata.
+- [x] Server timer remains authoritative.
+- [x] Duplicate submit remains idempotent.
+- [x] Provider payload validated.
+- [x] No secrets exposed.
+- [x] No unbounded cache/storage introduced.
+- [x] Phase 2 features still pass regression.
+- [x] No critical/high bug remains in the local codebase and dependency audit.
+- [x] Docs match implementation.
 - [ ] No mandatory Phase 3 checkbox remains unchecked.
 
 If any item fails:
 
-- [ ] STOP release.
-- [ ] Reproduce.
-- [ ] Fix root cause.
-- [ ] Add regression test.
-- [ ] Re-run affected checks.
-- [ ] Re-run full Phase 3 validation.
+- [x] STOP release while owner/device/production gates remain open.
+- [x] Reproduce the local Web favorite and sanitizer regressions; record the
+      unavailable Android device gate.
+- [x] Fix the local root causes.
+- [x] Add regression coverage for the local root causes.
+- [x] Re-run affected checks.
+- [x] Re-run full local Phase 3 validation.
 
 Acceptance criteria:
 
-- Every mandatory checklist item is green.
+- Not yet satisfied: production/backup/health/provider and Android device
+  evidence remain owner-controlled; see the verification records above.
+
+Verification (2026-08-27): Frozen install, root lint/typecheck/unit tests,
+Web/API production builds, bundle budget, authenticated API response-size and
+conditional-cache smoke, dependency audits, PostgreSQL integration, and fresh
+plus V1-to-Phase 3 migration verification all passed. Android unit/lint/debug
+and production APK/API-URL gates passed. The remaining unchecked items are
+intentionally limited to production deployment/health/provider checks,
+backup/restore evidence, Android device UI smoke, refresh/reopen and Android
+continuity, and the final production release record.
 
 Commit: `chore: prepare phase 3 release`
 
 ---
 
 ## TASK-531 — Phase 3 production release and completion
+
+Status: BLOCKED_EXTERNAL — no production release action is claimed from this
+checkout. The owner must provide deploy/image, signed-APK, backup/restore,
+production health/provider, and device evidence before this section can be
+checked.
 
 - [ ] Tag/version Phase 3 release.
 - [ ] Record deployed Web/API image information.

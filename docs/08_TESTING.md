@@ -340,6 +340,13 @@ The dated integration, Web E2E, and Android emulator evidence is kept in
 `docs/testing/phase2-android-e2e-2026-08-27.md`. These records distinguish local
 verification from owner-controlled production gates.
 
+Phase 3 evidence is kept separately in
+`docs/testing/phase3-web-e2e-2026-08-27.md` and
+`docs/testing/phase3-android-e2e-2026-08-27.md`. The Web record contains the
+authenticated localhost journey; the Android record explicitly records the
+missing connected-device gate rather than inferring UI behavior from Gradle
+build success.
+
 Phase 3 Android continuity unit coverage includes exact flashcard-order
 recovery (including changed/deleted-card fallback) and submitted-review filter
 semantics. The Android build also compiles the Lookup route, server-backed

@@ -230,6 +230,14 @@ The checked implementation and local evidence currently include:
 - `TASK-513`: service and PostgreSQL retention coverage for the newest three
   official attempts, practice/score/count isolation, duplicate submit, and
   immutable snapshots.
+- `TASK-514`: authenticated localhost Web E2E for both lookup directions,
+  kanji, history/favorites, Lookup/Flashcard and Lookup/review continuity,
+  active-exam restriction, submitted review, mistake Flashcard creation, the
+  bounded three-attempt window, and live answer secrecy is recorded in
+  `docs/testing/phase3-web-e2e-2026-08-27.md`.
+- `TASK-515`: Android compile/unit/lint/APK/API-URL gates passed, but the
+  connected instrumentation/device gate is still open; the exact boundary is
+  recorded in `docs/testing/phase3-android-e2e-2026-08-27.md`.
 - `50b4ad9`: production bootstrap regression fix proving the provider HTTP
   client receives its default options through an explicit Nest module token.
 
