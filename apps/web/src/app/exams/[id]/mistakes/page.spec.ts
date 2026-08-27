@@ -4,10 +4,11 @@ import {
   type FrequentMistakeDto,
   type RetainedMistakeItemDto,
 } from '@japanese-learning/contracts';
-import ExamMistakeHistoryPage, {
+import ExamMistakeHistoryPage from './page.js';
+import {
   createFrequentMistakeFlashcardDraft,
   createMistakeFlashcardDraft,
-} from './page.js';
+} from '@/lib/exam-mistake-flashcard.js';
 
 describe('ExamMistakeHistoryPage (TASK-480/481)', () => {
   it('exports the history route and creates a concise editable card draft', () => {

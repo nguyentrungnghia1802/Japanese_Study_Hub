@@ -112,7 +112,20 @@ describe('apiClient (TASK-021)', () => {
     expect(fetchMock).toHaveBeenNthCalledWith(
       3,
       `${DEFAULT_API_BASE_URL}/lookup/favorites`,
-      expect.objectContaining({ method: 'POST' }),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          term: '日本語',
+          reading: 'にほんご',
+          meaningSummary: 'ngôn ngữ Nhật Bản',
+          direction: DictionaryLookupDirection.JA_TO_VI,
+          sourceProvider: 'MINHQND',
+          sourceName: 'MinhQND',
+          sourceUrl: 'https://dict.minhqnd.com/',
+          sourceLicense: null,
+          sourceAttribution: 'MinhQND',
+        }),
+      }),
     );
   });
 

@@ -233,7 +233,19 @@ export const studyApi = {
   saveDictionaryFavorite: (body: CreateDictionaryFavoriteDto, signal?: AbortSignal) =>
     apiClient<DictionaryFavoriteDto>('/lookup/favorites', {
       method: 'POST',
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        term: body.term,
+        reading: body.reading,
+        meaningSummary: body.meaningSummary,
+        direction: body.direction,
+        // The public contract keeps attribution nested, while the Nest DTO
+        // intentionally receives a flat, validated wire payload.
+        sourceProvider: body.source.provider,
+        sourceName: body.source.name,
+        sourceUrl: body.source.url,
+        sourceLicense: body.source.license,
+        sourceAttribution: body.source.attribution,
+      }),
       signal,
     }),
 

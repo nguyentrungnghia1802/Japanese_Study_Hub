@@ -31,6 +31,10 @@ import {
 } from '@/lib/continuity';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
+import {
+  createFrequentMistakeFlashcardDraft,
+  createMistakeFlashcardDraft,
+} from '@/lib/exam-mistake-flashcard';
 import { useQuery } from '@tanstack/react-query';
 
 const FILTERS: Array<{ value: ExamReviewFilter; label: string }> = [
@@ -73,29 +77,6 @@ function formatDate(value: string): string {
       }).format(date);
 }
 
-export function createMistakeFlashcardDraft(item: RetainedMistakeItemDto): FlashcardTextDraft {
-  const correct = item.options.find((option) => option.id === item.correctOptionId);
-  const selected = item.options.find((option) => option.id === item.selectedOptionId);
-  const back = [
-    `Đáp án đúng: ${correct?.content ?? 'Chưa có đáp án trong snapshot'}`,
-    selected && selected.id !== correct?.id ? `Đã chọn: ${selected.content}` : null,
-  ]
-    .filter((line): line is string => Boolean(line))
-    .join('\n');
-  return {
-    front: item.questionContent.slice(0, 4_000),
-    back: back.slice(0, 4_000),
-  };
-}
-
-export function createFrequentMistakeFlashcardDraft(item: FrequentMistakeDto): FlashcardTextDraft {
-  const correct = item.options.find((option) => option.id === item.correctOptionId);
-  return {
-    front: item.questionContent.slice(0, 4_000),
-    back: `Đáp án đúng: ${(correct?.content ?? 'Chưa có đáp án trong snapshot').slice(0, 4_000)}`,
-  };
-}
-
 export default function ExamMistakeHistoryPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -131,7 +112,8 @@ export default function ExamMistakeHistoryPage() {
     staleTime: CACHE_POLICY.entityDetail.staleTime,
     gcTime: CACHE_POLICY.entityDetail.gcTime,
   });
-  const items = detailQuery.data?.items ?? [];
+  const mistakeItems = detailQuery.data?.items;
+  const items = useMemo(() => mistakeItems ?? [], [mistakeItems]);
   const visibleItems = useMemo(
     () => items.filter((item) => isVisible(item, filter)),
     [filter, items],
