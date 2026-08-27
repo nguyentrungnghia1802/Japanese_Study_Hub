@@ -96,8 +96,8 @@ assert_current_schema() {
     exam_tags \
     dictionary_lookup_history \
     dictionary_favorites; do
-    table="$(psql "${psql_url}" -Atq -c "SELECT to_regclass('public.${table_name}')")"
-    [[ "${table}" == "public.${table_name}" ]] ||
+    table="$(psql "${psql_url}" -Atq -c "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '${table_name}')")"
+    [[ "${table}" == "t" ]] ||
       die "${database} is missing table ${table_name}"
   done
 }
