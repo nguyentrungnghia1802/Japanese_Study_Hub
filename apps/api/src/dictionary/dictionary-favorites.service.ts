@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { DictionaryLookupDirection as PrismaDictionaryLookupDirection } from '@prisma/client';
-import sanitizeHtml from 'sanitize-html';
+import sanitizeHtml = require('sanitize-html');
 import {
   CreateDictionaryFavoriteDto,
   DictionaryErrorCode,

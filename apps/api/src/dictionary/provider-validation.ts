@@ -1,5 +1,5 @@
 import { DictionaryErrorCode } from '@japanese-learning/contracts';
-import sanitizeHtml from 'sanitize-html';
+import sanitizeHtml = require('sanitize-html');
 import { DictionaryProviderError } from './dictionary-errors.js';
 
 export function requireRecord(value: unknown, provider: string): Record<string, unknown> {
