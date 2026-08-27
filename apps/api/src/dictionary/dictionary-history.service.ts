@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { DictionaryLookupDirection as PrismaDictionaryLookupDirection } from '@prisma/client';
 import {
   DictionaryErrorCode,
@@ -48,7 +48,7 @@ export function normalizeHistoryLimit(limit = 10): number {
 
 @Injectable()
 export class DictionaryHistoryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async record(input: HistoryInput): Promise<void> {
     const query = normalizeHistoryQuery(input.query);

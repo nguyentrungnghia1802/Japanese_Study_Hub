@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { DictionaryLookupDirection as PrismaDictionaryLookupDirection } from '@prisma/client';
 import sanitizeHtml from 'sanitize-html';
 import {
@@ -74,7 +74,7 @@ export function normalizeFavoritePage(limit = DEFAULT_DICTIONARY_FAVORITE_PAGE_S
 
 @Injectable()
 export class DictionaryFavoritesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async save(input: FavoriteWriteInput): Promise<DictionaryFavoriteDto> {
     const term = normalizeFavoriteText(input.term, 120);
@@ -175,10 +175,7 @@ const favoriteSelect = {
 function toPrismaDirection(
   direction: ResolvedDictionaryLookupDirection,
 ): PrismaDictionaryLookupDirection {
-  if (
-    direction !== 'JA_TO_VI' &&
-    direction !== 'VI_TO_JA'
-  ) {
+  if (direction !== 'JA_TO_VI' && direction !== 'VI_TO_JA') {
     throw new DictionaryDomainError(DictionaryErrorCode.INVALID_QUERY);
   }
   return direction as PrismaDictionaryLookupDirection;

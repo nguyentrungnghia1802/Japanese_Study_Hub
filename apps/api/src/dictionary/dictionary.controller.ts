@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpException,
+  Inject,
   Logger,
   Optional,
   Param,
@@ -35,9 +36,14 @@ export class DictionaryController {
   private readonly logger = new Logger(DictionaryController.name);
 
   constructor(
+    @Inject(DictionaryLookupService)
     private readonly dictionaryService: DictionaryLookupService,
-    @Optional() private readonly historyService?: DictionaryHistoryService,
-    @Optional() private readonly favoritesService?: DictionaryFavoritesService,
+    @Optional()
+    @Inject(DictionaryHistoryService)
+    private readonly historyService?: DictionaryHistoryService,
+    @Optional()
+    @Inject(DictionaryFavoritesService)
+    private readonly favoritesService?: DictionaryFavoritesService,
   ) {}
 
   @Get()
@@ -180,9 +186,7 @@ export class DictionaryController {
       });
     } catch (error) {
       this.logger.warn(
-        `dictionary_history_write_failed code=${
-          error instanceof Error ? error.name : 'unknown'
-        }`,
+        `dictionary_history_write_failed code=${error instanceof Error ? error.name : 'unknown'}`,
       );
     }
   }

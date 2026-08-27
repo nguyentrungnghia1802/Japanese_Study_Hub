@@ -1223,18 +1223,24 @@ Commit: `test(dictionary): add unit coverage`
 
 ## TASK-511 — Dictionary integration test completion
 
-- [ ] Lookup endpoint success.
-- [ ] Japanese → Vietnamese.
-- [ ] Vietnamese → Japanese.
-- [ ] Suggestions.
-- [ ] Kanji enrichment.
-- [ ] Examples graceful failure.
-- [ ] Auth protection.
-- [ ] Rate limit.
-- [ ] History cap and clear.
-- [ ] Favorite/unfavorite.
-- [ ] Provider unavailable safe response.
-- [ ] Attribution/source metadata.
+- [x] Lookup endpoint success.
+- [x] Japanese → Vietnamese.
+- [x] Vietnamese → Japanese.
+- [x] Suggestions.
+- [x] Kanji enrichment.
+- [x] Examples graceful failure.
+- [x] Auth protection.
+- [x] Rate limit.
+- [x] History cap and clear.
+- [x] Favorite/unfavorite.
+- [x] Provider unavailable safe response.
+- [x] Attribution/source metadata.
+
+Verification (2026-08-27): the opt-in `phase3.dictionary.integration.spec.ts`
+starts the real Nest HTTP application against PostgreSQL, authenticates with an
+ephemeral test hash, replaces only external providers with deterministic test
+doubles, and passed both integration cases. The API integration script now
+executes every file under `apps/api/test`.
 
 Commit: `test(dictionary): add integration coverage`
 

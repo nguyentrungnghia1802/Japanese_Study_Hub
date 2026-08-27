@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   DictionaryErrorCode,
   DictionaryLookupDirection,
@@ -53,12 +53,19 @@ export class DictionaryLookupService {
   private readonly logger = new Logger(DictionaryLookupService.name);
 
   constructor(
+    @Inject(MinhqndDictionaryProvider)
     private readonly primaryProvider: MinhqndDictionaryProvider,
+    @Inject(VietnameseWiktionaryProvider)
     private readonly vietnameseFallback: VietnameseWiktionaryProvider,
+    @Inject(DictionaryLookupCache)
     private readonly cache: DictionaryLookupCache,
+    @Inject(KanjiApiProvider)
     private readonly kanjiProvider: KanjiApiProvider,
+    @Inject(DictionaryExampleCache)
     private readonly exampleCache: DictionaryExampleCache,
+    @Inject(TatoebaProvider)
     private readonly exampleProvider: TatoebaProvider,
+    @Inject(DictionarySuggestionCache)
     private readonly suggestionCache: DictionarySuggestionCache,
   ) {}
 
