@@ -1031,23 +1031,29 @@ Commit: `feat(api): expose recent mistake attempts`
 
 ## TASK-480 — Add Web “3 lần gần nhất” review
 
-- [ ] Add Mistakes/Review area for an exam.
-- [ ] Show newest, second newest, third newest retained attempt.
-- [ ] Hide nonexistent attempt tabs.
-- [ ] Show attempt date/time and score.
-- [ ] Show wrong questions.
-- [ ] Show unanswered questions.
-- [ ] Show selected wrong option.
-- [ ] Show correct option.
-- [ ] Use labels/icons as well as color.
-- [ ] Add Lookup action per review item.
-- [ ] Preserve continuity around Lookup.
-- [ ] Add “Add to Flashcard”.
-- [ ] Add loading/empty/error states.
+- [x] Add Mistakes/Review area for an exam.
+- [x] Show newest, second newest, third newest retained attempt.
+- [x] Hide nonexistent attempt tabs.
+- [x] Show attempt date/time and score.
+- [x] Show wrong questions.
+- [x] Show unanswered questions.
+- [x] Show selected wrong option.
+- [x] Show correct option.
+- [x] Use labels/icons as well as color.
+- [x] Add Lookup action per review item.
+- [x] Preserve continuity around Lookup.
+- [x] Add “Add to Flashcard”.
+- [x] Add loading/empty/error states.
 
 Acceptance criteria:
 
 - User can inspect exactly the retained 3 official mistake histories.
+
+Verification (2026-08-27): Added the protected per-exam Web review route with
+bounded three-tab history, official snapshot filters, explicit selected/correct
+labels and icons, loading/empty/error states, question-position continuity,
+bounded Lookup return paths, and editable Flashcard action. Web typecheck and
+route/continuity tests passed.
 
 Commit: `feat(web): add last three mistake review`
 
@@ -1055,18 +1061,23 @@ Commit: `feat(web): add last three mistake review`
 
 ## TASK-481 — Add frequent-mistake summary
 
-- [ ] Aggregate mistakes across the retained applicable attempts.
-- [ ] Rank by frequency.
-- [ ] Display `1/3`, `2/3`, `3/3` or correct denominator when fewer attempts exist.
-- [ ] Never aggregate across exam content versions.
-- [ ] Allow opening the question.
-- [ ] Allow Lookup.
-- [ ] Allow Add to Flashcard.
-- [ ] Keep UI lightweight; no heavy analytics/charts.
+- [x] Aggregate mistakes across the retained applicable attempts.
+- [x] Rank by frequency.
+- [x] Display `1/3`, `2/3`, `3/3` or correct denominator when fewer attempts exist.
+- [x] Never aggregate across exam content versions.
+- [x] Allow opening the question.
+- [x] Allow Lookup.
+- [x] Allow Add to Flashcard.
+- [x] Keep UI lightweight; no heavy analytics/charts.
 
 Acceptance criteria:
 
 - Repeated weak questions are easy to identify.
+
+Verification (2026-08-27): The Web summary consumes the server aggregate,
+displays occurrence/retained denominators, opens the source question, and
+provides direct bounded Lookup and concise Flashcard actions. API service,
+integration, and Web draft tests passed.
 
 Commit: `feat(exams): summarize frequent mistakes`
 

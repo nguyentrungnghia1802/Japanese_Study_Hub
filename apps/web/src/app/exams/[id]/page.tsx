@@ -390,6 +390,28 @@ export default function ExamDetailPage() {
             <span>{exam.questionCount > 0 ? 'Start Examination' : 'No Questions Added'}</span>
           </button>
 
+          <Link
+            href={`/exams/${exam.id}/mistakes`}
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.4rem',
+              padding: '0.875rem 1.25rem',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--accent-purple)',
+              fontWeight: '600',
+              fontSize: '0.9375rem',
+              textDecoration: 'none',
+            }}
+          >
+            <AlertCircle size={16} />
+            <span>Review mistakes</span>
+          </Link>
+
           <button
             type="button"
             onClick={() => void handleFavoriteToggle()}

@@ -26,6 +26,9 @@ import {
   DictionaryLookupHistoryResponseDto,
   DictionaryLookupResponseDto,
   DictionarySuggestionResponseDto,
+  MistakeAttemptDetailDto,
+  MistakeAttemptListDto,
+  FrequentMistakeSummaryDto,
 } from '@japanese-learning/contracts';
 import { apiClient } from './api-client';
 import { ExamListQuery, FlashcardListQuery } from './query-keys';
@@ -121,6 +124,17 @@ export const studyApi = {
       `/exam-review/mistakes${buildQuery({ examId })}`,
       { method: 'DELETE', signal },
     ),
+
+  mistakeAttempts: (examId: string, signal?: AbortSignal) =>
+    apiClient<MistakeAttemptListDto>(`/exam-review/exams/${examId}/mistake-attempts`, { signal }),
+
+  mistakeAttemptDetail: (attemptId: string, signal?: AbortSignal) =>
+    apiClient<MistakeAttemptDetailDto>(`/exam-review/attempts/${attemptId}/mistakes`, { signal }),
+
+  frequentMistakes: (examId: string, signal?: AbortSignal) =>
+    apiClient<FrequentMistakeSummaryDto>(`/exam-review/exams/${examId}/frequent-mistakes`, {
+      signal,
+    }),
 
   startMistakePractice: (body: StartMistakePracticeDto, signal?: AbortSignal) =>
     apiClient<LiveExamAttemptDto>('/exam-review/practice', {

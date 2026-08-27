@@ -16,13 +16,19 @@ export interface LookupFlashcardDraft {
   example?: string | null;
 }
 
+export interface FlashcardTextDraft {
+  front: string;
+  back: string;
+}
+
 interface LookupFlashcardDialogProps {
-  draft: LookupFlashcardDraft | null;
+  draft: (LookupFlashcardDraft | FlashcardTextDraft) | null;
   onClose: () => void;
   onSaved: (setId: string) => void;
 }
 
-export function createFlashcardDraftText(draft: LookupFlashcardDraft) {
+export function createFlashcardDraftText(draft: LookupFlashcardDraft | FlashcardTextDraft) {
+  if ('front' in draft && 'back' in draft) return draft;
   return {
     front: `${draft.japanese}${draft.reading ? `\n${draft.reading}` : ''}`,
     back: `${draft.meaning}${draft.example ? `\n\n${draft.example}` : ''}`,

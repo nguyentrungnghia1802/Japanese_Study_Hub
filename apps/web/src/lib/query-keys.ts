@@ -41,6 +41,9 @@ export const queryKeys = {
   reviewSummary: () => [...root, 'review', 'summary'] as const,
   mistakesRoot: () => [...root, 'exam-mistakes'] as const,
   mistakes: (limit = 20) => [...root, 'exam-mistakes', { limit }] as const,
+  mistakeAttempts: (examId: string) => [...root, 'exam-mistakes', 'attempts', examId] as const,
+  mistakeAttemptDetail: (attemptId: string) => [...root, 'exam-mistakes', 'attempt', attemptId] as const,
+  frequentMistakes: (examId: string) => [...root, 'exam-mistakes', 'frequent', examId] as const,
   dictionaryRoot: () => [...root, 'dictionary'] as const,
   dictionaryLookup: (query: string, direction: string, limit = 20, includeExamples = false) =>
     [...root, 'dictionary', 'lookup', { query, direction, limit, includeExamples }] as const,

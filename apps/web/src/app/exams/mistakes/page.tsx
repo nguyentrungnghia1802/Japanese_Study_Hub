@@ -235,6 +235,17 @@ export default function ExamMistakesPage() {
                 >
                   Practice
                 </Link>
+                <Link
+                  href={`/exams/${mistake.examId}/mistakes`}
+                  style={{
+                    color: 'var(--accent-purple)',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    alignSelf: 'center',
+                  }}
+                >
+                  3 recent histories
+                </Link>
               </div>
               <h2
                 style={{
