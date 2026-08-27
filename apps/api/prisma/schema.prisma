@@ -242,27 +242,40 @@ model ExamAttempt {
   createdAt             DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt             DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  exam    Exam                @relation(fields: [examId], references: [id], onDelete: Cascade)
-  answers ExamAttemptAnswer[]
+  exam     Exam                @relation(fields: [examId], references: [id], onDelete: Cascade)
+  answers  ExamAttemptAnswer[]
+  mistakes ExamMistake[]
 
   @@index([examId, userKey])
   @@map("exam_attempts")
 }
 
 model ExamMistake {
-  id               String   @id @default(uuid()) @db.Uuid
-  examId           String   @map("exam_id") @db.Uuid
-  examVersion      Int      @map("exam_version")
-  questionId       String   @map("question_id") @db.Uuid
-  sourceAttemptId  String   @map("source_attempt_id") @db.Uuid
-  selectedOptionId String?  @map("selected_option_id") @db.Uuid
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id                      String       @id @default(uuid()) @db.Uuid
+  userKey                 String       @default("primary_user") @map("user_key") @db.VarChar(255)
+  examId                  String       @map("exam_id") @db.Uuid
+  examVersion             Int          @map("exam_version")
+  questionId              String       @map("question_id") @db.Uuid
+  sourceAttemptId         String       @map("source_attempt_id") @db.Uuid
+  questionTypeSnapshot    QuestionType @map("question_type_snapshot")
+  questionContentSnapshot String       @map("question_content_snapshot") @db.Text
+  optionSnapshot          Json         @map("option_snapshot")
+  questionPosition        Int          @map("question_position")
+  selectedOptionId        String?      @map("selected_option_id") @db.Uuid
+  correctOptionId         String?      @map("correct_option_id") @db.Uuid
+  isCorrect               Boolean      @default(false) @map("is_correct")
+  isUnanswered            Boolean      @default(false) @map("is_unanswered")
+  submittedAt             DateTime     @map("submitted_at") @db.Timestamptz(6)
+  createdAt               DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  exam     Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
-  question ExamQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  exam          Exam         @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question      ExamQuestion @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  sourceAttempt ExamAttempt  @relation(fields: [sourceAttemptId], references: [id], onDelete: Cascade)
 
-  @@unique([examId, examVersion, questionId])
+  @@unique([sourceAttemptId, questionId])
+  @@index([userKey, examId, examVersion, submittedAt])
+  @@index([sourceAttemptId, questionPosition])
   @@index([examId, examVersion, updatedAt])
   @@map("exam_mistakes")
 }

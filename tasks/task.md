@@ -922,12 +922,12 @@ current-version review UI.
 
 ## TASK-471 — Add stable wrong-answer review snapshot storage
 
-- [ ] Inspect Phase 2 mistake-review implementation first.
-- [ ] Reuse/extend existing schema instead of creating duplicate parallel models.
-- [ ] Add a new Prisma migration only if needed.
-- [ ] Never edit applied migrations.
-- [ ] Store enough graded data to remain accurate after future content changes.
-- [ ] For each wrong/unanswered retained item, preserve as needed:
+- [x] Inspect Phase 2 mistake-review implementation first.
+- [x] Reuse/extend existing schema instead of creating duplicate parallel models.
+- [x] Add a new Prisma migration only if needed.
+- [x] Never edit applied migrations.
+- [x] Store enough graded data to remain accurate after future content changes.
+- [x] For each wrong/unanswered retained item, preserve as needed:
   - question ID;
   - question content snapshot or version-safe reference;
   - ordered option snapshot if required;
@@ -935,15 +935,20 @@ current-version review UI.
   - correct option;
   - correctness/unanswered state;
   - question position.
-- [ ] Avoid retaining unnecessary correct-question detail.
-- [ ] Add indexes for recent-attempt review/pruning.
-- [ ] Verify storage stays bounded by the last-3 policy.
-- [ ] Test Phase 2 → Phase 3 migration.
-- [ ] Test fresh DB migration.
+- [x] Avoid retaining unnecessary correct-question detail.
+- [x] Add indexes for recent-attempt review/pruning.
+- [x] Verify storage stays bounded by the last-3 policy.
+- [x] Test Phase 2 → Phase 3 migration.
+- [x] Test fresh DB migration.
 
 Acceptance criteria:
 
 - Retained wrong-answer review remains historically correct and bounded.
+
+Verification (2026-08-27): Extended the existing `exam_mistakes` model with
+immutable question/option/submission snapshots and scoped indexes; legacy
+orphan rows are safely excluded before strict snapshot/FK constraints. Fresh
+and V1-to-Phase 3 migration harnesses both passed with 10 migrations.
 
 Commit: `feat(db): add bounded exam mistake retention`
 
@@ -978,6 +983,13 @@ Acceptance criteria:
 
 - Exactly the intended 3 recent official mistake histories remain.
 
+Verification (2026-08-27): Official finalization now claims the attempt row
+inside the transaction, snapshots only wrong/unanswered questions, prunes by
+user/exam/version after each official submit, and leaves practice/best-result
+paths isolated. Unit tests cover five submissions, practice, scope isolation,
+and a losing concurrent submit; the PostgreSQL integration test passed the
+five-attempt window and best-result count assertions.
+
 Commit: `feat(exams): retain last three mistake attempts`
 
 ---
@@ -1005,6 +1017,11 @@ Recommended routes may be adapted to existing Phase 2 API:
 Acceptance criteria:
 
 - Web/Android can render the required history using stable server data.
+
+Verification (2026-08-27): Added authenticated bounded attempt-list, retained
+detail, and frequent-mistake routes with current-version/official-user
+filters, snapshot-only answer data, 3-attempt/100-item caps, controller and
+service tests, and a passing PostgreSQL integration flow.
 
 Commit: `feat(api): expose recent mistake attempts`
 

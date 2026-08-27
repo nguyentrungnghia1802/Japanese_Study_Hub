@@ -91,8 +91,8 @@ function Assert-DatabaseShape {
   )
 
   $migrationCount = Invoke-Psql -DatabaseUrl $DatabaseUrl -CaptureOutput -Sql 'SELECT count(*) FROM "_prisma_migrations";'
-  if ($migrationCount -ne '9') {
-    throw "$Label expected 9 applied migrations, found $migrationCount."
+  if ($migrationCount -ne '10') {
+    throw "$Label expected 10 applied migrations, found $migrationCount."
   }
 
   $requiredTables = @('recent_learning', 'tags', 'flashcard_set_tags', 'exam_tags', 'flashcard_review_logs', 'exam_mistakes', 'dictionary_lookup_history', 'dictionary_favorites')
@@ -107,7 +107,9 @@ function Assert-DatabaseShape {
     @{ Table = 'flashcard_sets'; Column = 'is_favorite' },
     @{ Table = 'exams'; Column = 'is_favorite' },
     @{ Table = 'flashcards'; Column = 'fsrs_learning_steps' },
-    @{ Table = 'exam_attempts'; Column = 'is_practice' }
+    @{ Table = 'exam_attempts'; Column = 'is_practice' },
+    @{ Table = 'exam_mistakes'; Column = 'question_content_snapshot' },
+    @{ Table = 'exam_mistakes'; Column = 'submitted_at' }
   )
   foreach ($column in $requiredColumns) {
     $exists = Invoke-Psql -DatabaseUrl $DatabaseUrl -CaptureOutput -Sql "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '$($column.Table)' AND column_name = '$($column.Column)');"
@@ -116,7 +118,7 @@ function Assert-DatabaseShape {
     }
   }
 
-  Write-Host "$Label migration shape verified: 9 migrations and all Phase 2/3 dictionary tables/columns present."
+  Write-Host "$Label migration shape verified: 10 migrations and all Phase 2/3 dictionary/mistake tables/columns present."
 }
 
 try {
@@ -158,10 +160,10 @@ try {
       Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $temporaryMigrations $_.Name) -Recurse
     }
 
-  Write-Host 'Upgrading the V1 database through all Phase 2 and Phase 3 dictionary migrations...'
+  Write-Host 'Upgrading the V1 database through all Phase 2 and Phase 3 migrations...'
   Invoke-MigrateDeploy -DatabaseUrl $upgradeUrl -Schema $temporarySchema
   Assert-DatabaseShape -DatabaseUrl $upgradeUrl -Label 'V1 to Phase 2/3 upgrade'
-  Write-Host 'Phase 2 and Phase 3 dictionary migration verification passed.'
+  Write-Host 'Phase 2 and Phase 3 migration verification passed.'
 } finally {
   foreach ($database in $createdDatabases) {
     try {

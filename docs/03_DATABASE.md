@@ -341,25 +341,25 @@ attempt. Detailed rows are retained only for the three newest official
 attempts in the same `(user_key, exam_id, exam_version)` scope. Practice
 attempts never create rows and best-result summaries are independent.
 
-| Column             | Type        | Null | Notes                       |
-| ------------------ | ----------- | ---: | --------------------------- |
-| id                 | UUID        |   no | PK                          |
-| user_key           | varchar(255) | no | logical-user retention scope |
-| exam_id            | UUID         | no | FK exams                     |
-| exam_version       | integer      | no | content version boundary     |
-| question_id        | UUID         | no | stable question identifier   |
-| source_attempt_id  | UUID         | no | FK submitted attempt         |
-| question_type      | enum         | no | type snapshot                |
-| question_content   | text         | no | prompt snapshot              |
-| option_snapshot    | JSONB        | no | ordered options for review   |
-| question_position  | integer      | no | historical display order     |
-| selected_option_id | UUID         | yes | null = unanswered            |
-| correct_option_id  | UUID         | yes | graded answer snapshot       |
-| is_correct         | boolean      | no | always false for retained row |
-| is_unanswered      | boolean      | no | explicit unanswered state    |
-| submitted_at       | timestamptz  | no | source server submit time    |
-| created_at         | timestamptz  | no |                              |
-| updated_at         | timestamptz  | no |                              |
+| Column                    | Type         | Null | Notes                         |
+| ------------------------- | ------------ | ---: | ----------------------------- |
+| id                        | UUID         |   no | PK                            |
+| user_key                  | varchar(255) |   no | logical-user retention scope  |
+| exam_id                   | UUID         |   no | FK exams                      |
+| exam_version              | integer      |   no | content version boundary      |
+| question_id               | UUID         |   no | stable question identifier    |
+| source_attempt_id         | UUID         |   no | FK submitted attempt          |
+| question_type_snapshot    | enum         |   no | type snapshot                 |
+| question_content_snapshot | text         |   no | prompt snapshot               |
+| option_snapshot           | JSONB        |   no | ordered options for review    |
+| question_position         | integer      |   no | historical display order      |
+| selected_option_id        | UUID         |  yes | null = unanswered             |
+| correct_option_id         | UUID         |  yes | graded answer snapshot        |
+| is_correct                | boolean      |   no | always false for retained row |
+| is_unanswered             | boolean      |   no | explicit unanswered state     |
+| submitted_at              | timestamptz  |   no | source server submit time     |
+| created_at                | timestamptz  |   no |                               |
+| updated_at                | timestamptz  |   no |                               |
 
 Unique key `(source_attempt_id, question_id)` makes duplicate finalization
 idempotent while allowing the same question to appear in multiple retained
