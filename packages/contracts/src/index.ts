@@ -9,3 +9,4 @@ export * from './favorite.dto.js';
 export * from './tags.dto.js';
 export * from './review.dto.js';
 export * from './exam-review.dto.js';
+export * from './dictionary.dto.js';

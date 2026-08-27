@@ -137,16 +137,16 @@ Commit: `research(dictionary): select lookup providers`
 
 ## TASK-403 — Define normalized Dictionary contracts
 
-- [ ] Define lookup direction enum: `AUTO | JA_TO_VI | VI_TO_JA`.
-- [ ] Define request fields: query, direction, limit, optional examples.
-- [ ] Define normalized word result:
+- [x] Define lookup direction enum: `AUTO | JA_TO_VI | VI_TO_JA`.
+- [x] Define request fields: query, direction, limit, optional examples.
+- [x] Define normalized word result:
   - written form;
   - reading;
   - Vietnamese meanings;
   - part of speech when available;
   - common/frequency hint when available;
   - attribution/source.
-- [ ] Define normalized kanji result:
+- [x] Define normalized kanji result:
   - character;
   - on-yomi;
   - kun-yomi;
@@ -155,18 +155,31 @@ Commit: `research(dictionary): select lookup providers`
   - JLPT;
   - grade/frequency when trustworthy;
   - bounded related words.
-- [ ] Define normalized example result:
+- [x] Define normalized example result:
   - Japanese sentence;
   - Vietnamese translation;
   - attribution/source.
-- [ ] Define stable error codes for invalid query, no result, timeout, unavailable provider, and rate limit.
-- [ ] Keep raw provider payload internal.
-- [ ] Add TypeScript contracts for Web/API.
-- [ ] Add equivalent Kotlin DTO/domain mapping for Android.
+- [x] Define stable error codes for invalid query, no result, timeout, unavailable provider, and rate limit.
+- [x] Keep raw provider payload internal.
+- [x] Add TypeScript contracts for Web/API.
+- [x] Add equivalent Kotlin DTO/domain mapping for Android.
 
 Acceptance criteria:
 
 - A provider can be replaced without rewriting client UI contracts.
+
+Verification (2026-08-27):
+
+- [x] Shared TypeScript contracts and bounded constants are in
+      `packages/contracts/src/dictionary.dto.ts` and exported from the package.
+- [x] API-facing contract documentation is in
+      `docs/dictionary/contracts.md`; raw provider payloads are explicitly
+      excluded.
+- [x] Android transport DTOs, domain models, and defensive bounded mapper are
+      implemented with Unicode/diacritic and oversized-response regression
+      tests in `DictionaryMapperTest.kt`.
+- [x] Contract shape is provider-neutral; attribution and stable dictionary
+      error codes are the only provider-related metadata exposed.
 
 Commit: `feat(dictionary): define lookup contracts`
 

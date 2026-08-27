@@ -564,3 +564,10 @@ Mechanisms may include:
 - Reject answers for questions not in the attempt snapshot.
 - Enforce server timer.
 - Validate every uploaded/imported payload server-side.
+
+## Phase 3 Lookup contracts
+
+The authenticated Lookup API uses the normalized contracts documented in
+[`docs/dictionary/contracts.md`](./dictionary/contracts.md). Clients never
+receive raw provider payloads and use the stable direction/error enums from
+`packages/contracts/src/dictionary.dto.ts`.
