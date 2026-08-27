@@ -14,3 +14,11 @@ export function hasDictionaryResult(
 ): boolean {
   return Boolean(result && (result.results.length > 0 || result.kanji));
 }
+
+export function normalizeLookupReturnPath(value: string | null): string | null {
+  if (!value || value.length > 512 || !value.startsWith('/') || value.startsWith('//')) {
+    return null;
+  }
+  if (value.includes('\\')) return null;
+  return value;
+}

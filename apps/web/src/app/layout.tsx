@@ -5,6 +5,7 @@ import { AuthProvider } from '@/context/auth-context';
 import { Navbar } from '@/components/layout/navbar';
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { QueryProvider } from '@/components/providers/query-provider';
+import QuickLookupShortcut from '@/components/lookup/quick-lookup-shortcut';
 
 export const metadata: Metadata = {
   title: 'Japanese Study Hub | Personal Japanese Learning Platform',
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <QueryProvider>
           <AuthProvider>
             <Navbar />
+            <QuickLookupShortcut />
             <AuthGuard>{children}</AuthGuard>
           </AuthProvider>
         </QueryProvider>

@@ -570,12 +570,26 @@ Commit: `feat(web): add lookup history and favorites`
 
 ## TASK-433 — Add Quick Lookup shortcut
 
-- [ ] Add lightweight `Ctrl+K` or `/` shortcut when not conflicting with inputs.
-- [ ] Open/focus a compact lookup action or navigate to Lookup.
-- [ ] Preserve current page as return target.
-- [ ] Support Escape/cancel.
-- [ ] Keep accessible.
-- [ ] Do not build a heavy generic command palette.
+- [x] Add lightweight `Ctrl+K` or `/` shortcut when not conflicting with inputs.
+- [x] Open/focus a compact lookup action or navigate to Lookup.
+- [x] Preserve current page as return target.
+- [x] Support Escape/cancel.
+- [x] Keep accessible.
+- [x] Do not build a heavy generic command palette.
+
+Acceptance criteria:
+
+- Quick Lookup is available without competing with ordinary text input.
+
+Verification (2026-08-27):
+
+- [x] The authenticated layout mounts a small accessible Quick Lookup dialog;
+      Ctrl/Cmd+K and `/` ignore editable targets, Escape and backdrop cancel,
+      and `/lookup` receives a direct focus event.
+- [x] Navigation carries a bounded same-origin `returnTo` path, and Lookup
+      preserves it through query/suggestion navigation without storing payloads.
+- [x] Web typecheck, lint, and full Web tests passed, including shortcut helper
+      coverage; production route build passed in TASK-431.
 
 Commit: `feat(web): add quick lookup shortcut`
 

@@ -14,7 +14,11 @@ import { getApiErrorMessage, ApiError } from '@/lib/api-client';
 import { CACHE_POLICY } from '@/lib/cache-policy';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
-import { hasDictionaryResult, parseLookupDirection } from '@/lib/lookup-helpers';
+import {
+  hasDictionaryResult,
+  normalizeLookupReturnPath,
+  parseLookupDirection,
+} from '@/lib/lookup-helpers';
 import LookupFlashcardDialog from '@/components/lookup/lookup-flashcard-dialog';
 import { getLookupPrimaryCard } from '@/components/lookup/lookup-results';
 import LookupResults from '@/components/lookup/lookup-results';
@@ -37,10 +41,12 @@ function updateLookupUrl(
   router: ReturnType<typeof useRouter>,
   query: string,
   direction: DictionaryLookupDirection,
+  returnTo?: string | null,
 ): void {
   const params = new URLSearchParams();
   if (query) params.set('q', query);
   if (direction !== DictionaryLookupDirection.AUTO) params.set('direction', direction);
+  if (returnTo) params.set('returnTo', returnTo);
   const encoded = params.toString();
   router.replace(`/lookup${encoded ? `?${encoded}` : ''}`, { scroll: false });
 }
@@ -55,6 +61,7 @@ export default function LookupPage() {
   const [includeExamples, setIncludeExamples] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [returnTo, setReturnTo] = useState<string | null>(null);
   const initialized = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [favoriteId, setFavoriteId] = useState<string | null>(null);
@@ -76,12 +83,19 @@ export default function LookupPage() {
     setQuery(initialQuery);
     setSubmittedQuery(initialQuery);
     setDirection(initialDirection);
+    setReturnTo(normalizeLookupReturnPath(searchParams.get('returnTo')));
   }, [searchParams]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 250);
     return () => window.clearTimeout(timer);
   }, [query]);
+
+  useEffect(() => {
+    const focusLookup = () => inputRef.current?.focus();
+    window.addEventListener('lookup:focus', focusLookup);
+    return () => window.removeEventListener('lookup:focus', focusLookup);
+  }, []);
 
   const suggestionsQuery = useQuery({
     queryKey: queryKeys.dictionarySuggestions(debouncedQuery, direction, SUGGESTION_LIMIT),
@@ -134,14 +148,14 @@ export default function LookupPage() {
     }
     setSubmittedQuery(nextQuery);
     setSuggestionsOpen(false);
-    updateLookupUrl(router, nextQuery, direction);
+    updateLookupUrl(router, nextQuery, direction, returnTo);
   };
 
   const selectSuggestion = (value: string) => {
     setQuery(value);
     setSubmittedQuery(value);
     setSuggestionsOpen(false);
-    updateLookupUrl(router, value, direction);
+    updateLookupUrl(router, value, direction, returnTo);
   };
 
   const isNoResult =
