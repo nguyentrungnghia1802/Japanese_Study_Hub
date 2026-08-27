@@ -2,7 +2,7 @@ const ACTIVE_ATTEMPT_PREFIX = 'jsh_active_attempt_v1:';
 const ACTIVE_ATTEMPT_INDEX_KEY = 'jsh_active_attempt_index_v1';
 const PENDING_ATTEMPT_INDEX_KEY = 'jsh_pending_attempt_index_v1';
 const ACTIVE_ATTEMPT_STATE_EVENT = 'jsh:active-attempt-state-changed';
-const MAX_ACTIVE_ATTEMPT_INDEX = 8;
+export const MAX_ACTIVE_ATTEMPT_INDEX = 8;
 const PENDING_ATTEMPT_TTL_MS = 2 * 60 * 1000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -63,11 +63,14 @@ function readActiveAttemptIndex(): string[] {
   try {
     const raw = window.sessionStorage.getItem(ACTIVE_ATTEMPT_INDEX_KEY);
     const parsed = raw ? (JSON.parse(raw) as unknown) : [];
-    return Array.isArray(parsed)
-      ? parsed
-          .filter((value): value is string => typeof value === 'string' && value.length <= 100)
-          .slice(0, MAX_ACTIVE_ATTEMPT_INDEX)
-      : [];
+    if (!Array.isArray(parsed)) return [];
+    const valid = parsed.filter(
+      (value): value is string => typeof value === 'string' && value.length <= 100,
+    );
+    for (const evictedExamId of valid.slice(MAX_ACTIVE_ATTEMPT_INDEX)) {
+      window.sessionStorage.removeItem(getActiveAttemptStorageKey(evictedExamId));
+    }
+    return valid.slice(0, MAX_ACTIVE_ATTEMPT_INDEX);
   } catch {
     return [];
   }
@@ -78,7 +81,11 @@ function updateActiveAttemptIndex(examId: string, active: boolean): void {
   try {
     const current = readActiveAttemptIndex().filter((value) => value !== examId);
     const next = active ? [examId, ...current].slice(0, MAX_ACTIVE_ATTEMPT_INDEX) : current;
-    if (next.length > 0) window.sessionStorage.setItem(ACTIVE_ATTEMPT_INDEX_KEY, JSON.stringify(next));
+    for (const evictedExamId of current.filter((value) => !next.includes(value))) {
+      window.sessionStorage.removeItem(getActiveAttemptStorageKey(evictedExamId));
+    }
+    if (next.length > 0)
+      window.sessionStorage.setItem(ACTIVE_ATTEMPT_INDEX_KEY, JSON.stringify(next));
     else window.sessionStorage.removeItem(ACTIVE_ATTEMPT_INDEX_KEY);
   } catch {
     // Session storage is an optimization; the server remains authoritative.
@@ -134,7 +141,10 @@ function removePendingAttemptId(examId: string): void {
 export function markExamAttemptPending(examId: string): void {
   if (typeof window === 'undefined' || !examId || examId.length > 100) return;
   const remaining = readPendingAttemptIndex().filter((marker) => marker.examId !== examId);
-  writePendingAttemptIndex([{ examId, expiresAt: Date.now() + PENDING_ATTEMPT_TTL_MS }, ...remaining]);
+  writePendingAttemptIndex([
+    { examId, expiresAt: Date.now() + PENDING_ATTEMPT_TTL_MS },
+    ...remaining,
+  ]);
   notifyAttemptStateChanged();
 }
 

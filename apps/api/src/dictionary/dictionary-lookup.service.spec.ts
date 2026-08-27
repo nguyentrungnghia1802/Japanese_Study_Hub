@@ -13,6 +13,7 @@ import {
   isSingleKanji,
   resolveLookupDirection,
 } from './dictionary-lookup.service.js';
+import { DICTIONARY_CACHE_POLICY } from './dictionary-cache.js';
 import { KanjiApiProvider } from './kanjiapi.provider.js';
 import { MinhqndDictionaryProvider } from './minhqnd.provider.js';
 import { TatoebaProvider } from './tatoeba.provider.js';
@@ -55,16 +56,17 @@ function serviceWith(
   const exampleProvider = {
     examples: vi.fn().mockResolvedValue(examples),
   } as unknown as TatoebaProvider;
+  const cache = new DictionaryLookupCache();
   const service = new DictionaryLookupService(
     primary,
     fallback,
-    new DictionaryLookupCache(),
+    cache,
     kanji,
     new DictionaryExampleCache(),
     exampleProvider,
     new DictionarySuggestionCache(),
   );
-  return { service, primary, fallback, kanji, exampleProvider };
+  return { service, primary, fallback, kanji, exampleProvider, cache };
 }
 
 type DictionaryLookupServiceExample = {
@@ -137,6 +139,20 @@ describe('DictionaryLookupService (TASK-411)', () => {
       code: DictionaryErrorCode.NO_RESULT,
     });
     expect(primary.lookup).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps many unique lookup responses within the hard cache entry bound', async () => {
+    const { service, cache } = serviceWith([word('term')]);
+
+    for (let index = 0; index < DICTIONARY_CACHE_POLICY.maxEntries + 64; index += 1) {
+      await service.lookup({
+        query: `term-${index}`,
+        direction: DictionaryLookupDirection.VI_TO_JA,
+        limit: 1,
+      });
+    }
+
+    expect(cache.size).toBe(DICTIONARY_CACHE_POLICY.maxEntries);
   });
 
   it('enriches a single kanji and keeps English-only metadata out of Vietnamese meanings', async () => {

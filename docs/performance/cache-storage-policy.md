@@ -1,6 +1,6 @@
-# Phase 2 Cache and Browser-Storage Policy
+# Cache and Browser-Storage Policy
 
-Status: approved for Phase 2, effective 2026-08-26
+Status: approved for Phase 2 and Phase 3, effective 2026-08-27
 
 ## 1. Authority and goals
 
@@ -108,3 +108,42 @@ normal 2-minute GC policy. Normal query count is bounded by the active route and
 Development tooling may inspect QueryClient cache key/count metadata, but must not
 log response bodies, tokens, answer keys, or full learning content. Production
 logs record cache misses/slow requests only as safe route metadata when enabled.
+
+## 8. Phase 3 measured verification
+
+The following local checks were run on 2026-08-27 against the Phase 3
+implementation:
+
+| Boundary                   | Measurement                                      | Result                                                                                                                       |
+| -------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| API lookup cache           | 320 unique normalized lookups (`256 + 64`)       | `DictionaryLookupCache.size` remained exactly 256; the TTL/LRU test also collected expired entries                           |
+| API lookup history         | 125 unique records (`100 + 25`)                  | the simulated persistence path retained exactly 100 compact rows and no result/meaning/option payload keys                   |
+| Web search cache           | 35 distinct search keys                          | the QueryClient retained at most 30 search queries                                                                           |
+| Web continuity item        | 500 UUID card IDs                                | the serialized session value stayed at or below 32 KiB and contained metadata/IDs only                                       |
+| Web continuity namespace   | 11 continuity entries                            | the session namespace retained at most 8 entries and removed older entries                                                   |
+| Web active-attempt markers | 11 active exam markers                           | at most 8 per-exam marker keys remained; evicted marker keys were removed                                                    |
+| Android Room read cache    | 120 set summaries                                | at most 100 rows remained; cached summaries contained no question/card trees and expired rows were deleted before reads      |
+| Official mistake history   | five official submissions plus practice coverage | only the newest three official attempt details remained in the defined exam/version scope; practice did not shift the window |
+
+Evidence is covered by `dictionary-cache.spec.ts`,
+`dictionary-lookup.service.spec.ts`, `dictionary-history.service.spec.ts`,
+`continuity.spec.ts`, `live-attempt-policy.spec.ts`, `query-client.spec.ts`,
+`StudyReadCacheTest`, and the opt-in API integration suite. The reproducible
+commands are:
+
+```powershell
+pnpm --filter @japanese-learning/api exec vitest run src/dictionary/dictionary-cache.spec.ts src/dictionary/dictionary-lookup.service.spec.ts src/dictionary/dictionary-history.service.spec.ts
+pnpm --filter @japanese-learning/web exec vitest run src/lib/continuity.spec.ts src/lib/live-attempt-policy.spec.ts src/lib/query-client.spec.ts
+cd apps/mobile
+./gradlew :app:testDebugUnitTest
+cd ../..
+$env:RUN_API_INTEGRATION = '1'
+pnpm --filter @japanese-learning/api test:integration
+```
+
+A source audit with `rg -n "document\\.cookie|localStorage|sessionStorage" apps/web/src`
+found no `document.cookie` use. Browser localStorage is limited to the bearer
+session entries and the three allow-listed UI preferences; sessionStorage holds
+validated IDs, compact continuity metadata, and bounded attempt indexes. No
+dictionary response, exam payload, answer key, Markdown, or provider payload is
+written to browser or Android read storage.

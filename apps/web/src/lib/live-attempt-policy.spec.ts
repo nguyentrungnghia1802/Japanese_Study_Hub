@@ -6,6 +6,7 @@ import {
   clearExamAttemptPending,
   getServerRemainingSeconds,
   hasAnyActiveExamAttempt,
+  MAX_ACTIVE_ATTEMPT_INDEX,
   markExamAttemptPending,
   writeActiveAttemptId,
 } from './live-attempt-policy.js';
@@ -108,5 +109,32 @@ describe('live attempt safety and freshness policy', () => {
     clearActiveAttemptId(examId);
     clearExamAttemptPending(examId);
     expect(hasAnyActiveExamAttempt()).toBe(false);
+  });
+
+  it('removes evicted active-attempt markers instead of accumulating session keys', () => {
+    const values = new Map<string, string>();
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        sessionStorage: {
+          getItem: (key: string) => values.get(key) ?? null,
+          setItem: (key: string, value: string) => values.set(key, value),
+          removeItem: (key: string) => values.delete(key),
+        },
+        dispatchEvent: vi.fn(),
+      },
+    });
+
+    for (let index = 0; index < MAX_ACTIVE_ATTEMPT_INDEX + 3; index += 1) {
+      writeActiveAttemptId(
+        `00000000-0000-4000-8000-${(2000 + index).toString(16).padStart(12, '0')}`,
+        `00000000-0000-4000-8000-${(3000 + index).toString(16).padStart(12, '0')}`,
+      );
+    }
+
+    const markerCount = [...values.keys()].filter((key) =>
+      key.startsWith('jsh_active_attempt_v1:'),
+    ).length;
+    expect(markerCount).toBe(MAX_ACTIVE_ATTEMPT_INDEX);
   });
 });

@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  DictionaryErrorCode,
-  DictionaryLookupDirection,
-} from '@japanese-learning/contracts';
+import { DictionaryErrorCode, DictionaryLookupDirection } from '@japanese-learning/contracts';
 import { PrismaService } from '../prisma/prisma.service.js';
 import {
   DictionaryHistoryService,
@@ -109,6 +106,49 @@ describe('DictionaryHistoryService (TASK-420)', () => {
     expect(dictionaryLookupHistory.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ take: MAX_LOOKUP_HISTORY_ITEMS }),
     );
+  });
+
+  it('keeps history at the configured cap after many unique lookups without storing payloads', async () => {
+    const { service, dictionaryLookupHistory } = createService();
+    const rows: Array<{ id: string; query: string; createdAt: Date }> = [];
+    let nextId = 0;
+
+    dictionaryLookupHistory.upsert.mockImplementation(async ({ create }) => {
+      nextId += 1;
+      rows.unshift({ id: `history-${nextId}`, query: create.query, createdAt: create.createdAt });
+      return {};
+    });
+    dictionaryLookupHistory.findMany.mockImplementation(
+      async ({ skip = 0, take = MAX_LOOKUP_HISTORY_ITEMS }: { skip?: number; take?: number }) =>
+        rows.slice(skip, skip + take).map(({ id }) => ({ id })),
+    );
+    dictionaryLookupHistory.deleteMany.mockImplementation(
+      async ({ where }: { where: { id: { in: string[] } } }) => {
+        const ids = new Set(where.id.in);
+        const before = rows.length;
+        for (let index = rows.length - 1; index >= 0; index -= 1) {
+          if (ids.has(rows[index].id)) rows.splice(index, 1);
+        }
+        return { count: before - rows.length };
+      },
+    );
+
+    for (let index = 0; index < MAX_LOOKUP_HISTORY_ITEMS + 25; index += 1) {
+      await service.record({
+        query: `lookup-${index}`,
+        direction: DictionaryLookupDirection.VI_TO_JA,
+        primaryLabel: `Lookup ${index}`,
+        now: new Date(1_000 + index),
+      });
+    }
+
+    expect(rows).toHaveLength(MAX_LOOKUP_HISTORY_ITEMS);
+    expect(dictionaryLookupHistory.upsert).toHaveBeenCalledTimes(MAX_LOOKUP_HISTORY_ITEMS + 25);
+    for (const call of dictionaryLookupHistory.upsert.mock.calls) {
+      expect(call[0].create).not.toHaveProperty('results');
+      expect(call[0].create).not.toHaveProperty('meanings');
+      expect(call[0].create).not.toHaveProperty('options');
+    }
   });
 
   it('clears only the logical primary user history', async () => {

@@ -1173,15 +1173,20 @@ Commit: `security(dictionary): harden provider boundaries`
 
 ## TASK-501 — Verify all Phase 3 storage is bounded
 
-- [ ] Exercise many unique lookups.
-- [ ] Verify lookup cache max entry count.
-- [ ] Verify expired cache entries are collectible.
-- [ ] Verify history stops at configured cap.
-- [ ] Verify cookies contain no dictionary/learning payload.
-- [ ] Verify browser local/session storage stays small.
-- [ ] Verify Android cache does not become a full dictionary mirror.
-- [ ] Verify last-3 mistake storage stays bounded after many attempts.
-- [ ] Document measured storage behavior.
+- [x] Exercise many unique lookups.
+- [x] Verify lookup cache max entry count.
+- [x] Verify expired cache entries are collectible.
+- [x] Verify history stops at configured cap.
+- [x] Verify cookies contain no dictionary/learning payload.
+- [x] Verify browser local/session storage stays small.
+- [x] Verify Android cache does not become a full dictionary mirror.
+- [x] Verify last-3 mistake storage stays bounded after many attempts.
+- [x] Document measured storage behavior.
+
+Verification (2026-08-27): API cache/history, Web continuity/active-marker/
+QueryClient, Android Room, and five-attempt integration tests passed. The
+measured bounds and the no-cookie source audit are recorded in
+`docs/performance/cache-storage-policy.md`.
 
 Acceptance criteria:
 

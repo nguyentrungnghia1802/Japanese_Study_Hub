@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   CONTINUITY_TTL_MS,
+  MAX_CONTINUITY_BYTES,
+  MAX_CONTINUITY_CARD_IDS,
+  MAX_CONTINUITY_ENTRIES,
   clearExamReviewContinuity,
   clearFlashcardStudyContinuity,
   readExamReviewContinuity,
@@ -19,7 +22,7 @@ const cardIds = [
   '66666666-6666-4666-8666-666666666666',
 ];
 
-function installSessionStorage(): void {
+function installSessionStorage(): Map<string, string> {
   const store = new Map<string, string>();
   Object.defineProperty(globalThis, 'window', {
     configurable: true,
@@ -28,13 +31,20 @@ function installSessionStorage(): void {
         getItem: (key: string) => store.get(key) ?? null,
         setItem: (key: string, value: string) => store.set(key, value),
         removeItem: (key: string) => store.delete(key),
+        get length() {
+          return store.size;
+        },
+        key: (index: number) => [...store.keys()][index] ?? null,
       },
     },
   });
+  return store;
 }
 
 describe('bounded lookup continuity', () => {
-  beforeEach(() => installSessionStorage());
+  beforeEach(() => {
+    installSessionStorage();
+  });
 
   it('restores normal, shuffled, flipped, and completed flashcard metadata without payloads', () => {
     expect(
@@ -80,10 +90,7 @@ describe('bounded lookup continuity', () => {
     expect(resolveFlashcardStudyOrder(saved, cardIds)).toEqual(cardIds);
     expect(resolveFlashcardStudyOrder(saved, cardIds.slice(0, 2))).toBeNull();
     expect(
-      resolveFlashcardStudyOrder(saved, [
-        ...cardIds,
-        '77777777-7777-4777-8777-777777777777',
-      ]),
+      resolveFlashcardStudyOrder(saved, [...cardIds, '77777777-7777-4777-8777-777777777777']),
     ).toBeNull();
   });
 
@@ -105,5 +112,68 @@ describe('bounded lookup continuity', () => {
     clearExamReviewContinuity(attemptId);
     clearFlashcardStudyContinuity(setId);
     expect(readFlashcardStudyContinuity(setId)).toBeNull();
+  });
+
+  it('keeps a maximum-size flashcard order within the session-storage byte budget', () => {
+    const storage = installSessionStorage();
+    const boundedCardIds = Array.from(
+      { length: MAX_CONTINUITY_CARD_IDS },
+      (_, index) => `00000000-0000-4000-8000-${index.toString(16).padStart(12, '0')}`,
+    );
+
+    expect(
+      writeFlashcardStudyContinuity({
+        setId,
+        sessionId: 'bounded-session',
+        cardIds: boundedCardIds,
+        currentCardId: boundedCardIds.at(-1) ?? null,
+        currentIndex: boundedCardIds.length - 1,
+        isFlipped: false,
+        isShuffled: true,
+        isCompleted: false,
+        progress: 99,
+        returnTo: `/flashcards/${setId}/study`,
+      }),
+    ).toBe(true);
+
+    const raw = storage.get(`jsh_flashcard_study_v1:${setId}`);
+    expect(raw).toBeDefined();
+    expect(new TextEncoder().encode(raw ?? '').length).toBeLessThanOrEqual(MAX_CONTINUITY_BYTES);
+    expect(readFlashcardStudyContinuity(setId)?.cardIds).toHaveLength(MAX_CONTINUITY_CARD_IDS);
+  });
+
+  it('evicts old continuity entries at the global session-storage bound', () => {
+    const storage = installSessionStorage();
+    const now = 10_000;
+    const setIds = Array.from(
+      { length: MAX_CONTINUITY_ENTRIES + 3 },
+      (_, index) => `00000000-0000-4000-8000-${(1000 + index).toString(16).padStart(12, '0')}`,
+    );
+
+    for (const [index, continuitySetId] of setIds.entries()) {
+      expect(
+        writeFlashcardStudyContinuity(
+          {
+            setId: continuitySetId,
+            sessionId: `session-${index}`,
+            cardIds: [cardIds[0]],
+            currentCardId: cardIds[0],
+            currentIndex: 0,
+            isFlipped: false,
+            isShuffled: false,
+            isCompleted: false,
+            progress: index,
+            returnTo: `/flashcards/${continuitySetId}/study`,
+          },
+          now + index,
+        ),
+      ).toBe(true);
+    }
+
+    expect(storage.size).toBe(MAX_CONTINUITY_ENTRIES);
+    expect(readFlashcardStudyContinuity(setIds[0], now + setIds.length + 1)).toBeNull();
+    expect(
+      readFlashcardStudyContinuity(setIds.at(-1) ?? '', now + setIds.length + 1),
+    ).not.toBeNull();
   });
 });
