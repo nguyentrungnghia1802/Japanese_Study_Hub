@@ -530,3 +530,11 @@ the same user/exam/version scope. Practice attempts never enter the window.
 Snapshots contain only the fields needed for submitted review, including
 question/option context, selected/correct state, and position. Best-score
 summary rows and overall attempt metadata are not pruned by this policy.
+
+### Phase 3 bounded Lookup cache
+
+Lookup provider responses are normalized at the API boundary and kept in the
+bounded process-local TTL/LRU described in
+[`docs/dictionary/cache-policy.md`](dictionary/cache-policy.md). The cache is
+not authoritative, is separate from history/favorites, and is never used for
+live exam state or answer-bearing data.

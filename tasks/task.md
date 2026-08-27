@@ -187,24 +187,34 @@ Commit: `feat(dictionary): define lookup contracts`
 
 ## TASK-404 — Define bounded cache/history policy
 
-- [ ] Use a bounded backend cache for normalized lookup responses.
-- [ ] Prefer existing Phase 2 cache infrastructure; otherwise use a small in-process LRU/TTL cache.
-- [ ] Do not add Redis only for dictionary lookup.
-- [ ] Suggested success TTL: 12–24 hours.
-- [ ] Suggested kanji TTL: up to 24 hours or longer if justified.
-- [ ] Suggested example TTL: 6–12 hours.
-- [ ] Suggested no-result TTL: 1–5 minutes.
-- [ ] Do not cache provider failures long-term.
-- [ ] Bound max cache entry count.
-- [ ] Normalize cache keys for Unicode/whitespace/direction.
-- [ ] Keep lookup history separate from response cache.
-- [ ] Limit lookup history to 100 recent items per logical user.
-- [ ] Do not store full provider payloads in history.
-- [ ] Document attribution requirements and cache bypass/debug behavior.
+- [x] Use a bounded backend cache for normalized lookup responses.
+- [x] Prefer existing Phase 2 cache infrastructure; otherwise use a small in-process LRU/TTL cache.
+- [x] Do not add Redis only for dictionary lookup.
+- [x] Suggested success TTL: 12–24 hours.
+- [x] Suggested kanji TTL: up to 24 hours or longer if justified.
+- [x] Suggested example TTL: 6–12 hours.
+- [x] Suggested no-result TTL: 1–5 minutes.
+- [x] Do not cache provider failures long-term.
+- [x] Bound max cache entry count.
+- [x] Normalize cache keys for Unicode/whitespace/direction.
+- [x] Keep lookup history separate from response cache.
+- [x] Limit lookup history to 100 recent items per logical user.
+- [x] Do not store full provider payloads in history.
+- [x] Document attribution requirements and cache bypass/debug behavior.
 
 Acceptance criteria:
 
 - Dictionary-related storage cannot grow without bound.
+
+Verification (2026-08-27):
+
+- [x] `TtlLruCache` is bounded at 256 entries, expires by TTL, refreshes LRU
+      order, and has deterministic clock-injected tests.
+- [x] Lookup/kanji/example/suggestion TTLs, no-result TTL, key normalization,
+      no-failure-cache behavior, history separation, and attribution policy are
+      documented in `docs/dictionary/cache-policy.md`.
+- [x] Existing Phase 2 Web/Android caches remain unchanged; no Redis or new
+      distributed cache dependency was introduced.
 
 Commit: `docs(dictionary): define cache and retention`
 
