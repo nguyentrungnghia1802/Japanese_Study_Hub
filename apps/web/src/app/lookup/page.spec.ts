@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DictionaryLookupDirection } from '@japanese-learning/contracts';
-import LookupPage, { hasDictionaryResult, parseLookupDirection } from './page.js';
+import LookupPage from './page.js';
+import { hasDictionaryResult, parseLookupDirection } from '@/lib/lookup-helpers.js';
 
 describe('LookupPage (TASK-430)', () => {
   it('is a client route component and parses only supported URL directions', () => {

@@ -505,22 +505,34 @@ Commit: `feat(web): add lookup module`
 
 ## TASK-431 — Build Web word/kanji result UI
 
-- [ ] Show written form prominently.
-- [ ] Show reading.
-- [ ] Show Vietnamese meanings.
-- [ ] Show part of speech when available.
-- [ ] Show kanji readings/strokes/JLPT/grade/frequency for single kanji.
-- [ ] Show bounded related words.
-- [ ] Show optional examples.
-- [ ] Show source attribution.
-- [ ] Add Copy.
-- [ ] Add Favorite.
-- [ ] Add “Add to Flashcard”.
-- [ ] Make responsive.
+- [x] Show written form prominently.
+- [x] Show reading.
+- [x] Show Vietnamese meanings.
+- [x] Show part of speech when available.
+- [x] Show kanji readings/strokes/JLPT/grade/frequency for single kanji.
+- [x] Show bounded related words.
+- [x] Show optional examples.
+- [x] Show source attribution.
+- [x] Add Copy.
+- [x] Add Favorite.
+- [x] Add “Add to Flashcard”.
+- [x] Make responsive.
 
 Acceptance criteria:
 
 - Vocabulary and single-kanji results each have appropriate presentation.
+
+Verification (2026-08-27):
+
+- [x] `LookupResults` renders normalized word, reading, bounded meanings/POS,
+      common/frequency hints, single-kanji metadata, related words, optional
+      examples, and per-result/source attribution without raw provider markup.
+- [x] Copy, idempotent Favorite/unfavorite, and the editable Add-to-Flashcard
+      dialog are wired to the existing API client; the dialog requires an
+      existing target set and never silently creates one.
+- [x] Web typecheck, lint (no warnings), full Web test suite (34 tests), and
+      production `next build` passed; `/lookup` is included in the optimized
+      route output.
 
 Commit: `feat(web): build lookup results`
 

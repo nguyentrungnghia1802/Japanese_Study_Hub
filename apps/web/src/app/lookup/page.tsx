@@ -3,12 +3,16 @@
 import React, { FormEvent, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { BookOpen, ChevronDown, Languages, RotateCw, Search, Sparkles } from 'lucide-react';
+import { Languages, RotateCw, Search, Sparkles } from 'lucide-react';
 import { DictionaryLookupDirection, DictionaryLookupResponseDto } from '@japanese-learning/contracts';
 import { getApiErrorMessage, ApiError } from '@/lib/api-client';
 import { CACHE_POLICY } from '@/lib/cache-policy';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
+import { hasDictionaryResult, parseLookupDirection } from '@/lib/lookup-helpers';
+import LookupFlashcardDialog from '@/components/lookup/lookup-flashcard-dialog';
+import { getLookupPrimaryCard } from '@/components/lookup/lookup-results';
+import LookupResults from '@/components/lookup/lookup-results';
 
 const LOOKUP_LIMIT = 20;
 const SUGGESTION_LIMIT = 10;
@@ -22,16 +26,6 @@ const DIRECTION_OPTIONS: Array<{
   { value: DictionaryLookupDirection.JA_TO_VI, label: 'Nhật → Việt', hint: 'JA → VI' },
   { value: DictionaryLookupDirection.VI_TO_JA, label: 'Việt → Nhật', hint: 'VI → JA' },
 ];
-
-export function parseLookupDirection(value: string | null): DictionaryLookupDirection {
-  return DIRECTION_OPTIONS.some((option) => option.value === value)
-    ? (value as DictionaryLookupDirection)
-    : DictionaryLookupDirection.AUTO;
-}
-
-export function hasDictionaryResult(result: DictionaryLookupResponseDto | null | undefined): boolean {
-  return Boolean(result && (result.results.length > 0 || result.kanji));
-}
 
 function updateLookupUrl(
   router: ReturnType<typeof useRouter>,
@@ -56,6 +50,16 @@ export default function LookupPage() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const initialized = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [favoriteId, setFavoriteId] = useState<string | null>(null);
+  const [favoriteBusy, setFavoriteBusy] = useState(false);
+  const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
+  const [favoriteError, setFavoriteError] = useState<string | null>(null);
+  const [flashcardDraft, setFlashcardDraft] = useState<{
+    japanese: string;
+    reading: string | null;
+    meaning: string;
+    example?: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -124,6 +128,58 @@ export default function LookupPage() {
     lookupQuery.error instanceof ApiError && lookupQuery.error.code === 'NO_RESULT';
   const hasResult = hasDictionaryResult(lookupQuery.data);
   const suggestions = suggestionsQuery.data?.suggestions ?? [];
+
+  useEffect(() => {
+    setFavoriteId(null);
+    setFavoriteMessage(null);
+    setFavoriteError(null);
+  }, [submittedQuery, direction]);
+
+  const toggleFavorite = async () => {
+    if (!lookupQuery.data || lookupQuery.data.direction === DictionaryLookupDirection.AUTO) return;
+    const primary = lookupQuery.data.results[0];
+    const source = primary?.source ?? lookupQuery.data.kanji?.source ?? lookupQuery.data.sources[0];
+    const card = getLookupPrimaryCard(lookupQuery.data);
+    if (!source || !card.meaning) {
+      setFavoriteError('Kết quả này chưa có đủ nghĩa hoặc nguồn để lưu.');
+      return;
+    }
+    setFavoriteBusy(true);
+    setFavoriteMessage(null);
+    setFavoriteError(null);
+    try {
+      if (favoriteId) {
+        await studyApi.removeDictionaryFavorite(favoriteId);
+        setFavoriteId(null);
+        setFavoriteMessage('Đã bỏ khỏi yêu thích.');
+      } else {
+        const saved = await studyApi.saveDictionaryFavorite({
+          term: card.japanese,
+          reading: card.reading,
+          meaningSummary: card.meaning.slice(0, 512),
+          direction: lookupQuery.data.direction,
+          source,
+        });
+        setFavoriteId(saved.id);
+        setFavoriteMessage('Đã lưu vào yêu thích.');
+      }
+    } catch (error: unknown) {
+      setFavoriteError(getApiErrorMessage(error, 'Không thể cập nhật yêu thích.'));
+    } finally {
+      setFavoriteBusy(false);
+    }
+  };
+
+  const openFlashcardDialog = () => {
+    if (!lookupQuery.data) return;
+    const card = getLookupPrimaryCard(lookupQuery.data);
+    setFlashcardDraft({
+      ...card,
+      example: lookupQuery.data.examples[0]
+        ? `${lookupQuery.data.examples[0].japaneseSentence}\n${lookupQuery.data.examples[0].vietnameseTranslation}`
+        : null,
+    });
+  };
 
   return (
     <main
@@ -234,6 +290,7 @@ export default function LookupPage() {
                   key={suggestion.text}
                   type="button"
                   role="option"
+                  aria-selected="false"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => selectSuggestion(suggestion.text)}
                   style={{
@@ -364,48 +421,22 @@ export default function LookupPage() {
       )}
 
       {lookupQuery.data && hasResult && (
-        <section
-          id="lookup-result-content"
-          data-testid="lookup-result-summary"
-          className="glass-panel"
-          style={{ padding: '1.5rem' }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-            <BookOpen size={20} style={{ color: 'var(--accent-cyan)' }} />
-            <h2 style={{ color: 'var(--text-primary)', fontSize: '1.25rem' }}>
-              Kết quả cho “{lookupQuery.data.query}”
-            </h2>
-          </div>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            Đã tìm thấy {lookupQuery.data.results.length} mục từ
-            {lookupQuery.data.kanji ? ' và thông tin kanji.' : '.'}
-          </p>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              color: 'var(--text-muted)',
-              fontSize: '0.8rem',
-              marginTop: '1.2rem',
-            }}
-          >
-            <span>Nguồn:</span>
-            {lookupQuery.data.sources.map((source) => (
-              <a
-                key={`${source.provider}-${source.url}`}
-                href={source.url}
-                target="_blank"
-                rel="noreferrer"
-                style={{ color: 'var(--accent-cyan)' }}
-              >
-                {source.name}
-              </a>
-            ))}
-            <ChevronDown size={14} aria-hidden="true" />
-          </div>
-        </section>
+        <LookupResults
+          result={lookupQuery.data}
+          isFavorite={favoriteId !== null}
+          favoriteBusy={favoriteBusy}
+          favoriteMessage={favoriteMessage}
+          favoriteError={favoriteError}
+          onFavorite={() => void toggleFavorite()}
+          onAddToFlashcard={openFlashcardDialog}
+        />
       )}
+
+      <LookupFlashcardDialog
+        draft={flashcardDraft}
+        onClose={() => setFlashcardDraft(null)}
+        onSaved={() => setFlashcardDraft(null)}
+      />
 
       <style jsx>{`
         .lookup-spin {

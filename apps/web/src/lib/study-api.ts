@@ -17,6 +17,8 @@ import {
   SubmitFlashcardReviewDto,
   StartMistakePracticeDto,
   WrongAnswerReviewQueueDto,
+  CreateFlashcardDto,
+  FlashcardDto,
   CreateDictionaryFavoriteDto,
   DictionaryFavoriteDto,
   DictionaryFavoriteListResponseDto,
@@ -224,6 +226,13 @@ export const studyApi = {
   removeDictionaryFavorite: (favoriteId: string, signal?: AbortSignal) =>
     apiClient<{ success: true; id: string }>(`/lookup/favorites/${favoriteId}`, {
       method: 'DELETE',
+      signal,
+    }),
+
+  createFlashcard: (setId: string, body: CreateFlashcardDto, signal?: AbortSignal) =>
+    apiClient<FlashcardDto>(`/flashcard-sets/${setId}/cards`, {
+      method: 'POST',
+      body: JSON.stringify(body),
       signal,
     }),
 
