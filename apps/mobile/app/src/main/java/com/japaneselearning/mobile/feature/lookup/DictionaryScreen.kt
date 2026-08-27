@@ -71,6 +71,7 @@ import com.japaneselearning.mobile.data.model.FlashcardSet
 @Composable
 fun DictionaryScreen(
     onBack: (() -> Unit)? = null,
+    initialQuery: String = "",
     activeExamBlocked: Boolean = false,
     viewModel: DictionaryViewModel = hiltViewModel(),
 ) {
@@ -79,6 +80,14 @@ fun DictionaryScreen(
 
     LaunchedEffect(activeExamBlocked) {
         viewModel.setLookupBlocked(activeExamBlocked)
+    }
+
+    LaunchedEffect(initialQuery) {
+        val query = initialQuery.trim().take(120)
+        if (query.isNotEmpty() && !activeExamBlocked) {
+            viewModel.setQuery(query)
+            viewModel.lookup()
+        }
     }
 
     Scaffold(

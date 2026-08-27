@@ -381,3 +381,80 @@ data class ClearMistakesResponse(
     val success: Boolean = true,
     val removedCount: Int = 0,
 )
+
+@Serializable
+data class RetainedMistakeOptionDto(
+    val id: String,
+    val content: String,
+    val position: Int,
+    val isCorrect: Boolean = false,
+)
+
+@Serializable
+data class RetainedMistakeItemDto(
+    val id: String,
+    val examId: String,
+    val examTitle: String,
+    val examVersion: Int,
+    val questionId: String,
+    val questionType: String,
+    val questionContent: String,
+    val questionPosition: Int,
+    val options: List<RetainedMistakeOptionDto> = emptyList(),
+    val selectedOptionId: String? = null,
+    val correctOptionId: String? = null,
+    val isCorrect: Boolean = false,
+    val isUnanswered: Boolean = false,
+    val sourceAttemptId: String,
+    val submittedAt: String,
+    val createdAt: String,
+    val updatedAt: String,
+)
+
+@Serializable
+data class MistakeAttemptSummaryDto(
+    val attemptId: String,
+    val examId: String,
+    val examTitle: String,
+    val examVersion: Int,
+    val submittedAt: String,
+    val score: Double,
+    val correctCount: Int,
+    val totalQuestions: Int,
+    val durationSeconds: Int? = null,
+    val mistakeCount: Int,
+)
+
+@Serializable
+data class MistakeAttemptListResponseDto(
+    val attempts: List<MistakeAttemptSummaryDto> = emptyList(),
+)
+
+@Serializable
+data class MistakeAttemptDetailResponseDto(
+    val attempt: MistakeAttemptSummaryDto,
+    val items: List<RetainedMistakeItemDto> = emptyList(),
+)
+
+@Serializable
+data class FrequentMistakeDto(
+    val examId: String,
+    val examVersion: Int,
+    val questionId: String,
+    val questionType: String,
+    val questionContent: String,
+    val questionPosition: Int,
+    val options: List<RetainedMistakeOptionDto> = emptyList(),
+    val correctOptionId: String? = null,
+    val occurrenceCount: Int,
+    val retainedAttemptCount: Int,
+    val sourceAttemptId: String,
+)
+
+@Serializable
+data class FrequentMistakeSummaryDto(
+    val examId: String,
+    val examVersion: Int,
+    val retainedAttemptCount: Int,
+    val items: List<FrequentMistakeDto> = emptyList(),
+)

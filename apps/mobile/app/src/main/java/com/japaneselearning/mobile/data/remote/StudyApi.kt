@@ -120,6 +120,15 @@ interface StudyApi {
     @POST("exam-review/practice")
     suspend fun startMistakePractice(@Body request: StartMistakePracticeRequest): LiveAttemptDto
 
+    @GET("exam-review/exams/{examId}/mistake-attempts")
+    suspend fun getMistakeAttempts(@Path("examId") examId: String): MistakeAttemptListResponseDto
+
+    @GET("exam-review/attempts/{attemptId}/mistakes")
+    suspend fun getMistakeAttemptDetail(@Path("attemptId") attemptId: String): MistakeAttemptDetailResponseDto
+
+    @GET("exam-review/exams/{examId}/frequent-mistakes")
+    suspend fun getFrequentMistakes(@Path("examId") examId: String): FrequentMistakeSummaryDto
+
     @GET("lookup")
     suspend fun dictionaryLookup(
         @Query("q") query: String,

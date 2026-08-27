@@ -27,6 +27,9 @@ import com.japaneselearning.mobile.data.model.SearchResults
 import com.japaneselearning.mobile.data.model.User
 import com.japaneselearning.mobile.data.model.WrongAnswerReviewItem
 import com.japaneselearning.mobile.data.model.WrongAnswerReviewQueue
+import com.japaneselearning.mobile.data.model.FrequentMistakeSummary
+import com.japaneselearning.mobile.data.model.MistakeAttemptDetail
+import com.japaneselearning.mobile.data.model.MistakeAttemptSummary
 import com.japaneselearning.mobile.data.remote.AnswerDto
 import com.japaneselearning.mobile.data.remote.CreateFlashcardRequest
 import com.japaneselearning.mobile.data.remote.DashboardDto
@@ -115,6 +118,12 @@ interface StudyRepository {
     suspend fun dismissWrongAnswer(mistakeId: String)
 
     suspend fun clearWrongAnswers(examId: String? = null)
+
+    suspend fun getMistakeAttempts(examId: String): List<MistakeAttemptSummary> = error("unused")
+
+    suspend fun getMistakeAttemptDetail(attemptId: String): MistakeAttemptDetail = error("unused")
+
+    suspend fun getFrequentMistakes(examId: String): FrequentMistakeSummary = error("unused")
 
     suspend fun dictionaryLookup(
         query: String,
@@ -304,6 +313,30 @@ class StudyRepositoryImpl @Inject constructor(
 
     override suspend fun clearWrongAnswers(examId: String?) {
         request { api.clearWrongAnswers(examId) }
+    }
+
+    override suspend fun getMistakeAttempts(examId: String): List<MistakeAttemptSummary> = request {
+        api.getMistakeAttempts(examId).attempts.take(3).map(::mapMistakeAttemptSummary)
+    }
+
+    override suspend fun getMistakeAttemptDetail(attemptId: String): MistakeAttemptDetail = request {
+        api.getMistakeAttemptDetail(attemptId).let { response ->
+            MistakeAttemptDetail(
+                attempt = mapMistakeAttemptSummary(response.attempt),
+                items = response.items.take(100).map(::mapRetainedMistake),
+            )
+        }
+    }
+
+    override suspend fun getFrequentMistakes(examId: String): FrequentMistakeSummary = request {
+        api.getFrequentMistakes(examId).let { response ->
+            FrequentMistakeSummary(
+                examId = response.examId,
+                examVersion = response.examVersion,
+                retainedAttemptCount = response.retainedAttemptCount.coerceIn(0, 3),
+                items = response.items.take(100).map(::mapFrequentMistake),
+            )
+        }
     }
 
     override suspend fun dictionaryLookup(
@@ -507,6 +540,68 @@ class StudyRepositoryImpl @Inject constructor(
             sourceAttemptId = dto.sourceAttemptId,
             createdAt = dto.createdAt,
             updatedAt = dto.updatedAt,
+        )
+
+    private fun mapMistakeAttemptSummary(dto: com.japaneselearning.mobile.data.remote.MistakeAttemptSummaryDto) =
+        MistakeAttemptSummary(
+            attemptId = dto.attemptId,
+            examId = dto.examId,
+            examTitle = dto.examTitle,
+            examVersion = dto.examVersion,
+            submittedAt = dto.submittedAt,
+            score = dto.score,
+            correctCount = dto.correctCount,
+            totalQuestions = dto.totalQuestions,
+            durationSeconds = dto.durationSeconds,
+            mistakeCount = dto.mistakeCount,
+        )
+
+    private fun mapRetainedMistake(dto: com.japaneselearning.mobile.data.remote.RetainedMistakeItemDto) =
+        com.japaneselearning.mobile.data.model.RetainedMistakeItem(
+            id = dto.id,
+            examId = dto.examId,
+            examTitle = dto.examTitle,
+            examVersion = dto.examVersion,
+            questionId = dto.questionId,
+            questionType = dto.questionType,
+            questionContent = dto.questionContent,
+            questionPosition = dto.questionPosition,
+            options = dto.options.map { option ->
+                com.japaneselearning.mobile.data.model.RetainedMistakeOption(
+                    id = option.id,
+                    content = option.content,
+                    position = option.position,
+                    isCorrect = option.isCorrect,
+                )
+            },
+            selectedOptionId = dto.selectedOptionId,
+            correctOptionId = dto.correctOptionId,
+            isCorrect = dto.isCorrect,
+            isUnanswered = dto.isUnanswered,
+            sourceAttemptId = dto.sourceAttemptId,
+            submittedAt = dto.submittedAt,
+        )
+
+    private fun mapFrequentMistake(dto: com.japaneselearning.mobile.data.remote.FrequentMistakeDto) =
+        com.japaneselearning.mobile.data.model.FrequentMistake(
+            examId = dto.examId,
+            examVersion = dto.examVersion,
+            questionId = dto.questionId,
+            questionType = dto.questionType,
+            questionContent = dto.questionContent,
+            questionPosition = dto.questionPosition,
+            options = dto.options.map { option ->
+                com.japaneselearning.mobile.data.model.RetainedMistakeOption(
+                    id = option.id,
+                    content = option.content,
+                    position = option.position,
+                    isCorrect = option.isCorrect,
+                )
+            },
+            correctOptionId = dto.correctOptionId,
+            occurrenceCount = dto.occurrenceCount,
+            retainedAttemptCount = dto.retainedAttemptCount,
+            sourceAttemptId = dto.sourceAttemptId,
         )
 
     private fun mapAttempt(dto: LiveAttemptDto) = LiveAttempt(

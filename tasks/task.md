@@ -1085,18 +1085,25 @@ Commit: `feat(exams): summarize frequent mistakes`
 
 ## TASK-482 — Add Android last-3 mistake review
 
-- [ ] Show retained attempt selector/list.
-- [ ] Show wrong/unanswered review items.
-- [ ] Show selected/correct answer state.
-- [ ] Add Lookup.
-- [ ] Preserve review state around Lookup.
-- [ ] Add Add-to-Flashcard.
-- [ ] Show frequent-mistake summary if shared API supports it.
-- [ ] Add loading/empty/error states.
+- [x] Show retained attempt selector/list.
+- [x] Show wrong/unanswered review items.
+- [x] Show selected/correct answer state.
+- [x] Add Lookup.
+- [x] Preserve review state around Lookup.
+- [x] Add Add-to-Flashcard.
+- [x] Show frequent-mistake summary if shared API supports it.
+- [x] Add loading/empty/error states.
 
 Acceptance criteria:
 
 - Android and Web share the same retention semantics.
+
+Verification (2026-08-27): Android now maps the shared bounded history/detail/
+frequent APIs defensively (3 attempts, 100 items), preserves selected exam,
+attempt, filter, and question in SavedStateHandle, launches prefilled Lookup
+with a pop-back route, and offers editable Flashcard creation. Compose unit
+logic plus `:app:compileDebugKotlin`, `:app:testDebugUnitTest`, and
+`:app:lintDebug` passed.
 
 Commit: `feat(android): add last three mistake review`
 

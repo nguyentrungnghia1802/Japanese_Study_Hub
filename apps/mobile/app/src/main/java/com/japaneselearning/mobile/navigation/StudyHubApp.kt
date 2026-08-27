@@ -57,6 +57,7 @@ object Routes {
     const val EXAM_DETAIL = "exam/{examId}"
     const val EXAM_TAKE = "exam/{examId}/take"
     const val LOOKUP = "lookup"
+    const val LOOKUP_WITH_QUERY = "lookup/{query}"
     const val SEARCH = "search"
 }
 
@@ -175,6 +176,9 @@ private fun StudyNavHost(
                 onOpenPractice = { examId, mistakeId ->
                     navController.navigate("exam-practice/${Uri.encode(examId)}/${Uri.encode(mistakeId)}")
                 },
+                onOpenLookup = { query ->
+                    navController.navigate("lookup/${Uri.encode(query.trim().take(120))}")
+                },
             )
         }
         composable(
@@ -212,6 +216,16 @@ private fun StudyNavHost(
         }
         composable(Routes.LOOKUP) {
             DictionaryScreen(activeExamBlocked = activeExamBlocked)
+        }
+        composable(
+            Routes.LOOKUP_WITH_QUERY,
+            arguments = listOf(navArgument("query") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            DictionaryScreen(
+                onBack = { navController.popBackStack() },
+                initialQuery = backStackEntry.arguments?.getString("query").orEmpty(),
+                activeExamBlocked = activeExamBlocked,
+            )
         }
     }
 }

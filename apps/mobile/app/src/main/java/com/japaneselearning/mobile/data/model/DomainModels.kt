@@ -200,3 +200,67 @@ data class WrongAnswerReviewQueue(
     val items: List<WrongAnswerReviewItem>,
     val total: Int,
 )
+
+data class RetainedMistakeOption(
+    val id: String,
+    val content: String,
+    val position: Int,
+    val isCorrect: Boolean,
+)
+
+data class RetainedMistakeItem(
+    val id: String,
+    val examId: String,
+    val examTitle: String,
+    val examVersion: Int,
+    val questionId: String,
+    val questionType: String,
+    val questionContent: String,
+    val questionPosition: Int,
+    val options: List<RetainedMistakeOption>,
+    val selectedOptionId: String?,
+    val correctOptionId: String?,
+    val isCorrect: Boolean,
+    val isUnanswered: Boolean,
+    val sourceAttemptId: String,
+    val submittedAt: String,
+)
+
+data class MistakeAttemptSummary(
+    val attemptId: String,
+    val examId: String,
+    val examTitle: String,
+    val examVersion: Int,
+    val submittedAt: String,
+    val score: Double,
+    val correctCount: Int,
+    val totalQuestions: Int,
+    val durationSeconds: Int?,
+    val mistakeCount: Int,
+)
+
+data class MistakeAttemptDetail(
+    val attempt: MistakeAttemptSummary,
+    val items: List<RetainedMistakeItem>,
+)
+
+data class FrequentMistake(
+    val examId: String,
+    val examVersion: Int,
+    val questionId: String,
+    val questionType: String,
+    val questionContent: String,
+    val questionPosition: Int,
+    val options: List<RetainedMistakeOption>,
+    val correctOptionId: String?,
+    val occurrenceCount: Int,
+    val retainedAttemptCount: Int,
+    val sourceAttemptId: String,
+)
+
+data class FrequentMistakeSummary(
+    val examId: String,
+    val examVersion: Int,
+    val retainedAttemptCount: Int,
+    val items: List<FrequentMistake>,
+)
