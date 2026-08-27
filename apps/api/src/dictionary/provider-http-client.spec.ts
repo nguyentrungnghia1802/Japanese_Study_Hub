@@ -77,4 +77,51 @@ describe('ProviderHttpClient', () => {
       code: DictionaryErrorCode.INVALID_PROVIDER_RESPONSE,
     });
   });
+
+  it('preserves Retry-After metadata and suppresses repeated provider outages briefly', async () => {
+    let now = 1_000;
+    const rateLimitedFetch = vi
+      .fn()
+      .mockResolvedValue(response('rate limited', 429, { 'retry-after': '12' }));
+    const rateLimited = new ProviderHttpClient({ fetchImpl: rateLimitedFetch, now: () => now });
+    const rateError = await rateLimited
+      .getJson('TEST', 'https://provider.test/data')
+      .catch((value: unknown) => value);
+    expect(rateError).toMatchObject({
+      code: DictionaryErrorCode.RATE_LIMITED,
+      retryAfterSeconds: 12,
+    });
+    await expect(rateLimited.getJson('TEST', 'https://provider.test/data')).rejects.toMatchObject({
+      code: DictionaryErrorCode.RATE_LIMITED,
+      statusCode: 429,
+      retryAfterSeconds: 12,
+    });
+    expect(rateLimitedFetch).toHaveBeenCalledTimes(1);
+
+    const unavailableFetch = vi.fn().mockRejectedValue(new Error('offline'));
+    const unavailable = new ProviderHttpClient({
+      fetchImpl: unavailableFetch,
+      retryDelayMs: 0,
+      sleep: async () => undefined,
+      now: () => now,
+    });
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await expect(unavailable.getJson('TEST', 'https://provider.test/data')).rejects.toMatchObject(
+        {
+          code: DictionaryErrorCode.PROVIDER_UNAVAILABLE,
+        },
+      );
+    }
+    const callsAfterCircuitOpen = unavailableFetch.mock.calls.length;
+    await expect(unavailable.getJson('TEST', 'https://provider.test/data')).rejects.toMatchObject({
+      code: DictionaryErrorCode.PROVIDER_UNAVAILABLE,
+      retryAfterSeconds: 5,
+    });
+    expect(unavailableFetch).toHaveBeenCalledTimes(callsAfterCircuitOpen);
+    now += 5_000;
+    await expect(unavailable.getJson('TEST', 'https://provider.test/data')).rejects.toMatchObject({
+      code: DictionaryErrorCode.PROVIDER_UNAVAILABLE,
+    });
+    expect(unavailableFetch.mock.calls.length).toBeGreaterThan(callsAfterCircuitOpen);
+  });
 });

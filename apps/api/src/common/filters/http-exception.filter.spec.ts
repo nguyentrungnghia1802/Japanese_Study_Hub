@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { BadRequestException, ArgumentsHost } from '@nestjs/common';
+import { ArgumentsHost, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
 import { GlobalHttpExceptionFilter } from './http-exception.filter.js';
 
 describe('GlobalHttpExceptionFilter (TASK-011 / ERR-001)', () => {
@@ -28,5 +28,28 @@ describe('GlobalHttpExceptionFilter (TASK-011 / ERR-001)', () => {
         requestId: 'test-req-123',
       },
     });
+  });
+
+  it('forwards a bounded provider Retry-After hint without exposing provider internals', () => {
+    const filter = new GlobalHttpExceptionFilter();
+    const jsonMock = vi.fn();
+    const statusMock = vi.fn().mockReturnValue({ json: jsonMock });
+    const setHeaderMock = vi.fn();
+    const mockHost = {
+      switchToHttp: () => ({
+        getResponse: () => ({ status: statusMock, setHeader: setHeaderMock }),
+        getRequest: () => ({ id: 'retry-req' }),
+      }),
+    } as unknown as ArgumentsHost;
+    const exception = new HttpException(
+      { code: 'RATE_LIMITED', message: 'try later' },
+      HttpStatus.TOO_MANY_REQUESTS,
+    );
+    Object.defineProperty(exception, 'retryAfterSeconds', { value: 12 });
+
+    filter.catch(exception, mockHost);
+
+    expect(setHeaderMock).toHaveBeenCalledWith('Retry-After', '12');
+    expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ error: expect.any(Object) }));
   });
 });

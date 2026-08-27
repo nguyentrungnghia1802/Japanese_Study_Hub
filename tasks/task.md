@@ -1145,20 +1145,27 @@ Commit: `feat(flashcards): create cards from exam mistakes`
 
 ## TASK-500 — Harden provider boundaries
 
-- [ ] Add strict timeouts.
-- [ ] Add only lightweight failure suppression/circuit behavior if repeated failures justify it.
-- [ ] Allow kanji/examples enrichment to fail independently from core lookup.
-- [ ] Rate-limit project Lookup endpoints.
-- [ ] Validate external response shape/size.
-- [ ] Treat malformed provider data as untrusted.
-- [ ] Sanitize displayed definitions/examples.
-- [ ] Never expose provider/server internals.
-- [ ] Honor Retry-After/rate-limit metadata where available.
-- [ ] Add regression tests for provider timeout and malformed data.
+- [x] Add strict timeouts.
+- [x] Add only lightweight failure suppression/circuit behavior if repeated failures justify it.
+- [x] Allow kanji/examples enrichment to fail independently from core lookup.
+- [x] Rate-limit project Lookup endpoints.
+- [x] Validate external response shape/size.
+- [x] Treat malformed provider data as untrusted.
+- [x] Sanitize displayed definitions/examples.
+- [x] Never expose provider/server internals.
+- [x] Honor Retry-After/rate-limit metadata where available.
+- [x] Add regression tests for provider timeout and malformed data.
 
 Acceptance criteria:
 
 - External dictionary downtime cannot destabilize the learning app.
+
+Verification (2026-08-27): ProviderHttpClient enforces the 2.5-second timeout,
+256 KiB body cap, one transient retry, bounded per-provider failure suppression,
+strict JSON/adaptor validation, and safe logs. Retry-After/X-RateLimit-Reset
+metadata is preserved as a bounded HTTP hint; 429 is never retried. Core lookup
+and optional kanji/examples enrichment remain independently degradable.
+Provider, controller, and global-filter regression tests passed.
 
 Commit: `security(dictionary): harden provider boundaries`
 

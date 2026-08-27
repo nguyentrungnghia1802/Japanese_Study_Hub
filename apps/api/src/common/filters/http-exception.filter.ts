@@ -27,6 +27,11 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
+      const retryAfterSeconds = (exception as HttpException & { retryAfterSeconds?: unknown })
+        .retryAfterSeconds;
+      if (typeof retryAfterSeconds === 'number' && Number.isFinite(retryAfterSeconds)) {
+        response.setHeader('Retry-After', String(Math.ceil(Number(retryAfterSeconds))));
+      }
       const res = exception.getResponse();
 
       if (typeof res === 'string') {

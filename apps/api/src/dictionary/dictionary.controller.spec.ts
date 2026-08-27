@@ -123,6 +123,30 @@ describe('DictionaryController (TASK-414)', () => {
     expect(JSON.stringify(thrown)).not.toContain('SECRET_PROVIDER');
   });
 
+  it('keeps provider Retry-After metadata available to the HTTP filter', async () => {
+    const service = {
+      lookup: vi.fn(),
+      suggest: vi
+        .fn()
+        .mockRejectedValue(
+          new DictionaryProviderError(
+            DictionaryErrorCode.RATE_LIMITED,
+            'SECRET_PROVIDER',
+            429,
+            false,
+            undefined,
+            12,
+          ),
+        ),
+    };
+    const controller = new DictionaryController(service as never);
+    const query = Object.assign(new DictionarySuggestionQueryDto(), { q: '学生' });
+
+    const thrown = await controller.suggest(query).catch((error: unknown) => error);
+
+    expect(thrown).toMatchObject({ status: 429, retryAfterSeconds: 12 });
+  });
+
   it('maps invalid input to a 400 code before a provider is used', async () => {
     const service = {
       lookup: vi

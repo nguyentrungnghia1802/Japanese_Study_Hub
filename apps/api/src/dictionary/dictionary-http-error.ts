@@ -30,31 +30,50 @@ export function toDictionaryHttpException(error: unknown): HttpException {
 
   if (error instanceof DictionaryProviderError) {
     if (error.code === DictionaryErrorCode.RATE_LIMITED) {
-      return new HttpException(
-        {
-          code: error.code,
-          message: 'Dictionary lookup is temporarily rate limited.',
-        },
-        HttpStatus.TOO_MANY_REQUESTS,
+      return withRetryAfter(
+        new HttpException(
+          {
+            code: error.code,
+            message: 'Dictionary lookup is temporarily rate limited.',
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+        ),
+        error.retryAfterSeconds,
       );
     }
     if (error.code === DictionaryErrorCode.TIMEOUT) {
-      return new GatewayTimeoutException({
-        code: error.code,
-        message: 'The dictionary provider did not respond in time.',
-      });
+      return withRetryAfter(
+        new GatewayTimeoutException({
+          code: error.code,
+          message: 'The dictionary provider did not respond in time.',
+        }),
+        error.retryAfterSeconds,
+      );
     }
-    return new ServiceUnavailableException({
-      code:
-        error.code === DictionaryErrorCode.INVALID_PROVIDER_RESPONSE
-          ? DictionaryErrorCode.PROVIDER_UNAVAILABLE
-          : error.code,
-      message: 'The dictionary service is temporarily unavailable.',
-    });
+    return withRetryAfter(
+      new ServiceUnavailableException({
+        code:
+          error.code === DictionaryErrorCode.INVALID_PROVIDER_RESPONSE
+            ? DictionaryErrorCode.PROVIDER_UNAVAILABLE
+            : error.code,
+        message: 'The dictionary service is temporarily unavailable.',
+      }),
+      error.retryAfterSeconds,
+    );
   }
 
   return new ServiceUnavailableException({
     code: DictionaryErrorCode.PROVIDER_UNAVAILABLE,
     message: 'The dictionary service is temporarily unavailable.',
   });
+}
+
+function withRetryAfter(exception: HttpException, retryAfterSeconds?: number): HttpException {
+  if (retryAfterSeconds === undefined || !Number.isFinite(retryAfterSeconds)) return exception;
+  Object.defineProperty(exception, 'retryAfterSeconds', {
+    configurable: true,
+    enumerable: false,
+    value: Math.max(0, Math.ceil(retryAfterSeconds)),
+  });
+  return exception;
 }

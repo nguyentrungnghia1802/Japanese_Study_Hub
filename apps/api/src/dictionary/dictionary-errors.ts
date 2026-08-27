@@ -7,6 +7,7 @@ export class DictionaryProviderError extends Error {
     public readonly statusCode?: number,
     public readonly retryable = false,
     cause?: unknown,
+    public readonly retryAfterSeconds?: number,
   ) {
     super(`Dictionary provider operation failed: ${code}`, { cause });
     this.name = 'DictionaryProviderError';
