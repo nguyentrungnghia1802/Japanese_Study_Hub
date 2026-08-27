@@ -12,9 +12,12 @@ import {
   Shuffle,
   CheckCircle2,
   BookOpen,
+  Languages,
 } from 'lucide-react';
 import { FlashcardDto } from '@japanese-learning/contracts';
 import { getApiErrorMessage } from '@/lib/api-client';
+import { clearFlashcardStudyContinuity, readFlashcardStudyContinuity, resolveFlashcardStudyOrder, writeFlashcardStudyContinuity } from '@/lib/continuity';
+import { CACHE_POLICY } from '@/lib/cache-policy';
 import { queryKeys } from '@/lib/query-keys';
 import { studyApi } from '@/lib/study-api';
 import { SkeletonBlock } from '@/components/ui/skeleton';
@@ -28,6 +31,8 @@ export default function FlashcardStudyPage() {
     queryKey: queryKeys.flashcardSet(id),
     queryFn: ({ signal }) => studyApi.flashcardSet(id, signal),
     enabled: Boolean(id),
+    staleTime: CACHE_POLICY.entityDetail.staleTime,
+    gcTime: CACHE_POLICY.entityDetail.gcTime,
   });
   const set = setQuery.data ?? null;
   const [cards, setCards] = useState<FlashcardDto[]>([]);
@@ -37,18 +42,64 @@ export default function FlashcardStudyPage() {
   const [isCompleted, setIsCompleted] = useState(false);
   const isLoading = setQuery.isLoading;
   const initializedSetVersion = useRef<string | null>(null);
+  const hasInitializedStudyState = useRef(false);
+  const sessionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!set) return;
     const version = `${set.id}:${set.updatedAt}`;
     if (initializedSetVersion.current === version) return;
     initializedSetVersion.current = version;
-    setCards(set.cards || []);
-    setCurrentIndex(0);
-    setIsFlipped(false);
-    setIsShuffled(false);
-    setIsCompleted(false);
+
+    const sourceCards = set.cards || [];
+    const sourceCardIds = sourceCards.map((card) => card.id);
+    const saved = readFlashcardStudyContinuity(set.id);
+    const restoredOrder = resolveFlashcardStudyOrder(saved, sourceCardIds);
+
+    if (saved && restoredOrder) {
+      const cardsById = new Map(sourceCards.map((card) => [card.id, card]));
+      const restoredCards = restoredOrder
+        .map((cardId) => cardsById.get(cardId))
+        .filter((card): card is FlashcardDto => Boolean(card));
+      const restoredIndex = saved.currentCardId
+        ? restoredOrder.indexOf(saved.currentCardId)
+        : saved.currentIndex;
+      sessionIdRef.current = saved.sessionId;
+      setCards(restoredCards);
+      setCurrentIndex(Math.min(Math.max(restoredIndex, 0), Math.max(restoredCards.length - 1, 0)));
+      setIsFlipped(saved.isFlipped);
+      setIsShuffled(saved.isShuffled);
+      setIsCompleted(saved.isCompleted);
+    } else {
+      if (saved) clearFlashcardStudyContinuity(set.id);
+      sessionIdRef.current =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : `study-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      setCards(sourceCards);
+      setCurrentIndex(0);
+      setIsFlipped(false);
+      setIsShuffled(false);
+      setIsCompleted(false);
+    }
+    hasInitializedStudyState.current = true;
   }, [set]);
+
+  useEffect(() => {
+    if (!set || !hasInitializedStudyState.current || cards.length === 0) return;
+    writeFlashcardStudyContinuity({
+      setId: set.id,
+      sessionId: sessionIdRef.current ?? `study-${set.id}`,
+      cardIds: cards.map((card) => card.id),
+      currentCardId: cards[currentIndex]?.id ?? null,
+      currentIndex,
+      isFlipped,
+      isShuffled,
+      isCompleted,
+      progress: isCompleted ? 100 : Math.round(((currentIndex + 1) / cards.length) * 100),
+      returnTo: `/flashcards/${set.id}/study`,
+    });
+  }, [cards, currentIndex, isCompleted, isFlipped, isShuffled, set]);
 
   const handleToggleFlip = useCallback(() => {
     setIsFlipped((prev) => !prev);
@@ -200,6 +251,41 @@ export default function FlashcardStudyPage() {
         </Link>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Link
+            href={`/lookup?returnTo=${encodeURIComponent(`/flashcards/${id}/study`)}`}
+            onClick={() => {
+              if (!set || cards.length === 0) return;
+              writeFlashcardStudyContinuity({
+                setId: set.id,
+                sessionId: sessionIdRef.current ?? `study-${set.id}`,
+                cardIds: cards.map((card) => card.id),
+                currentCardId: cards[currentIndex]?.id ?? null,
+                currentIndex,
+                isFlipped,
+                isShuffled,
+                isCompleted,
+                progress: isCompleted
+                  ? 100
+                  : Math.round(((currentIndex + 1) / cards.length) * 100),
+                returnTo: `/flashcards/${id}/study`,
+              });
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.4rem 0.75rem',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(56, 189, 248, 0.1)',
+              border: '1px solid rgba(56, 189, 248, 0.25)',
+              color: 'var(--accent-cyan)',
+              fontSize: '0.8125rem',
+              fontWeight: '600',
+            }}
+          >
+            <Languages size={14} />
+            <span>Lookup</span>
+          </Link>
           <button
             onClick={handleToggleShuffle}
             title="Toggle shuffle (Press S)"
