@@ -296,21 +296,34 @@ Commit: `feat(dictionary): implement bidirectional lookup`
 
 ## TASK-412 — Implement single-kanji enrichment
 
-- [ ] Detect a valid single-kanji query.
-- [ ] Fetch approved kanji metadata.
-- [ ] Return on-yomi.
-- [ ] Return kun-yomi.
-- [ ] Return stroke count.
-- [ ] Return JLPT/grade/frequency only when provider data is trustworthy.
-- [ ] Merge Vietnamese meaning from the primary dictionary result when available.
-- [ ] Do not present English-only metadata as Vietnamese meaning.
-- [ ] Return a bounded related-word list.
-- [ ] Cache safely.
-- [ ] Degrade gracefully if kanji enrichment provider fails.
+- [x] Detect a valid single-kanji query.
+- [x] Fetch approved kanji metadata.
+- [x] Return on-yomi.
+- [x] Return kun-yomi.
+- [x] Return stroke count.
+- [x] Return JLPT/grade/frequency only when provider data is trustworthy.
+- [x] Merge Vietnamese meaning from the primary dictionary result when available.
+- [x] Do not present English-only metadata as Vietnamese meaning.
+- [x] Return a bounded related-word list.
+- [x] Cache safely.
+- [x] Degrade gracefully if kanji enrichment provider fails.
 
 Acceptance criteria:
 
 - Single-kanji lookup is richer but never makes base lookup fragile.
+
+Verification (2026-08-27):
+
+- [x] Single-code-point kanji detection excludes compounds and kana.
+- [x] `kanjiapi.dev` readings, stroke count, JLPT/grade/frequency fields are
+      normalized into the shared response; English glosses remain excluded from
+      `vietnameseMeanings`.
+- [x] Vietnamese meanings from the primary dictionary are merged and related
+      words are bounded at ten items.
+- [x] Metadata/related-word provider failures are logged with safe operation
+      and code fields and leave the base lookup usable.
+- [x] Service tests cover detection, enrichment, merge, bounds, and graceful
+      failure while retaining the bounded lookup cache.
 
 Commit: `feat(dictionary): add kanji enrichment`
 

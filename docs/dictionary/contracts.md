@@ -50,3 +50,9 @@ Japanese characters and Vietnamese diacritics.
 No-result is a normal typed domain outcome. It is never filled by an inferred
 translation, an English-only kanji gloss, or a provider payload copied into a
 client.
+
+For a valid single-kanji Japanese query, the API attempts kanji enrichment but
+returns the base dictionary response when enrichment is unavailable. A kanji
+metadata response with no dictionary meaning may still be useful and is
+returned with an empty word-result list; this is distinct from a completely
+empty lookup, which uses `NO_RESULT`.

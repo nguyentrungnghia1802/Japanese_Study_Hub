@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   DictionaryErrorCode,
   DictionaryLookupDirection,
@@ -14,11 +14,14 @@ import {
   createDictionaryCacheKey,
 } from './dictionary-cache.js';
 import type { ResolvedDictionaryDirection } from './dictionary-providers.js';
+import { DictionaryProviderError } from './dictionary-errors.js';
+import { KanjiApiProvider } from './kanjiapi.provider.js';
 import { MinhqndDictionaryProvider } from './minhqnd.provider.js';
 import { VietnameseWiktionaryProvider } from './wiktionary.provider.js';
 
 const JAPANESE_SCRIPT_PATTERN =
   /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9d]/u;
+const SINGLE_KANJI_PATTERN = /^[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]$/u;
 const LATIN_LETTER_PATTERN = /[A-Za-zÀ-ỹ]/u;
 
 @Injectable()
@@ -30,10 +33,13 @@ export class DictionaryLookupCache extends TtlLruCache<DictionaryLookupResponseD
 
 @Injectable()
 export class DictionaryLookupService {
+  private readonly logger = new Logger(DictionaryLookupService.name);
+
   constructor(
     private readonly primaryProvider: MinhqndDictionaryProvider,
     private readonly vietnameseFallback: VietnameseWiktionaryProvider,
     private readonly cache: DictionaryLookupCache,
+    private readonly kanjiProvider: KanjiApiProvider,
   ) {}
 
   async lookup(request: DictionaryLookupRequestDto): Promise<DictionaryLookupResponseDto> {
@@ -48,7 +54,7 @@ export class DictionaryLookupService {
     });
     const cached = this.cache.get(cacheKey);
     if (cached) {
-      if (cached.results.length === 0)
+      if (cached.results.length === 0 && cached.kanji === null)
         throw new DictionaryDomainError(DictionaryErrorCode.NO_RESULT);
       return cached;
     }
@@ -59,13 +65,14 @@ export class DictionaryLookupService {
     }
 
     const rankedResults = rankDictionaryResults(results, query).slice(0, limit);
+    const kanji = await this.enrichSingleKanji(query, direction, rankedResults);
     const response: DictionaryLookupResponseDto = {
       query,
       direction,
       results: rankedResults,
-      kanji: null,
+      kanji,
       examples: [],
-      sources: uniqueSources(rankedResults),
+      sources: uniqueSources(rankedResults, kanji),
     };
     this.cache.set(
       cacheKey,
@@ -74,9 +81,51 @@ export class DictionaryLookupService {
         ? DICTIONARY_CACHE_POLICY.lookupSuccessTtlMs
         : DICTIONARY_CACHE_POLICY.noResultTtlMs,
     );
-    if (response.results.length === 0)
+    if (response.results.length === 0 && response.kanji === null)
       throw new DictionaryDomainError(DictionaryErrorCode.NO_RESULT);
     return response;
+  }
+
+  private async enrichSingleKanji(
+    query: string,
+    direction: ResolvedDictionaryDirection,
+    results: DictionaryWordResultDto[],
+  ): Promise<DictionaryLookupResponseDto['kanji']> {
+    if (direction !== DictionaryLookupDirection.JA_TO_VI || !isSingleKanji(query)) return null;
+
+    try {
+      const metadata = await this.kanjiProvider.enrich(query);
+      if (!metadata) return null;
+      const vietnameseMeanings = [...new Set(results.flatMap((result) => result.meanings))].slice(
+        0,
+        DICTIONARY_LIMITS.maxMeanings,
+      );
+      let relatedWords = metadata.relatedWords;
+      try {
+        relatedWords = await this.kanjiProvider.relatedWords(
+          query,
+          DICTIONARY_LIMITS.maxRelatedWords,
+        );
+      } catch (error) {
+        this.logEnrichmentFailure(error, 'related_words');
+      }
+      return {
+        ...metadata,
+        vietnameseMeanings,
+        relatedWords: relatedWords.slice(0, DICTIONARY_LIMITS.maxRelatedWords),
+      };
+    } catch (error) {
+      this.logEnrichmentFailure(error, 'metadata');
+      return null;
+    }
+  }
+
+  private logEnrichmentFailure(error: unknown, operation: string): void {
+    const code =
+      error instanceof DictionaryProviderError
+        ? error.code
+        : DictionaryErrorCode.PROVIDER_UNAVAILABLE;
+    this.logger.warn(`dictionary_kanji_enrichment_failed operation=${operation} code=${code}`);
   }
 }
 
@@ -106,6 +155,10 @@ export function resolveLookupDirection(
     : DictionaryLookupDirection.VI_TO_JA;
 }
 
+export function isSingleKanji(query: string): boolean {
+  return Array.from(query).length === 1 && SINGLE_KANJI_PATTERN.test(query);
+}
+
 export function normalizeLookupLimit(limit: number | undefined): number {
   if (limit === undefined) return DICTIONARY_LIMITS.maxResults;
   if (!Number.isInteger(limit) || limit < 1) {
@@ -132,11 +185,16 @@ function resultScore(result: DictionaryWordResultDto, query: string): number {
   return index >= 0 ? 500 - Math.min(index, 100) : 0;
 }
 
-function uniqueSources(results: DictionaryWordResultDto[]): DictionaryLookupResponseDto['sources'] {
+function uniqueSources(
+  results: DictionaryWordResultDto[],
+  kanji: DictionaryLookupResponseDto['kanji'],
+): DictionaryLookupResponseDto['sources'] {
   const seen = new Set<string>();
-  return results.flatMap((result) => {
+  const sources = results.flatMap((result) => {
     if (seen.has(result.source.provider)) return [];
     seen.add(result.source.provider);
     return [result.source];
   });
+  if (kanji && !seen.has(kanji.source.provider)) sources.push(kanji.source);
+  return sources;
 }

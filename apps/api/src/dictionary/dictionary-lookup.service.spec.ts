@@ -1,14 +1,20 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DictionaryErrorCode, DictionaryLookupDirection } from '@japanese-learning/contracts';
+import {
+  DictionaryErrorCode,
+  DictionaryKanjiResultDto,
+  DictionaryLookupDirection,
+} from '@japanese-learning/contracts';
 import { DictionaryDomainError } from './dictionary-domain-error.js';
 import {
   DictionaryLookupCache,
   DictionaryLookupService,
+  isSingleKanji,
   resolveLookupDirection,
 } from './dictionary-lookup.service.js';
+import { KanjiApiProvider } from './kanjiapi.provider.js';
 import { MinhqndDictionaryProvider } from './minhqnd.provider.js';
 import { VietnameseWiktionaryProvider } from './wiktionary.provider.js';
-import { MINHQND_SOURCE, VI_WIKTIONARY_SOURCE } from './provider-sources.js';
+import { KANJIAPI_SOURCE, MINHQND_SOURCE, VI_WIKTIONARY_SOURCE } from './provider-sources.js';
 
 function word(writtenForm: string, source = MINHQND_SOURCE) {
   return {
@@ -25,6 +31,7 @@ function word(writtenForm: string, source = MINHQND_SOURCE) {
 function serviceWith(
   primaryResults: ReturnType<typeof word>[],
   fallbackResults: ReturnType<typeof word>[] = [],
+  kanjiResult: DictionaryKanjiResultDto | null = null,
 ) {
   const primary = {
     lookup: vi.fn().mockResolvedValue(primaryResults),
@@ -32,8 +39,17 @@ function serviceWith(
   const fallback = {
     lookup: vi.fn().mockResolvedValue(fallbackResults),
   } as unknown as VietnameseWiktionaryProvider;
-  const service = new DictionaryLookupService(primary, fallback, new DictionaryLookupCache());
-  return { service, primary, fallback };
+  const kanji = {
+    enrich: vi.fn().mockResolvedValue(kanjiResult),
+    relatedWords: vi.fn().mockResolvedValue(kanjiResult?.relatedWords ?? []),
+  } as unknown as KanjiApiProvider;
+  const service = new DictionaryLookupService(
+    primary,
+    fallback,
+    new DictionaryLookupCache(),
+    kanji,
+  );
+  return { service, primary, fallback, kanji };
 }
 
 describe('DictionaryLookupService (TASK-411)', () => {
@@ -41,6 +57,9 @@ describe('DictionaryLookupService (TASK-411)', () => {
     expect(resolveLookupDirection('日本語')).toBe(DictionaryLookupDirection.JA_TO_VI);
     expect(resolveLookupDirection('ありがとう')).toBe(DictionaryLookupDirection.JA_TO_VI);
     expect(resolveLookupDirection('Nhật Bản')).toBe(DictionaryLookupDirection.VI_TO_JA);
+    expect(isSingleKanji('猫')).toBe(true);
+    expect(isSingleKanji('日本')).toBe(false);
+    expect(isSingleKanji('ね')).toBe(false);
   });
 
   it('honors explicit direction and preserves normalized Unicode query', async () => {
@@ -97,6 +116,49 @@ describe('DictionaryLookupService (TASK-411)', () => {
       code: DictionaryErrorCode.NO_RESULT,
     });
     expect(primary.lookup).toHaveBeenCalledTimes(1);
+  });
+
+  it('enriches a single kanji and keeps English-only metadata out of Vietnamese meanings', async () => {
+    const kanji: DictionaryKanjiResultDto = {
+      character: '猫',
+      onYomi: ['ビョウ'],
+      kunYomi: ['ねこ'],
+      vietnameseMeanings: [],
+      strokeCount: 11,
+      jlpt: 3,
+      grade: 8,
+      frequencyRank: 1702,
+      relatedWords: [{ writtenForm: '猫科', reading: 'ねこか', meaning: null }],
+      source: KANJIAPI_SOURCE,
+    };
+    const { service, kanji: provider } = serviceWith([word('猫')], [], kanji);
+    const result = await service.lookup({
+      query: '猫',
+      direction: DictionaryLookupDirection.JA_TO_VI,
+    });
+    expect(result.kanji).toMatchObject({
+      character: '猫',
+      onYomi: ['ビョウ'],
+      kunYomi: ['ねこ'],
+      vietnameseMeanings: ['Nghĩa tiếng Việt'],
+      strokeCount: 11,
+      jlpt: 3,
+      grade: 8,
+      frequencyRank: 1702,
+      relatedWords: [{ writtenForm: '猫科', meaning: null }],
+    });
+    expect(provider.relatedWords).toHaveBeenCalledWith('猫', 10);
+  });
+
+  it('returns base lookup when kanji enrichment fails', async () => {
+    const { service, kanji } = serviceWith([word('猫')]);
+    vi.mocked(kanji.enrich).mockRejectedValueOnce(new Error('provider offline'));
+    const result = await service.lookup({
+      query: '猫',
+      direction: DictionaryLookupDirection.JA_TO_VI,
+    });
+    expect(result.results).toHaveLength(1);
+    expect(result.kanji).toBeNull();
   });
 
   it('rejects empty, non-language, and oversized input with a stable code', async () => {
