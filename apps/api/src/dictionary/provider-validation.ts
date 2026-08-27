@@ -1,6 +1,6 @@
 import { DictionaryErrorCode } from '@japanese-learning/contracts';
-import sanitizeHtml = require('sanitize-html');
 import { DictionaryProviderError } from './dictionary-errors.js';
+import { sanitizeProviderHtml } from './sanitize-html-runtime.js';
 
 export function requireRecord(value: unknown, provider: string): Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
@@ -67,7 +67,7 @@ export function uniqueNonEmpty(values: string[], limit: number): string[] {
 }
 
 export function sanitizeProviderText(value: string, maxCodePoints = 1_000): string {
-  const withoutMarkup = sanitizeHtml(value, {
+  const withoutMarkup = sanitizeProviderHtml(value, {
     allowedTags: [],
     allowedAttributes: {},
     disallowedTagsMode: 'discard',

@@ -1,6 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { DictionaryLookupDirection as PrismaDictionaryLookupDirection } from '@prisma/client';
-import sanitizeHtml = require('sanitize-html');
 import {
   CreateDictionaryFavoriteDto,
   DictionaryErrorCode,
@@ -11,6 +10,7 @@ import {
 } from '@japanese-learning/contracts';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { DictionaryDomainError } from './dictionary-domain-error.js';
+import { sanitizeProviderHtml } from './sanitize-html-runtime.js';
 
 export const MAX_DICTIONARY_FAVORITE_PAGE_SIZE = 100;
 export const DEFAULT_DICTIONARY_FAVORITE_PAGE_SIZE = 20;
@@ -41,7 +41,7 @@ const DICTIONARY_PROVIDERS = new Set<DictionaryProvider>([
 ]);
 
 export function normalizeFavoriteText(value: string, maxCodePoints: number): string {
-  const normalized = sanitizeHtml(value.normalize('NFKC').trim().replace(/\s+/gu, ' '), {
+  const normalized = sanitizeProviderHtml(value.normalize('NFKC').trim().replace(/\s+/gu, ' '), {
     allowedTags: [],
     allowedAttributes: {},
   }).trim();
