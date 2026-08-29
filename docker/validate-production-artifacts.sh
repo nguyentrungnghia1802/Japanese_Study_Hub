@@ -48,6 +48,31 @@ grep -Eq 'name: \$\{POSTGRES_VOLUME_NAME:-japanese_study_hub_postgres_data\}' "$
 grep -Eq 'BIND_ADDRESS:-0\.0\.0\.0' "${compose_file}" ||
   die "production Compose must expose an explicit bind-address control"
 
+workflow_file="${REPO_DIR}/.github/workflows/ci.yml"
+[[ -f "${workflow_file}" ]] || die "missing CI workflow"
+for forbidden in \
+  'DEPLOY_HOST' \
+  'DEPLOY_USER' \
+  'DEPLOY_SSH_PRIVATE_KEY' \
+  'DEPLOY_KNOWN_HOSTS' \
+  'DEPLOY_SSH_PORT' \
+  'environment: production' \
+  'deploy-production' \
+  'ssh' \
+  'scp'; do
+  if grep -Fqi -- "${forbidden}" "${workflow_file}"; then
+    die "CI workflow must not contain automatic VPS/CD marker: ${forbidden}"
+  fi
+done
+grep -Fq 'docker-publish:' "${workflow_file}" ||
+  die "CI workflow must retain the GHCR publish job"
+grep -Fq 'packages: write' "${workflow_file}" ||
+  die "GHCR publish job must retain packages:write permission"
+grep -Fq 'japanese-study-hub-${{ matrix.name }}:latest' "${workflow_file}" ||
+  die "GHCR publish must retain the latest API/Web tags"
+grep -Fq 'japanese-study-hub-${{ matrix.name }}:${{ github.sha }}' "${workflow_file}" ||
+  die "GHCR publish must retain the immutable commit-SHA tag"
+
 production_script="${SCRIPT_DIR}/production-update.sh"
 grep -Eq 'flock -n' "${production_script}" || die "deployment must serialize with flock"
 grep -Eq '\^\[0-9a-f\]\{40\}\$' "${production_script}" ||
