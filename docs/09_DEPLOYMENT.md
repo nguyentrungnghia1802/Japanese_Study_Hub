@@ -73,8 +73,9 @@ The owner-provided VPS contract for this repository is:
   assumed by this repository. Existing Hanaya Shop and SmartQueue Nginx hosts
   are not modified.
 
-The actual production pipeline is implemented in `.github/workflows/ci.yml` and
-`docker/production-update.sh`:
+The repository keeps CI/GHCR publication separate from the manual production
+runtime. `.github/workflows/ci.yml` stops after a successful GHCR publication;
+`docker/production-update.sh` is an operator-run VPS script:
 
 ```text
 push/merge main
@@ -84,21 +85,20 @@ push/merge main
   -> fresh and V1-to-current migration checks
   -> Android lint/unit/build/API URL checks
   -> build and push API/Web images to GHCR (:latest and :<commit-sha>)
-  -> SSH-only artifact sync and immutable SHA deployment
-  -> backup + disposable restore verification
-  -> prisma migrate deploy
-  -> API/Web recreate and health/readiness/Web checks
+  -> STOP
 ```
 
-Pull requests run the validation jobs but do not publish or deploy. Only a
-green `main` push can reach the GHCR and production jobs. The application build
-is produced once by CI and uploaded as an artifact; Docker image stages package
-that artifact and do not install dependencies at container startup. Production
-always receives `IMAGE_TAG=<40-character-commit-sha>`, never `latest`.
+Pull requests run the validation jobs but do not publish. Only a green `main`
+push can reach GHCR. There is no SSH, VPS, or GitHub deployment environment in
+the workflow. The application build is produced once by CI and uploaded as an
+artifact; Docker image stages package that artifact and do not install
+dependencies at container startup. Manual production deployment always receives
+`IMAGE_TAG=<40-character-commit-sha>`, never `latest`.
 
-The deployment script takes a project-scoped lock, pulls the two images, starts
-only PostgreSQL, creates and verifies an off-volume backup, applies migrations
-from the API image, recreates only API/Web, and polls the API liveness endpoint,
+For the manual deployment order, run `docker/production-update.sh` on the VPS.
+It takes a project-scoped lock, pulls the two images, starts only PostgreSQL,
+creates and verifies an off-volume backup, applies migrations from the API
+image, recreates only API/Web, and polls the API liveness endpoint,
 database-backed readiness endpoint, and Web root. A failed backup aborts before
 migration. If migration has succeeded but application health fails, it attempts
 an application-only rollback to the previous successful SHA when one is
@@ -145,9 +145,9 @@ API_PORT=4000
 WEB_PORT=3000
 ```
 
-`IMAGE_TAG` is supplied by the deployment workflow. It may be placed in the
-VPS env file for an operator-run dry run, but a real release must pass a
-published immutable commit SHA explicitly.
+`IMAGE_TAG` is supplied by the operator. It may be placed in the VPS env file
+for a dry run, but a real release must pass a published immutable commit SHA
+explicitly.
 
 Web build configuration:
 
@@ -224,7 +224,7 @@ No real production values.
 
 ## 7. Database migrations
 
-The immutable production deployment order is:
+The manual immutable production deployment order is:
 
 1. Acquire the shared deployment/backup lock and validate the exact production
    Compose volume declaration.
@@ -283,9 +283,9 @@ baseline schema and any later forward migrations. The one-time
 other Docker projects; it starts/checks only this project's PostgreSQL service
 before taking the backup.
 
-Before the first successful managed deployment the scheduled wrapper fails
-closed because no current SHA exists; this does not touch PostgreSQL data. After
-the workflow syncs the wrapper and a deployment records `state/current_sha`, the
+Before the first successful manual deployment the scheduled wrapper fails closed
+because no current SHA exists; this does not touch PostgreSQL data. After the
+operator installs the wrapper and a deployment records `state/current_sha`, the
 schedule can run normally. Keep a second copy of important archives outside the
 VPS according to the owner's recovery policy. The existing isolated restore
 record is in `docs/operations/backup-restore-2026-08-27.md`.
@@ -342,7 +342,7 @@ Do not make health payload expose sensitive infrastructure details.
 
 ---
 
-## 11. CI/CD recommended stages
+## 11. CI and manual deployment stages
 
 ```text
 static policy / ShellCheck / Compose config
@@ -355,14 +355,13 @@ Android lint + unit tests + debug/production/release APK build
   ↓
 Docker package/push (:latest + :<commit-sha>) [main only]
   ↓
-SSH artifact sync + immutable VPS deployment [main only]
-  ↓
-backup/restore verification + migration + application/health smoke checks
+STOP — operator runs the manual VPS deployment commands
 ```
 
 Android is an independent job in the same workflow and is a required dependency
 of image publication; it is never deployed as Web/API. The Docker job consumes
-the already-built Web/API artifact from the Node job.
+the already-built Web/API artifact from the Node job. No GitHub Action performs
+VPS access or production deployment.
 
 ---
 
@@ -373,9 +372,8 @@ Before production release:
 - [ ] All task acceptance criteria complete
 - [ ] The `main` workflow is green through all required validation jobs
 - [ ] GHCR contains both `latest` and the exact deployed commit SHA
-- [ ] Required GitHub production secrets/environment are configured
-- [ ] VPS bootstrap, runtime `.env.production`, GHCR read login, and backup
-      schedule have been verified by the owner
+- [ ] Manual VPS runtime `.env.production`, GHCR read login, and backup schedule
+      have been verified by the owner
 - [ ] Lint passes
 - [ ] Typecheck passes
 - [ ] Unit tests pass
@@ -403,7 +401,7 @@ Application rollback:
 - Record the current SHA before any manual rollback.
 - Rerun `production-update.sh` with that exact 40-character SHA only after
   confirming the newer migration is backward-compatible with the old image.
-- The automatic path may restore API/Web to the previous successful SHA after a
+- The manual script may restore API/Web to the previous successful SHA after a
   post-migration application health failure; it does not undo database changes.
 
 Database rollback:

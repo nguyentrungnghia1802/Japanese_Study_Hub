@@ -88,8 +88,8 @@ Phase 2 keeps PostgreSQL and the API authoritative. The delivered scope includes
 - Guarded production update, backup/restore, transport-audit, and safe request
   observability procedures documented under `docs/`.
 
-The production CI/CD implementation and owner-controlled setup commands are
-documented in `docs/operations/production-cicd-2026-08-27.md`.
+The production CI + GHCR image publishing flow and owner-run manual deployment
+commands are documented in `docs/operations/production-cicd-2026-08-27.md`.
 
 The complete Phase 2 requirements and its release boundary are in
 `docs/13_PHASE2_REQUIREMENTS.md`. Phase 3 requirements are in

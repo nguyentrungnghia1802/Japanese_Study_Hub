@@ -142,8 +142,8 @@ shellcheck --severity=warning docker/*.sh scripts/verify-migrations.sh
 docker compose -f docker-compose.prod.yml config --quiet
 ```
 
-The production deployment runbook, GitHub Secrets list, one-time VPS bootstrap,
-immutable SHA release flow, rollback, and restore commands are in
+The production CI/GHCR runbook, one-time VPS bootstrap, manual immutable SHA
+deployment, rollback, and restore commands are in
 `docs/operations/production-cicd-2026-08-27.md`.
 
 The opt-in API integration and migration suites are:

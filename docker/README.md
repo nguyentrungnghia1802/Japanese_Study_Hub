@@ -26,9 +26,9 @@ through `BIND_ADDRESS`, and names the existing database volume
   `/opt/japanese-learning-runtime`, state/log directories, permissions, and the
   project-only daily backup cron entry. It never changes `.env.production` when
   that file already exists.
-- `production-update.sh`: immutable deploy, shared lock, pre-migration backup
-  and disposable restore verification, Prisma migration, API/Web recreation,
-  health checks, SHA state/history, automatic application-only rollback, and
+- `production-update.sh`: manual immutable deploy, shared lock, pre-migration
+  backup and disposable restore verification, Prisma migration, API/Web
+  recreation, health checks, SHA state/history, application-only rollback, and
   bounded project-image cleanup.
 - `backup.sh`: atomic compressed `pg_dump` outside the live volume with gzip
   verification and a 14-file retention bound.
@@ -47,8 +47,8 @@ through `BIND_ADDRESS`, and names the existing database volume
 
 ## Operator commands
 
-The first-time VPS bootstrap, required GitHub secrets, deploy/rollback commands,
-and restore procedure are maintained in
+The first-time VPS bootstrap, manual deploy/rollback commands, and restore
+procedure are maintained in
 `docs/operations/production-cicd-2026-08-27.md`.
 
 For a non-mutating production preflight on the VPS:

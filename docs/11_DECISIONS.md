@@ -386,7 +386,7 @@ integration, migration-compatibility, dependency-audit, and Android jobs are
 required before the `main`-only Docker job. Build the API and Web application
 artifacts once in the Node job, upload them as a short-retention artifact, and
 package those artifacts into API/Web images tagged with both `latest` and the
-full commit SHA. The VPS deployment accepts only the immutable SHA.
+full commit SHA. The manual VPS deployment accepts only the immutable SHA.
 
 **Reason:** A single dependency graph prevents a green-looking image publish
 from bypassing tests, avoids compiling the application a second time inside a
@@ -417,3 +417,21 @@ the named PostgreSQL volume or run `docker system prune --volumes`.
 **Reason:** This preserves PostgreSQL and the prior application release as the
 authoritative recovery boundary without adding an orchestration platform or
 touching unrelated Hanaya Shop/SmartQueue Docker/Nginx projects.
+
+## ADR-040 — Stop at GHCR; production deployment is manual
+
+**Decision:** The GitHub Actions workflow ends after a successful `main`-only
+GHCR publication of the API/Web `latest` and full commit-SHA tags. Remove the
+automatic SSH/VPS job, its deployment environment, and its deployment
+credentials from GitHub Actions. Keep `docker/production-update.sh`, backup,
+restore, and health-check scripts as the operator-controlled production path.
+
+**Reason:** This is a personal project and the operational complexity of
+automatic SSH deployment is not justified. CI still prevents a bad build from
+being published, while the existing manual script preserves backup-before-
+migration, immutable image, health-check, rollback, and PostgreSQL-volume
+invariants.
+
+**Compatibility:** This supersedes only the automatic execution part of
+ADR-039. The runtime directory, Compose contract, backup policy, forward-only
+database policy, and project-scoped safety rules remain unchanged.
